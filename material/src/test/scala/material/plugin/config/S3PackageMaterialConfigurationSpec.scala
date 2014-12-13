@@ -35,4 +35,15 @@ class S3PackageMaterialConfigurationSpec extends FlatSpec {
     val validationErrors = configuration.isRepositoryConfigurationValid(repoConfig).getErrors.asScala
     validationErrors.length should be(3)
   }
+
+  it should "return package configuration" in {
+    val packageConfig = new S3PackageMaterialConfiguration().getPackageConfiguration
+    val keys = packageConfig.list().asScala.map(_.asInstanceOf[PackageMaterialProperty]).map(_.getKey)
+    keys.length should be(1)
+    keys should contain (S3PackageMaterialConfiguration.ARTIFACT_NAME)
+  }
+
+  it should "validation package configuration and return no errors if all configurations are valid" in {
+
+  }
 }

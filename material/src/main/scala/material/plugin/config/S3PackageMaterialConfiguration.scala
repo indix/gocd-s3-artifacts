@@ -10,7 +10,11 @@ import org.apache.commons.lang3.StringUtils
 import material.plugin.S3PackageMaterialPoller
 
 case class Config(name: String, displayName: String, order: Int) {
-  def toProperty = new PackageMaterialProperty(name)
+  def toPackageProperty = new PackageMaterialProperty(name)
+    .`with`[String](Property.DISPLAY_NAME, displayName)
+    .`with`[Integer](Property.DISPLAY_ORDER, order)
+
+  def toProperty = new Property(name)
     .`with`[String](Property.DISPLAY_NAME, displayName)
     .`with`[Integer](Property.DISPLAY_ORDER, order)
 }
@@ -21,17 +25,22 @@ object S3PackageMaterialConfiguration {
   val S3_BUCKET = "S3_BUCKET"
   val S3_ACCESS_KEY_ID = "S3_AWS_ACCESS_KEY_ID"
   val S3_SECRET_ACCESS_KEY = "S3_AWS_SECRET_ACCESS_KEY"
-  val configs = List(
+  val ARTIFACT_NAME = "ARTIFACT_NAME"
+  val repoConfigs = List(
     Config(S3_BUCKET, "S3 Bucket", 0),
     Config(S3_ACCESS_KEY_ID, "S3 Access Key ID", 1),
     Config(S3_SECRET_ACCESS_KEY, "S3 Secret Access Key", 2)
+  )
+  
+  val packageConfigs = List(
+    Config(ARTIFACT_NAME, "Artifact Name", 0)
   )
 }
 
 class S3PackageMaterialConfiguration extends PackageMaterialConfiguration {
   override def getRepositoryConfiguration: RepositoryConfiguration = {
     val repoConfig = new RepositoryConfiguration()
-    S3PackageMaterialConfiguration.configs.map(_.toProperty).foreach(p => repoConfig.add(p))
+    S3PackageMaterialConfiguration.repoConfigs.map(_.toPackageProperty).foreach(p => repoConfig.add(p))
     repoConfig
   }
 
@@ -56,9 +65,18 @@ class S3PackageMaterialConfiguration extends PackageMaterialConfiguration {
     validationResult
   }
 
-  override def isPackageConfigurationValid(packageConfig: PackageConfiguration, repoConfig: RepositoryConfiguration): ValidationResult = ???
+  override def isPackageConfigurationValid(packageConfig: PackageConfiguration, repoConfig: RepositoryConfiguration): ValidationResult = {
+    val errors = List(
+      validate(repoConfig, S3PackageMaterialConfiguration.ARTIFACT_NAME, s"${S3PackageMaterialConfiguration.ARTIFACT_NAME} configuration is missing or value is empty")
+    ).flatMap(vr => vr.map(_.getErrors.asScala).getOrElse(List[ValidationError]()))
+    val validationResult = new ValidationResult()
+    validationResult.addErrors(errors.asJava)
+    validationResult
+  }
 
-  override def getPackageConfiguration: PackageConfiguration = ???
+  override def getPackageConfiguration: PackageConfiguration = {
+    val packageConfig = new PackageConfiguration()
+    S3PackageMaterialConfiguration.packageConfigs.map(_.toPackageProperty).foreach(p => packageConfig.add(p))
+    packageConfig
+  }
 }
-
-
