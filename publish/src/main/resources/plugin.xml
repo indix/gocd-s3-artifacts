@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<go-plugin id="com.indix.gocd.s3publish.PublishTask" version="1">
+    <about>
+        <name>Publish to S3</name>
+        <version>1.0.0</version>
+        <target-go-version>14.3.0</target-go-version>
+        <description>Publish artifacts to S3</description>
+        <vendor>
+            <name>Indix</name>
+            <url>www.indix.com</url>
+        </vendor>
+        <target-os>
+            <value>Linux</value>
+            <value>Mac OS X</value>
+            <value>Windows</value>
+        </target-os>
+    </about>
+</go-plugin>

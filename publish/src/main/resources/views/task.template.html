@@ -1,0 +1,13 @@
+<div class="form_item_block">
+    <label>Bucket:<span class="asterisk">*</span>
+    </label>
+    <input class="MB_focusable" type="text" ng-model="BUCKET" ng-required="true" />
+    <span class="form_error" ng-show="GOINPUTNAME[BUCKET].$error.url">Invalid bucket name</span>
+    <span class="form_error" ng-show="GOINPUTNAME[BUCKET].$error.server">{{ GOINPUTNAME[BUCKET].$error.server }}</span>
+</div>
+<div class="form_item_block">
+    <label>Source:<span class="asterisk">*</span></label>
+    <input class="MB_focusable" type="text" ng-model="SOURCE" ng-required="true" />
+    <span class="form_error" ng-show="GOINPUTNAME[SOURCE].$error.url">File to publish can't be empty</span>
+    <span class="form_error" ng-show="GOINPUTNAME[SOURCE].$error.server">{{ GOINPUTNAME[SOURCE].$error.server }}</span>
+</div>
