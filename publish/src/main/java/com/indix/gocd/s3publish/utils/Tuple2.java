@@ -1,20 +1,20 @@
 package com.indix.gocd.s3publish.utils;
 
 public class Tuple2<Left, Right> {
-    private Left left;
-    private Right right;
+    private Left _1;
+    private Right _2;
 
-    public Tuple2(Left left, Right right) {
-        this.left = left;
-        this.right = right;
+    public Tuple2(Left _1, Right _2) {
+        this._1 = _1;
+        this._2 = _2;
     }
 
     public Left _1() {
-        return left;
+        return _1;
     }
 
     public Right _2() {
-        return right;
+        return _2;
     }
 
     @Override
@@ -24,16 +24,16 @@ public class Tuple2<Left, Right> {
 
         Tuple2 tuple2 = (Tuple2) o;
 
-        if (!left.equals(tuple2.left)) return false;
-        if (!right.equals(tuple2.right)) return false;
+        if (!_1.equals(tuple2._1)) return false;
+        if (!_2.equals(tuple2._2)) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = left.hashCode();
-        result = 31 * result + right.hashCode();
+        int result = _1.hashCode();
+        result = 31 * result + _2.hashCode();
         return result;
     }
 }
