@@ -43,8 +43,8 @@ public class PublishExecutor implements TaskExecutor {
         foreach(filesToUpload, new Function<FilePathToTemplate, Void>() {
             @Override
             public Void apply(FilePathToTemplate filePathToTemplate) {
-                String localFile = filePathToTemplate.getLeft();
-                String destinationOnS3 = filePathToTemplate.getRight();
+                String localFile = filePathToTemplate._1();
+                String destinationOnS3 = filePathToTemplate._2();
                 context.console().printLine(String.format("Pushing %s to s3://%s/%s", localFile, bucket, destinationOnS3));
                 store.put(localFile, destinationOnS3, metadata());
                 context.console().printLine(String.format("Pushed %s to s3://%s/%s", localFile, bucket, destinationOnS3));
