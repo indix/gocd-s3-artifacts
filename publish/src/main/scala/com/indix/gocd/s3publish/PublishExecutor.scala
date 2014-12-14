@@ -41,7 +41,7 @@ class PublishExecutor extends TaskExecutor {
     filesToKeys(template)
   }
 
-  def filesToKeys(templateSoFar: String): PartialFunction[File, Array[(String, String)]] = {
+  private def filesToKeys(templateSoFar: String): PartialFunction[File, Array[(String, String)]] = {
     case fileToUpload if fileToUpload.isDirectory =>
       fileToUpload.listFiles().flatMap(filesToKeys(s"$templateSoFar/${fileToUpload.getName}").apply)
     case fileToUpload => Array(fileToUpload.getAbsolutePath -> s"$templateSoFar/${fileToUpload.getName}")
