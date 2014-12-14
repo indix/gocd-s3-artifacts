@@ -48,5 +48,4 @@ object PublishTask {
   /* We should be getting these from the environment variables */
   val AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY"
   val AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID"
-  val FS_SCHEME = "FS_SCHEME"
 }

@@ -11,13 +11,15 @@ import material.store.S3ArtifactStore
 
 class PublishExecutor extends TaskExecutor {
 
+  import com.indix.gocd.s3publish.PublishTask._
+
   override def execute(config: TaskConfig, context: TaskExecutionContext): ExecutionResult = {
     val environment = context.environment().asMap()
-    if (!checkForAccessKeyId(environment)) return ExecutionResult.failure("AWS_ACCESS_KEY_ID environment variable not present")
-    if (!checkForSecretKey(environment)) return ExecutionResult.failure("AWS_SECRET_ACCESS_KEY environment variable not present")
+    if (!checkForAccessKeyId(environment)) return ExecutionResult.failure(s"$AWS_ACCESS_KEY_ID environment variable not present")
+    if (!checkForSecretKey(environment)) return ExecutionResult.failure(s"$AWS_SECRET_ACCESS_KEY environment variable not present")
 
-    val bucket = config.getValue(PublishTask.BUCKET_NAME)
-    val source = config.getValue(PublishTask.SOURCE)
+    val bucket = config.getValue(BUCKET_NAME)
+    val source = config.getValue(SOURCE)
     val store = S3ArtifactStore(s3Client(environment), bucket)
     val localFileToUpload = new File(s"${context.workingDir()}/$source")
     val filePathOnS3 = destinationOnS3(environment)(localFileToUpload)
@@ -48,13 +50,13 @@ class PublishExecutor extends TaskExecutor {
   }
 
   private def s3Client(environment: JMap[String, String]) = {
-    val secretKey = environment.get(PublishTask.AWS_SECRET_ACCESS_KEY)
-    val accessKey = environment.get(PublishTask.AWS_ACCESS_KEY_ID)
+    val secretKey = environment.get(AWS_SECRET_ACCESS_KEY)
+    val accessKey = environment.get(AWS_ACCESS_KEY_ID)
     val credentials = new BasicAWSCredentials(accessKey, secretKey)
     new AmazonS3Client(credentials)
   }
 
-  private def checkForAccessKeyId(environment: JMap[String, String]) = environment.containsKey(PublishTask.AWS_ACCESS_KEY_ID)
+  private def checkForAccessKeyId(environment: JMap[String, String]) = environment.containsKey(AWS_ACCESS_KEY_ID)
 
-  private def checkForSecretKey(environment: JMap[String, String]) = environment.containsKey(PublishTask.AWS_SECRET_ACCESS_KEY)
+  private def checkForSecretKey(environment: JMap[String, String]) = environment.containsKey(AWS_SECRET_ACCESS_KEY)
 }
