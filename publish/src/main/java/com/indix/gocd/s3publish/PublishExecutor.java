@@ -18,7 +18,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.indix.gocd.s3publish.PublishTask.*;
-import static com.indix.gocd.s3publish.utils.Lists.*;
+import static com.indix.gocd.s3publish.utils.Lists.flatMap;
+import static com.indix.gocd.s3publish.utils.Lists.foreach;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class PublishExecutor implements TaskExecutor {
