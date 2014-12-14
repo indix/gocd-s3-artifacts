@@ -1,16 +1,9 @@
 <div class="form_item_block">
-    <label>Bucket:<span class="asterisk">*</span>
-    </label>
-    <input class="form_input MB_focusable required" type="text" ng-model="BUCKET" ng-required="true" ng-attr-tabindex=="1" />
-    <span class="form_error" ng-show="GOINPUTNAME[BUCKET].$error.url">Invalid bucket name</span>
-    <span class="form_error" ng-show="GOINPUTNAME[BUCKET].$error.server">{{ GOINPUTNAME[BUCKET].$error.server }}</span>
-</div>
-<div class="form_item_block">
     <label>Source:<span class="asterisk">*</span></label>
-    <input class="form_input MB_focusable required" type="text" ng-model="SOURCE" ng-required="true" ng-attr-tabindex=="2" />
-    <span class="form_error" ng-show="GOINPUTNAME[SOURCE].$error.url">File to publish can't be empty</span>
-    <span class="form_error" ng-show="GOINPUTNAME[SOURCE].$error.server">{{ GOINPUTNAME[SOURCE].$error.server }}</span>
+    <input class="form_input MB_focusable required" type="text" ng-model="source" ng-required="true" ng-attr-tabindex="1" />
+    <span class="form_error" ng-show="GOINPUTNAME[source].$error.url">File to publish can't be empty</span>
+    <span class="form_error" ng-show="GOINPUTNAME[source].$error.server">{{ GOINPUTNAME[source].$error.server }}</span>
 </div>
 <div class="form_item_block">
-    <p class="required">Make sure AWS_SECRET_ACCESS_KEY and AWS_ACCESS_KEY_ID environment variables are present with appropriate values. </p>
+    <p class="required">Make sure AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID and GO_ARTIFACTS_S3_BUCKET environment variables are present with appropriate values on any of pipeline / Go Environments / on all agents machines. </p>
 </div>
