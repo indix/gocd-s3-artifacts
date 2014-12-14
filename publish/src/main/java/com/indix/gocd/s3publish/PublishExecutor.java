@@ -110,8 +110,8 @@ public class PublishExecutor implements TaskExecutor {
  */
 class FilePathToTemplate extends Tuple2<String, String> {
 
-    public FilePathToTemplate(String s, String s2) {
-        super(s, s2);
+    public FilePathToTemplate(String filePath, String template) {
+        super(filePath, template);
     }
 }
 
