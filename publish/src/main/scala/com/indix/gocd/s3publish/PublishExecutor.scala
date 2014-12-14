@@ -1,5 +1,6 @@
 package com.indix.gocd.s3publish
 
+import java.io.File
 import java.util.{Map => JMap}
 
 import com.amazonaws.auth.BasicAWSCredentials
@@ -15,26 +16,35 @@ class PublishExecutor extends TaskExecutor {
     if (!checkForAccessKeyId(environment)) return ExecutionResult.failure("AWS_ACCESS_KEY_ID environment variable not present")
     if (!checkForSecretKey(environment)) return ExecutionResult.failure("AWS_SECRET_ACCESS_KEY environment variable not present")
 
-    context.console().printEnvironment(environment, context.environment().secureEnvSpecifier())
-
     val bucket = config.getValue(PublishTask.BUCKET_NAME)
     val source = config.getValue(PublishTask.SOURCE)
     val store = S3ArtifactStore(s3Client(environment), bucket)
-    val filePathOnS3 = destinationOnS3(environment, source)
-    store.put(s"${context.workingDir()}/$source", filePathOnS3)
-    val finalPathOnS3 = s"s3://$bucket/$filePathOnS3"
-    context.console().printLine(s"Pushed $source to $finalPathOnS3")
-    ExecutionResult.success(s"Pushed $source to $finalPathOnS3")
+    val localFileToUpload = new File(s"${context.workingDir()}/$source")
+    val filePathOnS3 = destinationOnS3(environment)(localFileToUpload)
+    filePathOnS3.foreach { fileTuple =>
+      val (localFile, destinationOnS3) = fileTuple
+      context.console().printLine(s"Pushing $localFile to s3://$bucket/$destinationOnS3")
+      store.put(localFile, destinationOnS3)
+      context.console().printLine(s"Pushed $localFile to s3://$bucket/$destinationOnS3")
+    }
+    ExecutionResult.success("Published all artifacts to S3")
   }
 
-  private def destinationOnS3(environment: JMap[String, String], source: String) = {
+  private def destinationOnS3(environment: JMap[String, String]) = {
     val pipeline = environment.get("GO_PIPELINE_NAME")
     val pipelineCounter = environment.get("GO_PIPELINE_COUNTER")
     val stageName = environment.get("GO_STAGE_NAME")
     val stageCounter = environment.get("GO_STAGE_COUNTER")
 
     // FIXME - May be make this template configurable?
-    s"${pipeline}_$stageName/${pipelineCounter}_$stageCounter/$source"
+    val template = s"${pipeline}_$stageName/${pipelineCounter}_$stageCounter"
+    filesToKeys(template)
+  }
+
+  def filesToKeys(templateSoFar: String): PartialFunction[File, Array[(String, String)]] = {
+    case fileToUpload if fileToUpload.isDirectory =>
+      fileToUpload.listFiles().flatMap(filesToKeys(s"$templateSoFar/${fileToUpload.getName}").apply)
+    case fileToUpload => Array(fileToUpload.getAbsolutePath -> s"$templateSoFar/${fileToUpload.getName}")
   }
 
   private def s3Client(environment: JMap[String, String]) = {
