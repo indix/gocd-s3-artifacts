@@ -13,6 +13,10 @@ public class Lists {
         }
     }
 
+    public static <T, K> void foreach(T[] array, Function<T, Void> function) {
+        foreach(Arrays.asList(array), function);
+    }
+
     public static <T, K> List<K> flatMap(List<T> originalList, Function<T, List<K>> transformer) {
         ArrayList<K> flatMapped = new ArrayList<K>();
         for (T item : originalList) {
