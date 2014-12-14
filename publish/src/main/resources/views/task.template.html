@@ -1,6 +1,7 @@
 <div class="form_item_block">
     <label>Source:<span class="asterisk">*</span></label>
-    <input class="form_input MB_focusable required" type="text" ng-model="source" ng-required="true" ng-attr-tabindex="1" />
+    <textarea class="code_text MB_focusable required" ng-model="source" ng-required="true" cols="50" rows="5" wrap="off"></textarea>
+    <div class="inline_instruction">Enter 1 artifact per line. Make sure the path is relative to the working directory. </div>
     <span class="form_error" ng-show="GOINPUTNAME[source].$error.url">File to publish can't be empty</span>
     <span class="form_error" ng-show="GOINPUTNAME[source].$error.server">{{ GOINPUTNAME[source].$error.server }}</span>
 </div>
