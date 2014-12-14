@@ -25,7 +25,6 @@ public class PublishExecutor implements TaskExecutor {
     private Map<String, String> environment = new HashMap<String, String>();
     @Override
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
-        // TODO - Will this be available cross jobs for the same agent?
         environment.putAll(context.environment().asMap());
         environment.putAll(System.getenv());
         if (isEmpty(env(AWS_ACCESS_KEY_ID)))
