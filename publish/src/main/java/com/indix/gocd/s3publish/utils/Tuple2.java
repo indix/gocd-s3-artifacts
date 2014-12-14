@@ -9,20 +9,12 @@ public class Tuple2<Left, Right> {
         this.right = right;
     }
 
-    public Left getLeft() {
+    public Left _1() {
         return left;
     }
 
-    public void setLeft(Left left) {
-        this.left = left;
-    }
-
-    public Right getRight() {
+    public Right _2() {
         return right;
-    }
-
-    public void setRight(Right right) {
-        this.right = right;
     }
 
     @Override
