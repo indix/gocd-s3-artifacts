@@ -20,4 +20,8 @@ public class S3ArtifactStore {
                 .withMetadata(metadata));
     }
 
+    public String pathString(String pathOnS3) {
+        return String.format("s3://%s/%s", bucket, pathOnS3);
+    }
+
 }
