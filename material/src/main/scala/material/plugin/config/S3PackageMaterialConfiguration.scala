@@ -8,6 +8,7 @@ import com.thoughtworks.go.plugin.api.config.Property
 import scala.collection.JavaConverters._
 import org.apache.commons.lang3.StringUtils
 import material.plugin.S3PackageMaterialPoller
+import material.util.LoggerUtil
 
 case class Config(name: String, displayName: String, order: Int) {
   def toPackageProperty = new PackageMaterialProperty(name)
@@ -37,7 +38,7 @@ object S3PackageMaterialConfiguration {
   )
 }
 
-class S3PackageMaterialConfiguration extends PackageMaterialConfiguration {
+class S3PackageMaterialConfiguration extends PackageMaterialConfiguration  with LoggerUtil {
   override def getRepositoryConfiguration: RepositoryConfiguration = {
     val repoConfig = new RepositoryConfiguration()
     S3PackageMaterialConfiguration.repoConfigs.map(_.toPackageProperty).foreach(p => repoConfig.add(p))
