@@ -15,6 +15,7 @@ import com.thoughtworks.go.plugin.api.task.TaskExecutor;
 import java.io.File;
 import java.util.List;
 
+import static com.indix.gocd.s3publish.Constants.*;
 import static com.indix.gocd.s3publish.utils.Lists.flatMap;
 import static com.indix.gocd.s3publish.utils.Lists.foreach;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -25,16 +26,16 @@ public class PublishExecutor implements TaskExecutor {
     @Override
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
         environment.putAll(context.environment().asMap());
-        if (isEmpty(env(Constants.AWS_ACCESS_KEY_ID)))
-            return ExecutionResult.failure(envNotFound(Constants.AWS_ACCESS_KEY_ID));
-        if (isEmpty(env(Constants.AWS_SECRET_ACCESS_KEY)))
-            return ExecutionResult.failure(envNotFound(Constants.AWS_SECRET_ACCESS_KEY));
-        if (isEmpty(env(Constants.GO_ARTIFACTS_S3_BUCKET)))
-            return ExecutionResult.failure(envNotFound(Constants.GO_ARTIFACTS_S3_BUCKET));
+        if (isEmpty(env(AWS_ACCESS_KEY_ID)))
+            return ExecutionResult.failure(envNotFound(AWS_ACCESS_KEY_ID));
+        if (isEmpty(env(AWS_SECRET_ACCESS_KEY)))
+            return ExecutionResult.failure(envNotFound(AWS_SECRET_ACCESS_KEY));
+        if (isEmpty(env(GO_ARTIFACTS_S3_BUCKET)))
+            return ExecutionResult.failure(envNotFound(GO_ARTIFACTS_S3_BUCKET));
 
-        final String bucket = env(Constants.GO_ARTIFACTS_S3_BUCKET);
+        final String bucket = env(GO_ARTIFACTS_S3_BUCKET);
         final S3ArtifactStore store = new S3ArtifactStore(s3Client(), bucket);
-        String[] sources = split(config.getValue(Constants.SOURCE), "\n");
+        String[] sources = split(config.getValue(SOURCE), "\n");
         foreach(sources, new Function<String, Void>() {
             @Override
             public Void apply(String source) {
@@ -64,8 +65,8 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     public AmazonS3Client s3Client() {
-        String accessKey = env(Constants.AWS_ACCESS_KEY_ID);
-        String secretKey = env(Constants.AWS_SECRET_ACCESS_KEY);
+        String accessKey = env(AWS_ACCESS_KEY_ID);
+        String secretKey = env(AWS_SECRET_ACCESS_KEY);
         return new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey));
     }
 
@@ -73,8 +74,8 @@ public class PublishExecutor implements TaskExecutor {
         String tracebackUrl = environment.traceBackUrl();
         String user = environment.triggeredUser();
         ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.addUserMetadata(Constants.METADATA_USER, user);
-        objectMetadata.addUserMetadata(Constants.METADATA_TRACEBACK_URL, tracebackUrl);
+        objectMetadata.addUserMetadata(METADATA_USER, user);
+        objectMetadata.addUserMetadata(METADATA_TRACEBACK_URL, tracebackUrl);
         return objectMetadata;
     }
 
