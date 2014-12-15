@@ -19,7 +19,10 @@ object S3PackageMaterialConfiguration {
   val S3_BUCKET = "S3_BUCKET"
   val S3_ACCESS_KEY_ID = "S3_AWS_ACCESS_KEY_ID"
   val S3_SECRET_ACCESS_KEY = "S3_AWS_SECRET_ACCESS_KEY"
-  val ARTIFACT_NAME = "ARTIFACT_NAME"
+  val PIPELINE_NAME = "PIPELINE_NAME"
+  val STAGE_NAME = "STAGE_NAME"
+  val JOB_NAME = "JOB_NAME"
+  
   val repoConfigs = List(
     Config(S3_BUCKET, "S3 Bucket", 0),
     Config(S3_ACCESS_KEY_ID, "S3 Access Key ID", 1),
@@ -27,7 +30,9 @@ object S3PackageMaterialConfiguration {
   )
   
   val packageConfigs = List(
-    Config(ARTIFACT_NAME, "Artifact Name", 0, false)
+    Config(PIPELINE_NAME, "Pipeline Name", 0),
+    Config(STAGE_NAME, "Stage Name", 1),
+    Config(JOB_NAME, "Job Name", 2)
   )
 }
 
@@ -38,8 +43,8 @@ class S3PackageMaterialConfiguration extends PackageMaterialConfiguration  with 
     repoConfig
   }
 
-  def validate(config: Configuration, property: String, message: String) = {
-    if(config.get(property) == null || StringUtils.isBlank(config.get(property).getValue)) {
+  def validate(config: Configuration, property: String, message: String, required: Boolean) = {
+    if(required && (config.get(property) == null || StringUtils.isBlank(config.get(property).getValue))) {
       val validationResult = new ValidationResult()
       validationResult.addError(new ValidationError(property, message))
       Some(validationResult)
@@ -49,10 +54,9 @@ class S3PackageMaterialConfiguration extends PackageMaterialConfiguration  with 
   }
 
   override def isRepositoryConfigurationValid(repoConfig: RepositoryConfiguration): ValidationResult = {
-    val errors = List(validate(repoConfig, S3PackageMaterialConfiguration.S3_BUCKET, s"${S3PackageMaterialConfiguration.S3_BUCKET} configuration is missing or value is empty"),
-      validate(repoConfig, S3PackageMaterialConfiguration.S3_ACCESS_KEY_ID, s"${S3PackageMaterialConfiguration.S3_ACCESS_KEY_ID} configuration is missing or value is empty"),
-      validate(repoConfig, S3PackageMaterialConfiguration.S3_SECRET_ACCESS_KEY, s"${S3PackageMaterialConfiguration.S3_SECRET_ACCESS_KEY} configuration is missing or value is empty")
-    ).flatMap(vr => vr.map(_.getErrors.asScala).getOrElse(List[ValidationError]()))
+    val errors = S3PackageMaterialConfiguration.repoConfigs
+      .map(c => validate(repoConfig,c.name, s"${c.name} configuration is missing or value is empty", c.required))
+      .flatMap(vr => vr.map(_.getErrors.asScala).getOrElse(List[ValidationError]()))
 
     val validationResult = new ValidationResult()
     validationResult.addErrors(errors.asJava)
@@ -60,9 +64,9 @@ class S3PackageMaterialConfiguration extends PackageMaterialConfiguration  with 
   }
 
   override def isPackageConfigurationValid(packageConfig: PackageConfiguration, repoConfig: RepositoryConfiguration): ValidationResult = {
-    val errors = List(
-      validate(packageConfig, S3PackageMaterialConfiguration.ARTIFACT_NAME, s"${S3PackageMaterialConfiguration.ARTIFACT_NAME} configuration is missing or value is empty")
-    ).flatMap(vr => vr.map(_.getErrors.asScala).getOrElse(List[ValidationError]()))
+    val errors = S3PackageMaterialConfiguration.packageConfigs
+      .map(c => validate(packageConfig,c.name, s"${c.name} configuration is missing or value is empty", c.required))
+      .flatMap(vr => vr.map(_.getErrors.asScala).getOrElse(List[ValidationError]()))
     val validationResult = new ValidationResult()
     validationResult.addErrors(errors.asJava)
     validationResult

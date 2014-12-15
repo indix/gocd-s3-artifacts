@@ -15,9 +15,8 @@ class S3PackageMaterialPoller extends PackageMaterialPoller with LoggerUtil {
   val USER = "go"
   override def getLatestRevision(packageConfig: PackageConfiguration, repoConfig: RepositoryConfiguration): PackageRevision = {
     val s3Bucket = repoConfig.get(S3PackageMaterialConfiguration.S3_BUCKET).getValue
-    val artifactName = packageConfig.get(S3PackageMaterialConfiguration.ARTIFACT_NAME).getValue
     val artifactStore = S3ArtifactStore(s3Client(repoConfig), s3Bucket)
-    val revision = artifactStore.latest(artifactName)
+    val revision = artifactStore.latest(artifact(packageConfig))
     revision match {
       case x: RevisionSuccess => new PackageRevision(x.revision.revision, x.lastModified, USER, x.revisionComments, x.trackBackUrl)
       case f : OperationFailure => throw new RuntimeException(f.th)
@@ -26,10 +25,9 @@ class S3PackageMaterialPoller extends PackageMaterialPoller with LoggerUtil {
 
   override def checkConnectionToPackage(packageConfig: PackageConfiguration, repoConfig: RepositoryConfiguration): Result = {
     val s3Bucket = repoConfig.get(S3PackageMaterialConfiguration.S3_BUCKET).getValue
-    val artifactName = packageConfig.get(S3PackageMaterialConfiguration.ARTIFACT_NAME).getValue
     val artifactStore = S3ArtifactStore(s3Client(repoConfig), s3Bucket)
-    artifactStore.exists(artifactName) match {
-      case e: Exists => new Result().withSuccessMessages(s"Check $artifactName exists ${e.message}")
+    artifactStore.exists(artifact(packageConfig)) match {
+      case e: Exists => new Result().withSuccessMessages(s"Check ${artifact(packageConfig)} exists ${e.message}")
       case f: OperationFailure => new Result().withErrorMessages(f.message)
     }
   }
@@ -60,5 +58,11 @@ class S3PackageMaterialPoller extends PackageMaterialPoller with LoggerUtil {
     val secretKey = repoConfig.get(S3PackageMaterialConfiguration.S3_SECRET_ACCESS_KEY).getValue
     new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey))
   }
-
+  
+  def artifact(packageConfig: PackageConfiguration) = {
+    val pipelineName = packageConfig.get(S3PackageMaterialConfiguration.PIPELINE_NAME).getValue
+    val stageName = packageConfig.get(S3PackageMaterialConfiguration.STAGE_NAME).getValue
+    val jobName = packageConfig.get(S3PackageMaterialConfiguration.JOB_NAME).getValue
+    s"$pipelineName/$stageName/$jobName/"
+  }
 }

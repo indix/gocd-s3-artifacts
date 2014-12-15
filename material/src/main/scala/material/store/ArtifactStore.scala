@@ -8,6 +8,9 @@ import org.joda.time.DateTime
 import scala.collection.JavaConverters._
 import material.util.LoggerUtil
 import scala.collection.JavaConversions._
+import com.amazonaws.auth.BasicAWSCredentials
+import scala.util.Failure
+import scala.util.Success
 
 sealed trait ArtifactStore {
   def get(from: String, to: String): FSOperationStatus
@@ -52,15 +55,15 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
     }
   }
 
-  private def copyFromLocal(localFile: String, key: String, bucket: String, client: AmazonS3Client): FSOperationStatus = {
-    Try(client.putObject(bucket, key, new File(localFile))) match {
+  private def copyFromLocal(bucket: String, localFile: String, remoteFile: String, client: AmazonS3Client): FSOperationStatus = {
+    Try(client.putObject(bucket, remoteFile, new File(localFile))) match {
       case Success(x) => CopySuccess(x.getContentMd5)
       case Failure(th) => OperationFailure(th)
     }
   }
 
-  private def copyToLocal(key: String, bucket: String, localFilePath: String, client: AmazonS3Client): FSOperationStatus = {
-    Try(client.getObject(new GetObjectRequest(bucket, key), new File(localFilePath))) match {
+  private def copyToLocal(bucket: String, remoteFile: String, localFilePath: String, client: AmazonS3Client): FSOperationStatus = {
+    Try(client.getObject(new GetObjectRequest(bucket, remoteFile), new File(localFilePath))) match {
       case Success(x) => CopySuccess(x.getContentMD5)
       case Failure(th) => OperationFailure(th)
     }
@@ -83,8 +86,29 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
 
   private def bucketExists(bucket: String, client: AmazonS3Client) = {
     Try(client.listBuckets()) match {
-      case Success(s) => if(s.exists(_.getName == bucket)) Exists(System.currentTimeMillis()) else OperationFailure(throw new RuntimeException(s"$bucket does not exist"))
+      case Success(s) => if(s.exists(_.getName == bucket)) Exists(1) else OperationFailure(throw new RuntimeException(s"$bucket does not exist"))
       case Failure(th) => OperationFailure(th)
     }
   }
+}
+
+object ArtifactStoreDriver extends App {
+  val accessKeyId = "AKIAILCSQBZ5XSYFBG6A"
+  val secretKey = "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"
+  val client = S3ArtifactStore(new AmazonS3Client(new BasicAWSCredentials(accessKeyId, secretKey)), "indix-categories-ib")
+
+//
+//  println(client)
+//  val objects = client.s3Client.listObjects(client.bucket)
+//  println(objects.getObjectSummaries.asScala.map(_.getKey).mkString("\n"))
+//  println("*"*20)
+//  val prefixes = client.s3Client.listObjects(client.bucket, "20140604")
+//  println(prefixes.getObjectSummaries.asScala.map(_.getKey).mkString("\n"))
+//
+//  println("*"*20)
+  println(client.exists("20140604"))
+//  println(client.exists("20140620"))
+
+  println(client.get("20140620/20140620_Baby_ib.tsv.gz", "/tmp/20140604"))
+
 }
