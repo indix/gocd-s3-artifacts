@@ -12,13 +12,15 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 
+import static com.indix.gocd.s3publish.Constants.SOURCE;
+
 @Extension
 public class PublishTask implements Task {
 
     @Override
     public TaskConfig config() {
         TaskConfig taskConfig = new TaskConfig();
-        taskConfig.addProperty(Constants.SOURCE);
+        taskConfig.addProperty(SOURCE);
         return taskConfig;
     }
 
@@ -50,8 +52,8 @@ public class PublishTask implements Task {
     @Override
     public ValidationResult validate(TaskConfig taskConfig) {
         ValidationResult validationResult = new ValidationResult();
-        if (StringUtils.isEmpty(taskConfig.getValue(Constants.SOURCE))) {
-            validationResult.addError(new ValidationError(Constants.SOURCE, "Source files to publish not present"));
+        if (StringUtils.isEmpty(taskConfig.getValue(SOURCE))) {
+            validationResult.addError(new ValidationError(SOURCE, "Source files to publish not present"));
         }
 
         return validationResult;
