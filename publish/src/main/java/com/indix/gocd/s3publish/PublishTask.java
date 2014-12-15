@@ -14,15 +14,11 @@ import java.io.IOException;
 
 @Extension
 public class PublishTask implements Task {
-    public static final String GO_ARTIFACTS_S3_BUCKET = "GO_ARTIFACTS_S3_BUCKET";
-    public static final String SOURCE = "source";
-    public static final String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
-    public static final String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
 
     @Override
     public TaskConfig config() {
         TaskConfig taskConfig = new TaskConfig();
-        taskConfig.addProperty(SOURCE);
+        taskConfig.addProperty(Constants.SOURCE);
         return taskConfig;
     }
 
@@ -54,8 +50,8 @@ public class PublishTask implements Task {
     @Override
     public ValidationResult validate(TaskConfig taskConfig) {
         ValidationResult validationResult = new ValidationResult();
-        if (StringUtils.isEmpty(taskConfig.getValue(SOURCE))) {
-            validationResult.addError(new ValidationError(SOURCE, "Source files to publish not present"));
+        if (StringUtils.isEmpty(taskConfig.getValue(Constants.SOURCE))) {
+            validationResult.addError(new ValidationError(Constants.SOURCE, "Source files to publish not present"));
         }
 
         return validationResult;
