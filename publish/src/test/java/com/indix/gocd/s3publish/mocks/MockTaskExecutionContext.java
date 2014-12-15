@@ -9,11 +9,9 @@ import java.util.Map;
 
 public class MockTaskExecutionContext implements TaskExecutionContext {
     private Map<String, String> mockEnvironmentVariables;
-    private String workingDir;
 
-    public MockTaskExecutionContext(Map<String, String> mockEnvironmentVariables, String workingDir) {
+    public MockTaskExecutionContext(Map<String, String> mockEnvironmentVariables) {
         this.mockEnvironmentVariables = mockEnvironmentVariables;
-        this.workingDir = workingDir;
     }
 
     @Override

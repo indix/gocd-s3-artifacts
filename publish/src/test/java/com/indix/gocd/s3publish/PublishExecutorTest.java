@@ -94,7 +94,7 @@ public class PublishExecutorTest {
     }
 
     private TaskExecutionContext mockContext(final Map<String, String> environmentMap) {
-        return new MockTaskExecutionContext(environmentMap, "/tmp/data/");
+        return new MockTaskExecutionContext(environmentMap);
     }
 
     private AmazonS3Client mockClient() {
