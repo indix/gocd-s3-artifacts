@@ -16,9 +16,11 @@ import java.io.File;
 import java.util.List;
 
 import static com.indix.gocd.s3publish.Constants.*;
+import static com.indix.gocd.s3publish.utils.Functions.VoidFunction;
 import static com.indix.gocd.s3publish.utils.Lists.flatMap;
 import static com.indix.gocd.s3publish.utils.Lists.foreach;
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.split;
+import static org.apache.commons.lang3.StringUtils.trim;
 
 public class PublishExecutor implements TaskExecutor {
 
@@ -33,38 +35,38 @@ public class PublishExecutor implements TaskExecutor {
         final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
         final S3ArtifactStore store = new S3ArtifactStore(s3Client(env), bucket);
         String[] sources = split(config.getValue(SOURCE), "\n");
-        foreach(sources, new Function<String, Void>() {
+        foreach(sources, new VoidFunction<String>() {
             @Override
-            public Void apply(String source) {
-                pushToS3(context, env, store, bucket, trim(source));
-                return null;
+            public void execute(String source) {
+                File localFileToUpload = new File(String.format("%s/%s", context.workingDir(), trim(source)));
+                pushToS3(context, env, store, localFileToUpload);
             }
         });
 
         return ExecutionResult.success("Published all artifacts to S3");
     }
 
-    private void pushToS3(final TaskExecutionContext context, final GoEnvironment env, final S3ArtifactStore store, final String bucket, String source) {
-        File localFileToUpload = new File(String.format("%s/%s", context.workingDir(), source));
-        List<FilePathToTemplate> filesToUpload = destinationOnS3(env, localFileToUpload);
-        foreach(filesToUpload, new Function<FilePathToTemplate, Void>() {
-            @Override
-            public Void apply(FilePathToTemplate filePathToTemplate) {
-                String localFile = filePathToTemplate._1();
-                String destinationOnS3 = filePathToTemplate._2();
-                context.console().printLine(String.format("Pushing %s to s3://%s/%s", localFile, bucket, destinationOnS3));
-                store.put(localFile, destinationOnS3, metadata(env));
-                context.console().printLine(String.format("Pushed %s to s3://%s/%s", localFile, bucket, destinationOnS3));
-
-                return null; // ugly ugly really ugly :(
-            }
-        });
-    }
-
+    /*
+        Made public only for tests
+     */
     public AmazonS3Client s3Client(GoEnvironment env) {
         String accessKey = env.get(AWS_ACCESS_KEY_ID);
         String secretKey = env.get(AWS_SECRET_ACCESS_KEY);
         return new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey));
+    }
+
+    private void pushToS3(final TaskExecutionContext context, final GoEnvironment env, final S3ArtifactStore store, File localFileToUpload) {
+        List<FilePathToTemplate> filesToUpload = generateFilesToUpload(env.artifactsLocationTemplate(), localFileToUpload);
+        foreach(filesToUpload, new VoidFunction<FilePathToTemplate>() {
+            @Override
+            public void execute(FilePathToTemplate filePathToTemplate) {
+                String localFile = filePathToTemplate._1();
+                String destinationOnS3 = filePathToTemplate._2();
+                context.console().printLine(String.format("Pushing %s to %s", localFile, store.pathString(destinationOnS3)));
+                store.put(localFile, destinationOnS3, metadata(env));
+                context.console().printLine(String.format("Pushed %s to %s", localFile, store.pathString(destinationOnS3)));
+            }
+        });
     }
 
     private ObjectMetadata metadata(GoEnvironment env) {
@@ -76,17 +78,13 @@ public class PublishExecutor implements TaskExecutor {
         return objectMetadata;
     }
 
-    private List<FilePathToTemplate> destinationOnS3(GoEnvironment env, File localFileToUpload) {
-        return filesToKeys(env.artifactsLocationTemplate(), localFileToUpload);
-    }
-
-    private List<FilePathToTemplate> filesToKeys(final String templateSoFar, final File fileToUpload) {
-        final String templateWithFolder = templateSoFar + "/" + fileToUpload.getName();
+    private List<FilePathToTemplate> generateFilesToUpload(final String templateSoFar, final File fileToUpload) {
+        final String templateWithFolder = String.format("%s/%s", templateSoFar, fileToUpload.getName());
         if (fileToUpload.isDirectory()) {
             return flatMap(fileToUpload.listFiles(), new Function<File, List<FilePathToTemplate>>() {
                 @Override
                 public List<FilePathToTemplate> apply(File file) {
-                    return filesToKeys(templateWithFolder, file);
+                    return generateFilesToUpload(templateWithFolder, file);
                 }
             });
         } else {
@@ -95,7 +93,7 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private ExecutionResult envNotFound(String environmentVariable) {
-        return ExecutionResult.failure(environmentVariable + " environment variable not present");
+        return ExecutionResult.failure(String.format("%s environment variable not present", environmentVariable));
     }
 }
 
