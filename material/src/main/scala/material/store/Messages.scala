@@ -27,11 +27,16 @@ case class OperationFailure(th: Throwable) extends FSOperationStatus with OpFail
   override def message = th.getStackTrace.map(_.toString).mkString("\n")
 }
 
+case class Artifact(pipelineName: String, stageName: String, jobName: String, revision: Option[Revision] = None) {
+  val prefix = s"$pipelineName/$stageName/$jobName/"
+  val withRevision = revision.fold(prefix)(rev => s"$prefix$rev/")
+}
 case class Revision(revision: String) extends Ordered[Revision] {
   val parts = revision.split('.').map(_.toInt)
   val major = parts(0)
   val minor = parts(1)
   val patch = if (parts.length == 3) parts(2) else 0
+  def max(that: Revision) = if(this.compare(that) > 0) this else that
 
   import Ordered.orderingToOrdered
   def compare(that: Revision) = implicitly[Ordering[(Int, Int, Int)]].compare((this.major, this.minor, this.patch), (that.major, that.minor, that.patch))
