@@ -8,17 +8,12 @@ import scala.collection.JavaConverters._
 import org.apache.commons.lang3.StringUtils
 import material.util.LoggerUtil
 
-case class Config(name: String, displayName: String, order: Int) {
+case class Config(name: String, displayName: String, order: Int, required: java.lang.Boolean = true) {
   def toPackageProperty = new PackageMaterialProperty(name)
     .`with`[String](Property.DISPLAY_NAME, displayName)
     .`with`[Integer](Property.DISPLAY_ORDER, order)
-
-  def toProperty = new Property(name)
-    .`with`[String](Property.DISPLAY_NAME, displayName)
-    .`with`[Integer](Property.DISPLAY_ORDER, order)
+    .`with`[java.lang.Boolean](Property.REQUIRED, required)
 }
-
-
 
 object S3PackageMaterialConfiguration {
   val S3_BUCKET = "S3_BUCKET"
@@ -32,7 +27,7 @@ object S3PackageMaterialConfiguration {
   )
   
   val packageConfigs = List(
-    Config(ARTIFACT_NAME, "Artifact Name", 0)
+    Config(ARTIFACT_NAME, "Artifact Name", 0, false)
   )
 }
 

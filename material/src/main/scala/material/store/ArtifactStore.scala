@@ -80,7 +80,7 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
 
   private def bucketExists(bucket: String, client: AmazonS3Client) = {
     Try(client.doesBucketExist(bucket)) match {
-      case Success(s) => Exists(System.currentTimeMillis())
+      case Success(s) => if(s) Exists(System.currentTimeMillis()) else OperationFailure(throw new RuntimeException(s"$bucket doesnot exist"))
       case Failure(th) => OperationFailure(th)
     }
   }
