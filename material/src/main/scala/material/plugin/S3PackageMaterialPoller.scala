@@ -15,7 +15,7 @@ class S3PackageMaterialPoller extends PackageMaterialPoller with LoggerUtil {
   val USER = "go"
   override def getLatestRevision(packageConfig: PackageConfiguration, repoConfig: RepositoryConfiguration): PackageRevision = {
     val s3Bucket = repoConfig.get(S3PackageMaterialConfiguration.S3_BUCKET).getValue
-    val artifactName = repoConfig.get(S3PackageMaterialConfiguration.ARTIFACT_NAME).getValue
+    val artifactName = packageConfig.get(S3PackageMaterialConfiguration.ARTIFACT_NAME).getValue
     val artifactStore = S3ArtifactStore(s3Client(repoConfig), s3Bucket)
     val revision = artifactStore.latest(artifactName)
     revision match {
@@ -26,10 +26,10 @@ class S3PackageMaterialPoller extends PackageMaterialPoller with LoggerUtil {
 
   override def checkConnectionToPackage(packageConfig: PackageConfiguration, repoConfig: RepositoryConfiguration): Result = {
     val s3Bucket = repoConfig.get(S3PackageMaterialConfiguration.S3_BUCKET).getValue
-    val artifactName = repoConfig.get(S3PackageMaterialConfiguration.ARTIFACT_NAME).getValue
+    val artifactName = packageConfig.get(S3PackageMaterialConfiguration.ARTIFACT_NAME).getValue
     val artifactStore = S3ArtifactStore(s3Client(repoConfig), s3Bucket)
     artifactStore.exists(artifactName) match {
-      case e: Exists => new Result().withSuccessMessages(s"Check ${artifactName} exists ${e.message}")
+      case e: Exists => new Result().withSuccessMessages(s"Check $artifactName exists ${e.message}")
       case f: OperationFailure => new Result().withErrorMessages(f.message)
     }
   }
@@ -38,7 +38,7 @@ class S3PackageMaterialPoller extends PackageMaterialPoller with LoggerUtil {
     val s3Bucket = repoConfig.get(S3PackageMaterialConfiguration.S3_BUCKET).getValue
     val artifactStore = S3ArtifactStore(s3Client(repoConfig), s3Bucket)
     artifactStore.bucketExists match {
-      case e: Exists => new Result().withSuccessMessages(s"Check [${s3Bucket}] exists ${e.message}")
+      case e: Exists => new Result().withSuccessMessages(s"Check [$s3Bucket] exists ${e.message}")
       case f: OperationFailure => new Result().withErrorMessages(f.message)
     }
   }
