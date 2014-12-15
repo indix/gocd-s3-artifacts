@@ -41,7 +41,6 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
     listing.getObjectSummaries.asScala.map(_.getKey.split("/").last).map(Revision).max
   }
 
-  // TODO: Make this tail recursive
   private def latestOf(client: AmazonS3Client, listing: ObjectListing) : Revision = {
     def latestOfInternal(client: AmazonS3Client, listing: ObjectListing, latestSoFar: Revision): Revision = {
       if (listing.isTruncated){
@@ -101,6 +100,4 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
       case Failure(th) => OperationFailure(th)
     }
   }
-
-  def withRevision(artifact: String, revision: String) = s"${artifact.stripSuffix("/")}/$revision/} "
 }

@@ -38,6 +38,5 @@ case class Revision(revision: String) extends Ordered[Revision] {
   val patch = if (parts.length == 3) parts(2) else 0
   def max(that: Revision) = if(this.compare(that) > 0) this else that
 
-  import Ordered.orderingToOrdered
   def compare(that: Revision) = implicitly[Ordering[(Int, Int, Int)]].compare((this.major, this.minor, this.patch), (that.major, that.minor, that.patch))
 }
