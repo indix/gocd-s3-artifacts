@@ -1,13 +1,11 @@
 package material.plugin.config
 
 import com.thoughtworks.go.plugin.api.material.packagerepository._
-import com.thoughtworks.go.plugin.api.response.Result
 import com.thoughtworks.go.plugin.api.response.validation.{ValidationError, ValidationResult}
 import com.thoughtworks.go.plugin.api.config.Property
 
 import scala.collection.JavaConverters._
 import org.apache.commons.lang3.StringUtils
-import material.plugin.S3PackageMaterialPoller
 import material.util.LoggerUtil
 
 case class Config(name: String, displayName: String, order: Int) {

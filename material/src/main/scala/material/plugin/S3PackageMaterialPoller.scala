@@ -3,14 +3,10 @@ package material.plugin
 import com.thoughtworks.go.plugin.api.material.packagerepository._
 import com.thoughtworks.go.plugin.api.response.Result
 import material.plugin.config.S3PackageMaterialConfiguration
-import scala.collection.JavaConverters._
 import material.store._
-import org.apache.hadoop.fs.{Path, FileSystem}
-import org.apache.hadoop.conf.Configuration
 import com.amazonaws.services.s3.AmazonS3Client
 import material.store.Exists
 import material.store.S3ArtifactStore
-import java.util.Date
 import material.util.LoggerUtil
 
 
