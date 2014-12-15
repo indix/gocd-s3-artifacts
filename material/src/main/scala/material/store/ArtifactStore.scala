@@ -1,7 +1,7 @@
 package material.store
 
 import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.model.{ListObjectsRequest, ObjectMetadata, GetObjectRequest, ObjectListing}
+import com.amazonaws.services.s3.model._
 import scala.util.{Failure, Success, Try}
 import java.io.File
 import org.joda.time.DateTime
@@ -45,9 +45,9 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
     Try(client.listObjects(listObjectsRequest)) match {
       case Success(listing) =>
         val recent = latestOf(client, listing)
-        val metadata = client.getObjectMetadata(bucket, s"$artifactName/${recent.revision}")
+        val metadata = client.getObjectMetadata(bucket, s"$artifactName${recent.revision}/")
         val lastModified = metadata.getLastModified
-        RevisionSuccess(latestOf(client, listing), lastModified, "TrackbackURL", "RevisionComment")
+        RevisionSuccess(recent, lastModified, "TrackbackURL", "RevisionComment")
       case Failure(th) => OperationFailure(th)
     }
   }
