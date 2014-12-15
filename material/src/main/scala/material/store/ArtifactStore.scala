@@ -1,7 +1,7 @@
 package material.store
 
 import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.model.{ObjectMetadata, GetObjectRequest, ObjectListing}
+import com.amazonaws.services.s3.model.{ListObjectsRequest, ObjectMetadata, GetObjectRequest, ObjectListing}
 import scala.util.{Failure, Success, Try}
 import java.io.File
 import org.joda.time.DateTime
@@ -32,7 +32,7 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
 
   // TODO: Make this tail recursive
   private def latestOf(client: AmazonS3Client, listing: ObjectListing) : Revision = {
-    if(listing.isTruncated) {
+    if(!listing.isTruncated) {
       mostRecentRevision(listing)
     } else {
       val newListing = client.listNextBatchOfObjects(listing)
@@ -41,7 +41,8 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
   }
 
   private def getLatest(artifactName: String, bucket: String, client: AmazonS3Client): FSOperationStatus = {
-    Try(client.listObjects(bucket, artifactName)) match {
+    val listObjectsRequest = new ListObjectsRequest().withBucketName(bucket).withDelimiter("/").withPrefix(artifactName)
+    Try(client.listObjects(listObjectsRequest)) match {
       case Success(listing) =>
         val recent = latestOf(client, listing)
         val metadata = client.getObjectMetadata(bucket, s"$artifactName/${recent.revision}")
