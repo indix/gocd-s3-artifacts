@@ -2,7 +2,7 @@ package material.plugin.config
 
 import com.thoughtworks.go.plugin.api.material.packagerepository._
 import com.thoughtworks.go.plugin.api.response.validation.{ValidationError, ValidationResult}
-import com.thoughtworks.go.plugin.api.config.Property
+import com.thoughtworks.go.plugin.api.config.{Configuration, Property}
 
 import scala.collection.JavaConverters._
 import org.apache.commons.lang3.StringUtils
@@ -38,8 +38,8 @@ class S3PackageMaterialConfiguration extends PackageMaterialConfiguration  with 
     repoConfig
   }
 
-  def validate(repoConfig: RepositoryConfiguration, property: String, message: String) = {
-    if(repoConfig.get(property) == null || StringUtils.isBlank(repoConfig.get(property).getValue)) {
+  def validate(config: Configuration, property: String, message: String) = {
+    if(config.get(property) == null || StringUtils.isBlank(config.get(property).getValue)) {
       val validationResult = new ValidationResult()
       validationResult.addError(new ValidationError(property, message))
       Some(validationResult)
@@ -61,7 +61,7 @@ class S3PackageMaterialConfiguration extends PackageMaterialConfiguration  with 
 
   override def isPackageConfigurationValid(packageConfig: PackageConfiguration, repoConfig: RepositoryConfiguration): ValidationResult = {
     val errors = List(
-      validate(repoConfig, S3PackageMaterialConfiguration.ARTIFACT_NAME, s"${S3PackageMaterialConfiguration.ARTIFACT_NAME} configuration is missing or value is empty")
+      validate(packageConfig, S3PackageMaterialConfiguration.ARTIFACT_NAME, s"${S3PackageMaterialConfiguration.ARTIFACT_NAME} configuration is missing or value is empty")
     ).flatMap(vr => vr.map(_.getErrors.asScala).getOrElse(List[ValidationError]()))
     val validationResult = new ValidationResult()
     validationResult.addErrors(errors.asJava)

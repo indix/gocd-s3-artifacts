@@ -1,7 +1,7 @@
 package material.store
 
 import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.model.{GetObjectRequest, ObjectListing}
+import com.amazonaws.services.s3.model.{ObjectMetadata, GetObjectRequest, ObjectListing}
 import scala.util.{Failure, Success, Try}
 import java.io.File
 import org.joda.time.DateTime
@@ -73,7 +73,8 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
   }
 
   private def exists(bucket: String, key: String, client: AmazonS3Client) = {
-    Try(client.getObjectMetadata(bucket, key)) match {
+    val artifactMetdata: ObjectMetadata = client.getObjectMetadata(bucket, key)
+    Try(artifactMetdata) match {
       case Success(x) => if(x != null) Exists(x.getLastModified.getTime) else OperationFailure(throw new RuntimeException(s"$bucket/$key does not exist"))
       case Failure(th) => OperationFailure(th)
     }
