@@ -17,6 +17,11 @@ public class Maps {
             return this;
         }
 
+        public MapBuilder<K, V> remove(K key) {
+            internal.remove(key);
+            return this;
+        }
+
         public Map<K, V> build() {
             return Collections.unmodifiableMap(internal);
         }

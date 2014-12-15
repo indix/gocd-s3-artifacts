@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.util.List;
 
+import static com.indix.gocd.s3publish.utils.Functions.VoidFunction;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
@@ -14,11 +15,10 @@ public class ListsTest {
     public void shouldRunForEachOnceForEveryElement() {
         final int[] sum = {0};
         List<Integer> list = Lists.of(1, 2, 3, 4, 5);
-        foreach(list, new Function<Integer, Void>() {
+        foreach(list, new VoidFunction<Integer>() {
             @Override
-            public Void apply(Integer input) {
+            public void execute(Integer input) {
                 sum[0] += (input * 2);
-                return null;
             }
         });
 
