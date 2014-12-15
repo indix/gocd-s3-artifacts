@@ -13,20 +13,18 @@ import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import com.thoughtworks.go.plugin.api.task.TaskExecutor;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.indix.gocd.s3publish.utils.Lists.flatMap;
 import static com.indix.gocd.s3publish.utils.Lists.foreach;
 import static org.apache.commons.lang3.StringUtils.*;
 
 public class PublishExecutor implements TaskExecutor {
-    private Map<String, String> environment = new HashMap<String, String>();
+    private GoEnvironment environment = new GoEnvironment();
+
     @Override
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
         environment.putAll(context.environment().asMap());
-        environment.putAll(System.getenv());
         if (isEmpty(env(Constants.AWS_ACCESS_KEY_ID)))
             return ExecutionResult.failure(envNotFound(Constants.AWS_ACCESS_KEY_ID));
         if (isEmpty(env(Constants.AWS_SECRET_ACCESS_KEY)))
@@ -72,35 +70,16 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private ObjectMetadata metadata() {
-        String tracebackUrl = buildTracebackUrl();
-        String user = env("GO_TRIGGER_USER");
+        String tracebackUrl = environment.traceBackUrl();
+        String user = environment.triggeredUser();
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.addUserMetadata(Constants.METADATA_USER, user);
         objectMetadata.addUserMetadata(Constants.METADATA_TRACEBACK_URL, tracebackUrl);
         return objectMetadata;
     }
 
-    private String buildTracebackUrl() {
-        String serverUrl = env("GO_SERVER_URL");
-        String pipelineName = env("GO_PIPELINE_NAME");
-        String pipelineCounter = env("GO_PIPELINE_COUNTER");
-        String stageName = env("GO_STAGE_NAME");
-        String stageCounter = env("GO_STAGE_COUNTER");
-        String jobName = env("GO_JOB_NAME");
-        return String.format("%s/tab/build/detail/%s/%s/%s/%s/%s", serverUrl, pipelineName, pipelineCounter, stageName, stageCounter, jobName);
-    }
-
     private List<FilePathToTemplate> destinationOnS3(File localFileToUpload) {
-        String pipeline = env("GO_PIPELINE_NAME");
-        String stageName = env("GO_STAGE_NAME");
-        String jobName = env("GO_JOB_NAME");
-
-        String pipelineCounter = env("GO_PIPELINE_COUNTER");
-        String stageCounter = env("GO_STAGE_COUNTER");
-        // pipeline/stage/job/pipeline_counter.stage_counter
-        String template = String.format("%s/%s/%s/%s.%s", pipeline, stageName, jobName, pipelineCounter, stageCounter);
-
-        return filesToKeys(template, localFileToUpload);
+        return filesToKeys(environment.artifactsLocationTemplate(), localFileToUpload);
     }
 
     private List<FilePathToTemplate> filesToKeys(final String templateSoFar, final File fileToUpload) {
