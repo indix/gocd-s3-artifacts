@@ -21,25 +21,22 @@ import static com.indix.gocd.s3publish.utils.Lists.foreach;
 import static org.apache.commons.lang3.StringUtils.*;
 
 public class PublishExecutor implements TaskExecutor {
-    private GoEnvironment environment = new GoEnvironment();
 
     @Override
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
-        environment.putAll(context.environment().asMap());
-        if (isEmpty(env(AWS_ACCESS_KEY_ID)))
-            return ExecutionResult.failure(envNotFound(AWS_ACCESS_KEY_ID));
-        if (isEmpty(env(AWS_SECRET_ACCESS_KEY)))
-            return ExecutionResult.failure(envNotFound(AWS_SECRET_ACCESS_KEY));
-        if (isEmpty(env(GO_ARTIFACTS_S3_BUCKET)))
-            return ExecutionResult.failure(envNotFound(GO_ARTIFACTS_S3_BUCKET));
+        final GoEnvironment env = new GoEnvironment();
+        env.putAll(context.environment().asMap());
+        if (env.isAbsent(AWS_ACCESS_KEY_ID)) return envNotFound(AWS_ACCESS_KEY_ID);
+        if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) return envNotFound(AWS_SECRET_ACCESS_KEY);
+        if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
 
-        final String bucket = env(GO_ARTIFACTS_S3_BUCKET);
-        final S3ArtifactStore store = new S3ArtifactStore(s3Client(), bucket);
+        final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
+        final S3ArtifactStore store = new S3ArtifactStore(s3Client(env), bucket);
         String[] sources = split(config.getValue(SOURCE), "\n");
         foreach(sources, new Function<String, Void>() {
             @Override
             public Void apply(String source) {
-                pushToS3(store, context, bucket, trim(source));
+                pushToS3(context, env, store, bucket, trim(source));
                 return null;
             }
         });
@@ -47,16 +44,16 @@ public class PublishExecutor implements TaskExecutor {
         return ExecutionResult.success("Published all artifacts to S3");
     }
 
-    private void pushToS3(final S3ArtifactStore store, final TaskExecutionContext context, final String bucket, String source) {
+    private void pushToS3(final TaskExecutionContext context, final GoEnvironment env, final S3ArtifactStore store, final String bucket, String source) {
         File localFileToUpload = new File(String.format("%s/%s", context.workingDir(), source));
-        List<FilePathToTemplate> filesToUpload = destinationOnS3(localFileToUpload);
+        List<FilePathToTemplate> filesToUpload = destinationOnS3(env, localFileToUpload);
         foreach(filesToUpload, new Function<FilePathToTemplate, Void>() {
             @Override
             public Void apply(FilePathToTemplate filePathToTemplate) {
                 String localFile = filePathToTemplate._1();
                 String destinationOnS3 = filePathToTemplate._2();
                 context.console().printLine(String.format("Pushing %s to s3://%s/%s", localFile, bucket, destinationOnS3));
-                store.put(localFile, destinationOnS3, metadata());
+                store.put(localFile, destinationOnS3, metadata(env));
                 context.console().printLine(String.format("Pushed %s to s3://%s/%s", localFile, bucket, destinationOnS3));
 
                 return null; // ugly ugly really ugly :(
@@ -64,23 +61,23 @@ public class PublishExecutor implements TaskExecutor {
         });
     }
 
-    public AmazonS3Client s3Client() {
-        String accessKey = env(AWS_ACCESS_KEY_ID);
-        String secretKey = env(AWS_SECRET_ACCESS_KEY);
+    public AmazonS3Client s3Client(GoEnvironment env) {
+        String accessKey = env.get(AWS_ACCESS_KEY_ID);
+        String secretKey = env.get(AWS_SECRET_ACCESS_KEY);
         return new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey));
     }
 
-    private ObjectMetadata metadata() {
-        String tracebackUrl = environment.traceBackUrl();
-        String user = environment.triggeredUser();
+    private ObjectMetadata metadata(GoEnvironment env) {
+        String tracebackUrl = env.traceBackUrl();
+        String user = env.triggeredUser();
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.addUserMetadata(METADATA_USER, user);
         objectMetadata.addUserMetadata(METADATA_TRACEBACK_URL, tracebackUrl);
         return objectMetadata;
     }
 
-    private List<FilePathToTemplate> destinationOnS3(File localFileToUpload) {
-        return filesToKeys(environment.artifactsLocationTemplate(), localFileToUpload);
+    private List<FilePathToTemplate> destinationOnS3(GoEnvironment env, File localFileToUpload) {
+        return filesToKeys(env.artifactsLocationTemplate(), localFileToUpload);
     }
 
     private List<FilePathToTemplate> filesToKeys(final String templateSoFar, final File fileToUpload) {
@@ -97,12 +94,8 @@ public class PublishExecutor implements TaskExecutor {
         }
     }
 
-    private String env(String name) {
-        return environment.get(name);
-    }
-
-    private String envNotFound(String environmentVariable) {
-        return environmentVariable + " environment variable not present";
+    private ExecutionResult envNotFound(String environmentVariable) {
+        return ExecutionResult.failure(environmentVariable + " environment variable not present");
     }
 }
 
