@@ -3,6 +3,8 @@ package com.indix.gocd.s3publish;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 /**
  * Wrapper around Go's Environment variables
  */
@@ -20,6 +22,14 @@ public class GoEnvironment {
 
     public String get(String name) {
         return environment.get(name);
+    }
+
+    public boolean has(String name) {
+        return environment.containsKey(name) && isNotEmpty(get(name));
+    }
+
+    public boolean isAbsent(String name) {
+        return !has(name);
     }
 
     public String traceBackUrl() {
