@@ -1,5 +1,6 @@
 package material.plugin
 
+import com.amazonaws.auth.BasicAWSCredentials
 import com.thoughtworks.go.plugin.api.material.packagerepository._
 import com.thoughtworks.go.plugin.api.response.Result
 import material.plugin.config.S3PackageMaterialConfiguration
@@ -15,7 +16,7 @@ class S3PackageMaterialPoller extends PackageMaterialPoller with LoggerUtil {
   override def getLatestRevision(packageConfig: PackageConfiguration, repoConfig: RepositoryConfiguration): PackageRevision = {
     val s3Bucket = repoConfig.get(S3PackageMaterialConfiguration.S3_BUCKET).getValue
     val artifactName = repoConfig.get(S3PackageMaterialConfiguration.ARTIFACT_NAME).getValue
-    val artifactStore = S3ArtifactStore(new AmazonS3Client(), s3Bucket)
+    val artifactStore = S3ArtifactStore(s3Client(repoConfig), s3Bucket)
     val revision = artifactStore.latest(artifactName)
     revision match {
       case x: RevisionSuccess => new PackageRevision(x.revision.revision, x.lastModified, USER, x.revisionComments, x.trackBackUrl)
@@ -26,7 +27,7 @@ class S3PackageMaterialPoller extends PackageMaterialPoller with LoggerUtil {
   override def checkConnectionToPackage(packageConfig: PackageConfiguration, repoConfig: RepositoryConfiguration): Result = {
     val s3Bucket = repoConfig.get(S3PackageMaterialConfiguration.S3_BUCKET).getValue
     val artifactName = repoConfig.get(S3PackageMaterialConfiguration.ARTIFACT_NAME).getValue
-    val artifactStore = S3ArtifactStore(new AmazonS3Client(), s3Bucket)
+    val artifactStore = S3ArtifactStore(s3Client(repoConfig), s3Bucket)
     artifactStore.exists(artifactName) match {
       case e: Exists => new Result().withSuccessMessages(s"Check ${artifactName} exists ${e.message}")
       case f: OperationFailure => new Result().withErrorMessages(f.message)
@@ -35,7 +36,7 @@ class S3PackageMaterialPoller extends PackageMaterialPoller with LoggerUtil {
 
   override def checkConnectionToRepository(repoConfig: RepositoryConfiguration): Result = {
     val s3Bucket = repoConfig.get(S3PackageMaterialConfiguration.S3_BUCKET).getValue
-    val artifactStore = S3ArtifactStore(new AmazonS3Client(), s3Bucket)
+    val artifactStore = S3ArtifactStore(s3Client(repoConfig), s3Bucket)
     artifactStore.bucketExists match {
       case e: Exists => new Result().withSuccessMessages(s"Check [${s3Bucket}] exists ${e.message}")
       case f: OperationFailure => new Result().withErrorMessages(f.message)
@@ -53,4 +54,11 @@ class S3PackageMaterialPoller extends PackageMaterialPoller with LoggerUtil {
     else
       null
   }
+
+  private def s3Client(repoConfig: RepositoryConfiguration) : AmazonS3Client = {
+    val accessKey = repoConfig.get(S3PackageMaterialConfiguration.S3_ACCESS_KEY_ID).getValue
+    val secretKey = repoConfig.get(S3PackageMaterialConfiguration.S3_SECRET_ACCESS_KEY).getValue
+    new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey))
+  }
+
 }
