@@ -32,6 +32,6 @@ public class Lists {
     public static <T> List<T> of(T... items) {
         ArrayList<T> listToReturn = new ArrayList<T>();
         Collections.addAll(listToReturn, items);
-        return listToReturn;
+        return Collections.unmodifiableList(listToReturn);
     }
 }
