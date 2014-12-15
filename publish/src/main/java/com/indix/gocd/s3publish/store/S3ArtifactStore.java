@@ -15,9 +15,17 @@ public class S3ArtifactStore {
         this.bucket = bucket;
     }
 
+    public void put(String from, String to) {
+        put(new PutObjectRequest(bucket, to, new File(from)));
+    }
+
     public void put(String from, String to, ObjectMetadata metadata) {
-        client.putObject(new PutObjectRequest(bucket, to, new File(from))
+        put(new PutObjectRequest(bucket, to, new File(from))
                 .withMetadata(metadata));
+    }
+
+    public void put(PutObjectRequest putObjectRequest) {
+        client.putObject(putObjectRequest);
     }
 
     public String pathString(String pathOnS3) {

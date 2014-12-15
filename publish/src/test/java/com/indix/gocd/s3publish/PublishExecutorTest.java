@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.indix.gocd.s3publish.Constants.*;
@@ -81,16 +82,23 @@ public class PublishExecutorTest {
         assertThat(executionResult.getMessagesForDisplay(), is("Published all artifacts to S3"));
 
         ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
-        verify(mockClient).putObject(putObjectRequestArgumentCaptor.capture());
-        PutObjectRequest putRequest = putObjectRequestArgumentCaptor.getValue();
+        verify(mockClient, times(2)).putObject(putObjectRequestArgumentCaptor.capture());
+        List<PutObjectRequest> allPutObjectRequests = putObjectRequestArgumentCaptor.getAllValues();
 
-        assertThat(putRequest.getBucketName(), is("testS3Bucket"));
-        assertThat(putRequest.getKey(), is("pipeline/stage/job/pipelineCounter.stageCounter/README.md"));
+
+        PutObjectRequest metadataPutRequest = allPutObjectRequests.get(0);
         Map<String, String> expectedUserMetadata = Maps.<String, String>builder()
                 .with(METADATA_USER, "Krishna")
                 .with(METADATA_TRACEBACK_URL, "http://localhost:8153/go/tab/build/detail/pipeline/pipelineCounter/stage/stageCounter/job")
                 .build();
-        assertThat(putRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));
+        assertThat(metadataPutRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));
+
+        PutObjectRequest filePutRequest = allPutObjectRequests.get(1);
+
+        assertThat(filePutRequest.getBucketName(), is("testS3Bucket"));
+        assertThat(filePutRequest.getKey(), is("pipeline/stage/job/pipelineCounter.stageCounter/README.md"));
+
+        assertNull(filePutRequest.getMetadata());
     }
 
     private TaskExecutionContext mockContext(final Map<String, String> environmentMap) {

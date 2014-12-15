@@ -3,6 +3,7 @@ package com.indix.gocd.s3publish;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.indix.gocd.s3publish.store.S3ArtifactStore;
 import com.indix.gocd.s3publish.utils.Function;
 import com.indix.gocd.s3publish.utils.Lists;
@@ -12,7 +13,9 @@ import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import com.thoughtworks.go.plugin.api.task.TaskExecutor;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 
 import static com.indix.gocd.s3publish.Constants.*;
@@ -34,6 +37,9 @@ public class PublishExecutor implements TaskExecutor {
 
         final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
         final S3ArtifactStore store = new S3ArtifactStore(s3Client(env), bucket);
+
+        setMetadata(env, bucket, store);
+
         String[] sources = split(config.getValue(SOURCE), "\n");
         foreach(sources, new VoidFunction<String>() {
             @Override
@@ -63,7 +69,7 @@ public class PublishExecutor implements TaskExecutor {
                 String localFile = filePathToTemplate._1();
                 String destinationOnS3 = filePathToTemplate._2();
                 context.console().printLine(String.format("Pushing %s to %s", localFile, store.pathString(destinationOnS3)));
-                store.put(localFile, destinationOnS3, metadata(env));
+                store.put(localFile, destinationOnS3);
                 context.console().printLine(String.format("Pushed %s to %s", localFile, store.pathString(destinationOnS3)));
             }
         });
@@ -94,6 +100,18 @@ public class PublishExecutor implements TaskExecutor {
 
     private ExecutionResult envNotFound(String environmentVariable) {
         return ExecutionResult.failure(String.format("%s environment variable not present", environmentVariable));
+    }
+
+    private void setMetadata(GoEnvironment env, String bucket, S3ArtifactStore store) {
+        ObjectMetadata metadata = metadata(env);
+        metadata.setContentLength(0);
+        InputStream emptyContent = new ByteArrayInputStream(new byte[0]);
+        PutObjectRequest putObjectRequest = new PutObjectRequest(bucket,
+                env.artifactsLocationTemplate() + "/",
+                emptyContent,
+                metadata);
+
+        store.put(putObjectRequest);
     }
 }
 
