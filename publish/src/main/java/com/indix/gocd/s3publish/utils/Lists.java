@@ -5,15 +5,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static com.indix.gocd.s3publish.utils.Functions.VoidFunction;
+
 public class Lists {
 
-    public static <T, K> void foreach(List<T> originalList, Function<T, Void> function) {
+    public static <T, K> void foreach(List<T> originalList, VoidFunction<T> function) {
         for (T item : originalList) {
             function.apply(item);
         }
     }
 
-    public static <T, K> void foreach(T[] array, Function<T, Void> function) {
+    public static <T, K> void foreach(T[] array, VoidFunction<T> function) {
         foreach(Arrays.asList(array), function);
     }
 
