@@ -2,7 +2,7 @@ package com.indix.gocd.s3publish;
 
 public class Constants {
     public static final String METADATA_USER = "user";
-    public static final String METADATA_CALLBACK_URL = "callbackUrl";
+    public static final String METADATA_TRACEBACK_URL = "tracebackUrl";
 
     public static final String GO_ARTIFACTS_S3_BUCKET = "GO_ARTIFACTS_S3_BUCKET";
     public static final String SOURCE = "source";

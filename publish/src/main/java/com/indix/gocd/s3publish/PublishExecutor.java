@@ -72,10 +72,22 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private ObjectMetadata metadata() {
-        // TODO - Add metadata information with every object
-        // - Callback URL (re-usable go pipeline url)
-        // - User who caused the pipeline build
-        return new ObjectMetadata();
+        String tracebackUrl = buildTracebackUrl();
+        String user = env("GO_TRIGGER_USER");
+        ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.addUserMetadata(Constants.METADATA_USER, user);
+        objectMetadata.addUserMetadata(Constants.METADATA_TRACEBACK_URL, tracebackUrl);
+        return objectMetadata;
+    }
+
+    private String buildTracebackUrl() {
+        String serverUrl = env("GO_SERVER_URL");
+        String pipelineName = env("GO_PIPELINE_NAME");
+        String pipelineCounter = env("GO_PIPELINE_COUNTER");
+        String stageName = env("GO_STAGE_NAME");
+        String stageCounter = env("GO_STAGE_COUNTER");
+        String jobName = env("GO_JOB_NAME");
+        return String.format("%s/tab/build/detail/%s/%s/%s/%s/%s", serverUrl, pipelineName, pipelineCounter, stageName, stageCounter, jobName);
     }
 
     private List<FilePathToTemplate> destinationOnS3(File localFileToUpload) {
