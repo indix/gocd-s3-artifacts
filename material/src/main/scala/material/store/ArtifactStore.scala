@@ -87,9 +87,9 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
   }
 
   private def exists(bucket: String, key: String, client: AmazonS3Client) = {
-    val artifactMetdata: ObjectMetadata = client.getObjectMetadata(bucket, key)
-    Try(artifactMetdata) match {
-      case Success(x) => if(x != null) Exists(x.getLastModified.getTime) else OperationFailure(throw new RuntimeException(s"$bucket/$key does not exist"))
+    val listRequest = new ListObjectsRequest().withBucketName(bucket).withPrefix(key).withDelimiter("/")
+    Try(client.listObjects(listRequest)) match {
+      case Success(x) if x.getObjectSummaries.size() > 0 => if(x != null) Exists(x.getObjectSummaries.size()) else OperationFailure(throw new RuntimeException(s"$bucket/$key does not exist"))
       case Failure(th) => OperationFailure(th)
     }
   }
