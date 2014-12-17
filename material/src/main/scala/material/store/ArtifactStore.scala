@@ -10,6 +10,7 @@ import material.util.LoggerUtil
 import scala.collection.JavaConversions._
 import scala.util.Failure
 import scala.util.Success
+import java.util.Date
 
 
 sealed trait ArtifactStore {
@@ -38,29 +39,38 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
   import material.store.ResponseMetadata.{REVISION_COMMENT, TRACKBACK_URL}
 
   private def mostRecentRevision(listing: ObjectListing) = {
-    listing.getObjectSummaries.asScala.map(_.getKey.split("/").last).map(Revision).max
+    val prefixes = listing.getCommonPrefixes.asScala
+    if (prefixes.size > 0) Some(prefixes.map(_.split("/").last).map(Revision).max)
+    else None
   }
 
   private def latestOf(client: AmazonS3Client, listing: ObjectListing) : Revision = {
-    def latestOfInternal(client: AmazonS3Client, listing: ObjectListing, latestSoFar: Revision): Revision = {
-      if (listing.isTruncated){
+    def latestOfInternal(client: AmazonS3Client, listing: ObjectListing, latestSoFar: Option[Revision]): Option[Revision] = {
+      if (! listing.isTruncated){
         latestSoFar
       }else {
         val objects = client.listNextBatchOfObjects(listing)
-        latestOfInternal(client, objects, latestSoFar.max(mostRecentRevision(objects)))
+        val recent = (latestSoFar, mostRecentRevision(objects)) match {
+          case (Some(l), Some(m)) => Some(l.max(m))
+          case (Some(l), None) => Some(l)
+          case (None, Some(m)) => Some(m)
+          case _ => None
+        }
+        latestOfInternal(client, objects, recent)
       }
     }
-    latestOfInternal(client, listing, mostRecentRevision(listing))
+    // returning nulls is not the best way to
+    latestOfInternal(client, listing, mostRecentRevision(listing)).getOrElse(null)
   }
 
   private def getLatestRevision(artifact: Artifact, bucket: String, client: AmazonS3Client): FSOperationStatus = {
-    val listObjectsRequest = new ListObjectsRequest().withBucketName(bucket).withDelimiter("/").withPrefix(artifact.prefix)
+    val listObjectsRequest = new ListObjectsRequest().withBucketName(bucket).withPrefix(artifact.prefix).withDelimiter("/")
     Try(client.listObjects(listObjectsRequest)) match {
       case Success(listing) =>
         val recent = latestOf(client, listing)
-        val metadata = client.getObjectMetadata(bucket, artifact.copy(revision = Some(recent)).withRevision)
-        val lastModified = metadata.getLastModified
-        RevisionSuccess(recent, lastModified, metadata.getUserMetadata.get(TRACKBACK_URL), metadata.getUserMetadata.get(REVISION_COMMENT))
+//        val metadata = client.getObjectMetadata(bucket, artifact.copy(revision = Some(recent)).withRevision)
+//        val lastModified = metadata.getLastModified
+        RevisionSuccess(recent, new Date(), TRACKBACK_URL, REVISION_COMMENT)
       case Failure(th) => OperationFailure(th)
     }
   }
@@ -89,7 +99,8 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
   private def exists(bucket: String, key: String, client: AmazonS3Client) = {
     val listRequest = new ListObjectsRequest().withBucketName(bucket).withPrefix(key).withDelimiter("/")
     Try(client.listObjects(listRequest)) match {
-      case Success(x) if x.getObjectSummaries.size() > 0 => if(x != null) Exists(x.getObjectSummaries.size()) else OperationFailure(throw new RuntimeException(s"$bucket/$key does not exist"))
+      case Success(x) if x != null && x.getCommonPrefixes.size() > 0 => Exists(x.getCommonPrefixes.size())
+      case Success(x) => OperationFailure(new RuntimeException(s"No objects under the specified the bucket - $bucket, key_prefix - $key"))
       case Failure(th) => OperationFailure(th)
     }
   }
