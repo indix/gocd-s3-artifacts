@@ -44,7 +44,7 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
     else None
   }
 
-  private def latestOf(client: AmazonS3Client, listing: ObjectListing) : Revision = {
+  private def latestOf(client: AmazonS3Client, listing: ObjectListing) = {
     def latestOfInternal(client: AmazonS3Client, listing: ObjectListing, latestSoFar: Option[Revision]): Option[Revision] = {
       if (! listing.isTruncated){
         latestSoFar
@@ -60,7 +60,7 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
       }
     }
     // returning nulls is not the best way to
-    latestOfInternal(client, listing, mostRecentRevision(listing)).getOrElse(null)
+    latestOfInternal(client, listing, mostRecentRevision(listing))
   }
 
   private def getLatestRevision(artifact: Artifact, bucket: String, client: AmazonS3Client): FSOperationStatus = {
@@ -68,9 +68,12 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
     Try(client.listObjects(listObjectsRequest)) match {
       case Success(listing) =>
         val recent = latestOf(client, listing)
-//        val metadata = client.getObjectMetadata(bucket, artifact.copy(revision = Some(recent)).withRevision)
-//        val lastModified = metadata.getLastModified
-        RevisionSuccess(recent, new Date(), TRACKBACK_URL, REVISION_COMMENT)
+        recent.map{ r =>
+          val artifactWithRevision = artifact.copy(revision = recent)
+//          val objectMetadataRequest = new GetObjectMetadataRequest(bucket, artifactWithRevision.withRevision)
+//          val metadata = client.getObjectMetadata(objectMetadataRequest)
+          RevisionSuccess(r, new Date(), TRACKBACK_URL, REVISION_COMMENT)
+        }.getOrElse(OperationFailure(new RuntimeException(s"No artifacts under the specified $bucket, key prefix: ${artifact.prefix}")))
       case Failure(th) => OperationFailure(th)
     }
   }

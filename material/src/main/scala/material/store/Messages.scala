@@ -29,7 +29,7 @@ case class OperationFailure(th: Throwable) extends FSOperationStatus with OpFail
 
 case class Artifact(pipelineName: String, stageName: String, jobName: String, revision: Option[Revision] = None) {
   val prefix = s"$pipelineName/$stageName/$jobName/"
-  val withRevision = revision.fold(prefix)(rev => s"$prefix$rev/")
+  val withRevision = revision.fold(prefix)(rev => s"$prefix${rev.revision}/")
 }
 case class Revision(revision: String) extends Ordered[Revision] {
   val parts = revision.split('.').map(_.toInt)
