@@ -20,6 +20,7 @@ lazy val publish = (project in file("publish")).
   settings(
     name := "s3publish",
     crossPaths := false,
+    autoScalaLibrary := false,
     libraryDependencies ++= Seq(
       apacheCommons, commonsIo, aws, junit, hamcrest, mockito
     )
