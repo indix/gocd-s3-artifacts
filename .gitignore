@@ -2,3 +2,7 @@ target/
 project/boot/
 .history
 .cache
+
+
+#OS X
+.DS_Store
