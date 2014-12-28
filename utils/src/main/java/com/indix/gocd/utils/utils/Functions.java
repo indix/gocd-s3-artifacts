@@ -1,4 +1,4 @@
-package com.indix.gocd.s3publish.utils;
+package com.indix.gocd.utils.utils;
 
 public class Functions {
     public static abstract class VoidFunction<I> implements Function<I, Void> {

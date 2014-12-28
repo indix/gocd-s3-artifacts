@@ -1,4 +1,4 @@
-package com.indix.gocd.s3publish.utils;
+package com.indix.gocd.utils.utils;
 
 import java.util.Collections;
 import java.util.HashMap;

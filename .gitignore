@@ -2,6 +2,7 @@ target/
 project/boot/
 .history
 .cache
+.idea/
 
 
 #OS X

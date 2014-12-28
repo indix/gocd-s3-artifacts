@@ -1,4 +1,4 @@
-package com.indix.gocd.s3publish;
+package com.indix.gocd.s3fetch;
 
 import com.thoughtworks.go.plugin.api.annotation.Extension;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationError;
@@ -12,21 +12,25 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 
-import static com.indix.gocd.utils.Constants.SOURCE;
 
 @Extension
-public class PublishTask implements Task {
+public class FetchTask implements Task {
+    public static final String REPO = "Repo";
+    public static final String PACKAGE = "Package";
+    public static final String DESTINATION = "Destination";
 
     @Override
     public TaskConfig config() {
         TaskConfig taskConfig = new TaskConfig();
-        taskConfig.addProperty(SOURCE);
+        taskConfig.addProperty(REPO);
+        taskConfig.addProperty(PACKAGE);
+        taskConfig.addProperty(DESTINATION);
         return taskConfig;
     }
 
     @Override
     public TaskExecutor executor() {
-        return new PublishExecutor();
+        return new FetchExecutor();
     }
 
     @Override
@@ -34,7 +38,7 @@ public class PublishTask implements Task {
         return new TaskView() {
             @Override
             public String displayValue() {
-                return "Publish To S3";
+                return "Fetch S3 package";
             }
 
             @Override
@@ -52,8 +56,16 @@ public class PublishTask implements Task {
     @Override
     public ValidationResult validate(TaskConfig taskConfig) {
         ValidationResult validationResult = new ValidationResult();
-        if (StringUtils.isEmpty(taskConfig.getValue(SOURCE))) {
-            validationResult.addError(new ValidationError(SOURCE, "Source files to publish not present"));
+        if (StringUtils.isBlank(taskConfig.getValue(REPO))) {
+            validationResult.addError(new ValidationError(REPO, "S3 repository must be specified"));
+        }
+
+        if (StringUtils.isBlank(taskConfig.getValue(PACKAGE))) {
+            validationResult.addError(new ValidationError(PACKAGE, "S3 package must be specified"));
+        }
+
+        if (StringUtils.isBlank(taskConfig.getValue(DESTINATION))) {
+            validationResult.addError(new ValidationError(DESTINATION, "Destination directory must be specified"));
         }
 
         return validationResult;

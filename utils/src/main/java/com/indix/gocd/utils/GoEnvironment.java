@@ -1,4 +1,4 @@
-package com.indix.gocd.s3publish;
+package com.indix.gocd.utils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +56,10 @@ public class GoEnvironment {
 
         String pipelineCounter = get("GO_PIPELINE_COUNTER");
         String stageCounter = get("GO_STAGE_COUNTER");
+        return artifactsLocationTemplate(pipeline, stageName, jobName, pipelineCounter, stageCounter);
+    }
+
+    public String artifactsLocationTemplate(String pipeline, String stageName, String jobName, String pipelineCounter, String stageCounter) {
         return String.format("%s/%s/%s/%s.%s", pipeline, stageName, jobName, pipelineCounter, stageCounter);
     }
 
