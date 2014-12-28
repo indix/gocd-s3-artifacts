@@ -9,7 +9,7 @@ val hamcrest = "org.hamcrest" % "hamcrest-all" % "1.3" % Test
 val mockito = "org.mockito" % "mockito-all" % "1.9.0" % Test
 val scalaTest = "org.scalatest" %% "scalatest" % "2.2.0" % Test
 
-lazy val root = project in file(".") aggregate(publish, material, fetch)
+lazy val root = project in file(".") aggregate(utils, publish, material, fetch)
 
 lazy val commonSettings = Seq(
   organization := "com.indix",
@@ -18,7 +18,20 @@ lazy val commonSettings = Seq(
   unmanagedBase := file(".") / "lib"
 )
 
+lazy val utils = (project in file("utils")).
+  settings(commonSettings: _*).
+  settings(
+    name := "utils",
+    crossPaths := false,
+    autoScalaLibrary := false,
+    libraryDependencies ++= Seq(
+      apacheCommons, commonsIo, awsS3, junit, junitInterface, hamcrest, mockito
+    ),
+    javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+  )
+
 lazy val publish = (project in file("publish")).
+  dependsOn(utils).
   settings(commonSettings: _*).
   settings(
     name := "s3publish",
@@ -26,7 +39,8 @@ lazy val publish = (project in file("publish")).
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
       apacheCommons, commonsIo, awsS3, junit, junitInterface, hamcrest, mockito
-    )
+    ),
+    javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
   )
 
 lazy val material = (project in file("material")).
@@ -40,12 +54,14 @@ lazy val material = (project in file("material")).
   )
 
 lazy val fetch = (project in file("fetch")).
+  dependsOn(utils).
   settings(commonSettings: _*).
   settings(
-    name := "s3publish",
+    name := "s3fetch",
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
       apacheCommons, commonsIo, awsS3, junit, hamcrest, mockito
-    )
+    ),
+    javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
   )

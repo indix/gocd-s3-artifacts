@@ -1,17 +1,17 @@
 <div class="form_item_block">
-  <label>Pipeline:<span class="asterisk">*</span></label>
-  <input type="text" ng-model="Pipeline" ng-required="true">
-  <span class="form_error" ng-show="GOINPUTNAME[Pipeline].$error.server">{{ GOINPUTNAME[Pipeline].$error.server }}</span>
+  <label>Repository name:<span class="asterisk">*</span></label>
+  <input type="text" ng-model="Repo" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Repo].$error.server">{{ GOINPUTNAME[Repo].$error.server }}</span>
 </div>
 <div class="form_item_block">
-  <label>Stage:<span class="asterisk">*</span></label>
-  <input type="text" ng-model="Stage" ng-required="true">
-  <span class="form_error" ng-show="GOINPUTNAME[Stage].$error.server">{{ GOINPUTNAME[Stage].$error.server }}</span>
+  <label>Package name:<span class="asterisk">*</span></label>
+  <input type="text" ng-model="Package" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Package].$error.server">{{ GOINPUTNAME[Package].$error.server }}</span>
 </div>
 <div class="form_item_block">
-  <label>Job:<span class="asterisk">*</span></label>
-  <input type="text" ng-model="Job" ng-required="true">
-  <span class="form_error" ng-show="GOINPUTNAME[Job].$error.server">{{ GOINPUTNAME[Job].$error.server }}</span>
+  <label>Destination directory:<span class="asterisk">*</span></label>
+  <input type="text" ng-model="Destination" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Destination].$error.server">{{ GOINPUTNAME[Destination].$error.server }}</span>
 </div>
 <div class="form_item_block">
     <p class="required">Make sure AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID and GO_ARTIFACTS_S3_BUCKET environment variables are present with appropriate values on any of pipeline / Go Environments / on all agent machines. </p>

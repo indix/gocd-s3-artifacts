@@ -1,4 +1,4 @@
-package com.indix.gocd.s3publish;
+package com.indix.gocd.utils;
 
 public class Constants {
     public static final String METADATA_USER = "user";

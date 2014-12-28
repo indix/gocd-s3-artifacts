@@ -1,13 +1,14 @@
 package com.indix.gocd.s3publish;
 
+import static org.apache.commons.lang3.StringUtils.split;
+import static org.apache.commons.lang3.StringUtils.trim;
+
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.indix.gocd.s3publish.store.S3ArtifactStore;
-import com.indix.gocd.s3publish.utils.Function;
-import com.indix.gocd.s3publish.utils.Lists;
-import com.indix.gocd.s3publish.utils.Tuple2;
+
+import com.indix.gocd.utils.GoEnvironment;
 import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
@@ -18,12 +19,15 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 
-import static com.indix.gocd.s3publish.Constants.*;
-import static com.indix.gocd.s3publish.utils.Functions.VoidFunction;
-import static com.indix.gocd.s3publish.utils.Lists.flatMap;
-import static com.indix.gocd.s3publish.utils.Lists.foreach;
-import static org.apache.commons.lang3.StringUtils.split;
-import static org.apache.commons.lang3.StringUtils.trim;
+import com.indix.gocd.utils.store.S3ArtifactStore;
+import com.indix.gocd.utils.utils.Function;
+import com.indix.gocd.utils.utils.Lists;
+import com.indix.gocd.utils.utils.Tuple2;
+import static com.indix.gocd.utils.Constants.*;
+import static com.indix.gocd.utils.utils.Functions.VoidFunction;
+import static com.indix.gocd.utils.utils.Lists.flatMap;
+import static com.indix.gocd.utils.utils.Lists.foreach;
+
 
 public class PublishExecutor implements TaskExecutor {
 
@@ -124,4 +128,3 @@ class FilePathToTemplate extends Tuple2<String, String> {
         super(filePath, template);
     }
 }
-

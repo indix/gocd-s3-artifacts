@@ -1,12 +1,13 @@
-package com.indix.gocd.s3publish;
+package com.indix.gocd.utils;
 
-import com.indix.gocd.s3publish.utils.Maps;
 import org.junit.Test;
+import static org.junit.Assert.assertThat;
 
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+
+import com.indix.gocd.utils.utils.Maps;
 
 public class GoEnvironmentTest {
     Map<String, String> mockEnvironment = Maps.<String, String>builder()

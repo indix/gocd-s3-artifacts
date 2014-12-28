@@ -1,4 +1,4 @@
-package com.indix.gocd.s3publish.utils;
+package com.indix.gocd.utils.utils;
 
 public class Tuple2<Left, Right> {
     private Left _1;

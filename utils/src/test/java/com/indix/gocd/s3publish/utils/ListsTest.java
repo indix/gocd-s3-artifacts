@@ -1,14 +1,15 @@
-package com.indix.gocd.s3publish.utils;
+package com.indix.gocd.utils.utils;
 
 import org.junit.Test;
-
 import java.util.List;
 
-import static com.indix.gocd.s3publish.utils.Functions.VoidFunction;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
+
 import static org.junit.Assert.*;
-import static com.indix.gocd.s3publish.utils.Lists.*;
+
+import static com.indix.gocd.utils.utils.Lists.*;
+import static com.indix.gocd.utils.utils.Functions.VoidFunction;
 
 public class ListsTest {
     @Test

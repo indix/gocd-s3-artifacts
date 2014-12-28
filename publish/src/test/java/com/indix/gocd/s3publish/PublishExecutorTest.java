@@ -3,7 +3,8 @@ package com.indix.gocd.s3publish;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.indix.gocd.s3publish.mocks.MockTaskExecutionContext;
-import com.indix.gocd.s3publish.utils.Maps;
+import com.indix.gocd.utils.GoEnvironment;
+import com.indix.gocd.utils.utils.Maps;
 import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
@@ -14,7 +15,7 @@ import org.mockito.ArgumentCaptor;
 import java.util.List;
 import java.util.Map;
 
-import static com.indix.gocd.s3publish.Constants.*;
+import static com.indix.gocd.utils.Constants.*;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
