@@ -23,8 +23,8 @@ sealed trait ArtifactStore {
 }
 
 object ResponseMetadata{
-  val TRACKBACK_URL = "TRACKBACK_URL"
-  val USER = "USER"
+  val TRACEBACK_URL = "tracebackurl"
+  val USER = "user"
   val REVISION_COMMENT = "REVISION_COMMENT"
 }
 
@@ -36,7 +36,7 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
   override def exists(key: String): FSOperationStatus = exists(bucket, key, s3Client)
   override def bucketExists: FSOperationStatus = bucketExists(bucket, s3Client)
 
-  import material.store.ResponseMetadata.{REVISION_COMMENT, TRACKBACK_URL}
+  import material.store.ResponseMetadata.{REVISION_COMMENT, TRACEBACK_URL, USER}
 
   private def mostRecentRevision(listing: ObjectListing) = {
     val prefixes = listing.getCommonPrefixes.asScala
@@ -70,9 +70,12 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
         val recent = latestOf(client, listing)
         recent.map{ r =>
           val artifactWithRevision = artifact.copy(revision = recent)
-//          val objectMetadataRequest = new GetObjectMetadataRequest(bucket, artifactWithRevision.withRevision)
-//          val metadata = client.getObjectMetadata(objectMetadataRequest)
-          RevisionSuccess(r, new Date(), TRACKBACK_URL, REVISION_COMMENT)
+          val objectMetadataRequest = new GetObjectMetadataRequest(bucket, artifactWithRevision.withRevision)
+          val metadata = client.getObjectMetadata(objectMetadataRequest)
+          val userMetadata = metadata.getUserMetadata()
+          val tracebackUrl = userMetadata.get(TRACEBACK_URL)
+          val user = userMetadata.get(USER)
+          RevisionSuccess(r, new Date(), tracebackUrl, user)
         }.getOrElse(OperationFailure(new RuntimeException(s"No artifacts under the specified $bucket, key prefix: ${artifact.prefix}")))
       case Failure(th) => OperationFailure(th)
     }
