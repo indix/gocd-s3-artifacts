@@ -1,13 +1,11 @@
 package com.indix.gocd.s3publish;
 
-import static org.apache.commons.lang3.StringUtils.split;
-import static org.apache.commons.lang3.StringUtils.trim;
-
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
+import com.amazonaws.util.json.JSONException;
 import com.indix.gocd.utils.GoEnvironment;
 import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
@@ -23,6 +21,7 @@ import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Lists;
 import com.indix.gocd.utils.utils.Tuple2;
+
 import static com.indix.gocd.utils.Constants.*;
 import static com.indix.gocd.utils.utils.Functions.VoidFunction;
 import static com.indix.gocd.utils.utils.Lists.flatMap;
@@ -44,14 +43,20 @@ public class PublishExecutor implements TaskExecutor {
 
         setMetadata(env, bucket, store);
 
-        String[] sources = split(config.getValue(SOURCE), "\n");
-        foreach(sources, new VoidFunction<String>() {
-            @Override
-            public void execute(String source) {
-                File localFileToUpload = new File(String.format("%s/%s", context.workingDir(), trim(source)));
-                pushToS3(context, env, store, localFileToUpload);
-            }
-        });
+        try {
+            List<Tuple2<String, String>> sourceDestinations = PublishTask.getSourceDestinations(config.getValue(SOURCEDESTINATIONS));
+            foreach(sourceDestinations, new VoidFunction<Tuple2<String, String>>() {
+                @Override
+                public void execute(Tuple2<String, String> input) {
+                    String source = input._1();
+                    String destination = input._2();
+                    File localFileToUpload = new File(String.format("%s/%s", context.workingDir(), source));
+                    pushToS3(context, env, store, localFileToUpload, destination);
+                }
+            });
+        } catch (JSONException e) {
+            return ExecutionResult.failure("Failed while parsing configuration", e);
+        }
 
         return ExecutionResult.success("Published all artifacts to S3");
     }
@@ -65,8 +70,12 @@ public class PublishExecutor implements TaskExecutor {
         return new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey));
     }
 
-    private void pushToS3(final TaskExecutionContext context, final GoEnvironment env, final S3ArtifactStore store, File localFileToUpload) {
-        List<FilePathToTemplate> filesToUpload = generateFilesToUpload(env.artifactsLocationTemplate(), localFileToUpload);
+    private void pushToS3(final TaskExecutionContext context, final GoEnvironment env, final S3ArtifactStore store, File localFileToUpload, String destination) {
+        String templateSoFar = env.artifactsLocationTemplate();
+        if(!org.apache.commons.lang3.StringUtils.isBlank(destination)) {
+            templateSoFar += "/" + destination;
+        }
+        List<FilePathToTemplate> filesToUpload = generateFilesToUpload(templateSoFar, localFileToUpload);
         foreach(filesToUpload, new VoidFunction<FilePathToTemplate>() {
             @Override
             public void execute(FilePathToTemplate filePathToTemplate) {

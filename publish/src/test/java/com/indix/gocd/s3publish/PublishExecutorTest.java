@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
+
 public class PublishExecutorTest {
     Maps.MapBuilder<String, String> mockEnvironmentVariables;
     private PublishExecutor publishExecutor;
@@ -76,7 +77,7 @@ public class PublishExecutorTest {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         AmazonS3Client mockClient = mockClient();
         doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
-        when(config.getValue(SOURCE)).thenReturn("README.md");
+        when(config.getValue(SOURCEDESTINATIONS)).thenReturn("[{\"source\": \"README.md\", \"destination\": \"\"}]");
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
         assertTrue(executionResult.isSuccessful());
