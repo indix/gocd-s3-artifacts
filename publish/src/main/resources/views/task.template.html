@@ -1,10 +1,58 @@
 <div class="form_item_block">
-    <label>Source:<span class="asterisk">*</span></label>
-    <textarea class="code_text MB_focusable required" ng-model="source" ng-required="true" cols="50" rows="5" wrap="off"></textarea>
-    <div class="inline_instruction">Enter 1 artifact per line. Make sure the path is relative to the working directory. </div>
-    <span class="form_error" ng-show="GOINPUTNAME[source].$error.url">File to publish can't be empty</span>
-    <span class="form_error" ng-show="GOINPUTNAME[source].$error.server">{{ GOINPUTNAME[source].$error.server }}</span>
+    <table class="artifact">
+        <thead>
+        <tr>
+            <th><h4 class="src">Source</h4></th>
+            <th><h4 class="dest">Destination</h4></th>
+            <th>&nbsp;</th>
+        </tr>
+        </thead>
+        <tbody class="artifact" ng-init>
+            <tr ng-repeat="source in sources">
+                <td class="name_value_cell">
+                    <input ng-model="source.source" required="true" ng-required="true" style="margin-right: 6px;" class="form_input artifact_source" name="" size="30" type="text">
+                </td>
+                <td class="name_value_cell">
+                    <input ng-model="source.destination" class="form_input artifact_destination" name="" size="30" type="text">
+                </td>
+                <td class="name_value_cell">
+                    <span class="icon_remove delete_parent" ng-click="removeSource($index)"></span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <input id="sourceDestinations" type="hidden" ng-model="sourceDestinations" value="{{sourceDestinations}}">
+    <a id="add_artifact" ng-click="addSource()" class="action_icon skip_dirty_stop add_icon" title="" href="#"><span class="icon"></span><span>Add</span></a>
+    <span class="form_error" ng-show="GOINPUTNAME[sourceDestinations].$error.server">{{ GOINPUTNAME[sourceDestinations].$error.server }}</span>
 </div>
 <div class="form_item_block">
     <p class="required">Make sure AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID and GO_ARTIFACTS_S3_BUCKET environment variables are present with appropriate values on any of pipeline / Go Environments / on all agent machines. </p>
 </div>
+<script type="text/javascript">
+    jQuery(document).ready(function() {
+        var interval = setInterval(function(){
+            try {
+                $scope = angular.element(document.getElementById("task_angular_pluggable_task_indix_s3publish")).scope();
+                $scope.$apply(function() {
+                    $scope.sources = $scope.sourceDestinations ? JSON.parse($scope.sourceDestinations) : [];
+
+                    $scope.addSource = function() {
+                        $scope.sources.push({ source: "", destination: ""});
+                    };
+
+                    $scope.removeSource = function(index) {
+                        $scope.sources.splice(index, 1);
+                    }
+
+                });
+                $scope.$watch("sources", function(){
+                    $scope.sourceDestinations = $scope.sources.toJSON();
+                }, true);
+
+                clearInterval(interval);
+            }
+            catch(e) {
+            }
+        }, 50);
+    });
+</script>

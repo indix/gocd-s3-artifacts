@@ -1,5 +1,10 @@
 package com.indix.gocd.s3publish;
 
+import com.amazonaws.util.json.JSONArray;
+import com.amazonaws.util.json.JSONException;
+import com.amazonaws.util.json.JSONObject;
+import com.indix.gocd.utils.utils.Functions;
+import com.indix.gocd.utils.utils.Tuple2;
 import com.thoughtworks.go.plugin.api.annotation.Extension;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationError;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
@@ -11,8 +16,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import static com.indix.gocd.utils.Constants.SOURCE;
+import static com.indix.gocd.utils.Constants.SOURCEDESTINATIONS;
+import static com.indix.gocd.utils.utils.Lists.foreach;
+import static org.apache.commons.lang3.StringUtils.trim;
 
 @Extension
 public class PublishTask implements Task {
@@ -20,7 +29,7 @@ public class PublishTask implements Task {
     @Override
     public TaskConfig config() {
         TaskConfig taskConfig = new TaskConfig();
-        taskConfig.addProperty(SOURCE);
+        taskConfig.addProperty(SOURCEDESTINATIONS);
         return taskConfig;
     }
 
@@ -51,11 +60,37 @@ public class PublishTask implements Task {
 
     @Override
     public ValidationResult validate(TaskConfig taskConfig) {
-        ValidationResult validationResult = new ValidationResult();
-        if (StringUtils.isEmpty(taskConfig.getValue(SOURCE))) {
-            validationResult.addError(new ValidationError(SOURCE, "Source files to publish not present"));
+        final ValidationResult validationResult = new ValidationResult();
+        List<Tuple2<String, String>> sourceDestinations;
+        try {
+            sourceDestinations = getSourceDestinations(taskConfig.getValue(SOURCEDESTINATIONS));
+        } catch (JSONException e) {
+            validationResult.addError(new ValidationError(SOURCEDESTINATIONS, "Error while parsing configuration"));
+            return validationResult;
         }
 
+        foreach(sourceDestinations, new Functions.VoidFunction<Tuple2<String, String>>() {
+            @Override
+            public void execute(Tuple2<String, String> input) {
+                if(StringUtils.isBlank(input._1())) {
+                    validationResult.addError(new ValidationError(SOURCEDESTINATIONS, "Source cannot be empty"));
+                }
+            }
+        });
+
         return validationResult;
+    }
+
+    public static List<Tuple2<String, String>> getSourceDestinations(String sourceDestinationsString) throws JSONException {
+        JSONArray sourceDestinations = new JSONArray(sourceDestinationsString);
+        List<Tuple2<String, String>> result = new ArrayList<Tuple2<String, String>>();
+        for(int i =0; i < sourceDestinations.length(); i++) {
+            JSONObject sourceDestination = (JSONObject)sourceDestinations.get(i);
+            String source = trim(sourceDestination.getString("source"));
+            String destination = trim(sourceDestination.getString("destination"));
+            result.add(new Tuple2<String, String>(source, destination));
+        }
+
+        return result;
     }
 }
