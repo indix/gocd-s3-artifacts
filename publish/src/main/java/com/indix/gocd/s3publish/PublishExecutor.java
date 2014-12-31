@@ -53,13 +53,11 @@ public class PublishExecutor implements TaskExecutor {
                 public void execute(Tuple2<String, String> input) {
                     final String source = input._1();
                     final String destination = input._2();
-                    log.info("Looking to push " + source + " into " + destination);
                     String[] files = parseSourcePath(source, context.workingDir());
 
                     foreach(files, new VoidFunction<String>() {
                         @Override
                         public void execute(String includedFile) {
-                            log.info(source + " gave us " + includedFile);
                             File localFileToUpload = new File(String.format("%s/%s", context.workingDir(), includedFile));
                             pushToS3(context, env, store, localFileToUpload, destination);
                         }
@@ -143,7 +141,6 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private void setMetadata(GoEnvironment env, String bucket, S3ArtifactStore store) {
-        log.info("Setting metadata on " + env.artifactsLocationTemplate());
         ObjectMetadata metadata = metadata(env);
         metadata.setContentLength(0);
         InputStream emptyContent = new ByteArrayInputStream(new byte[0]);
