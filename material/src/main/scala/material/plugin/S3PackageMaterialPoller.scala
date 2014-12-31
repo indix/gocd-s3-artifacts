@@ -28,9 +28,7 @@ class S3PackageMaterialPoller extends PackageMaterialPoller with LoggerUtil {
     val artifactStore = S3ArtifactStore(s3Client(repoConfig), s3Bucket)
     artifactStore.exists(artifact(packageConfig).prefix) match {
       case e: Exists => new Result().withSuccessMessages(s"Check ${artifact(packageConfig)} exists ${e.message}")
-      case f: OperationFailure => 
-	f.th.printStackTrace()
-	new Result().withErrorMessages(f.message)
+      case f: OperationFailure => new Result().withErrorMessages(f.message)
     }
   }
 
