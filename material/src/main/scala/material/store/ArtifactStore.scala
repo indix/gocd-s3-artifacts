@@ -11,6 +11,7 @@ import scala.collection.JavaConversions._
 import scala.util.Failure
 import scala.util.Success
 import java.util.Date
+import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap
 
 
 sealed trait ArtifactStore {
@@ -23,9 +24,19 @@ sealed trait ArtifactStore {
 }
 
 object ResponseMetadata{
-  val TRACEBACK_URL = "tracebackurl"
-  val USER = "user"
+  val TRACEBACK_URL = "TRACEBACK_URL"
+  val USER = "USER"
   val REVISION_COMMENT = "REVISION_COMMENT"
+  val COMPLETED = "COMPLETED"
+}
+
+object StatusCache {
+  private val cacheSize = 50000
+  private val prefixes = new ConcurrentLinkedHashMap.Builder[String, Boolean].maximumWeightedCapacity(cacheSize).build()
+  def add(prefix: String) = {
+    prefixes.put(prefix, true)
+  }
+  def contains(prefix: String) = prefixes.contains(prefix)
 }
 
 case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends ArtifactStore  with LoggerUtil {
@@ -36,10 +47,18 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
   override def exists(key: String): FSOperationStatus = exists(bucket, key, s3Client)
   override def bucketExists: FSOperationStatus = bucketExists(bucket, s3Client)
 
-  import material.store.ResponseMetadata.{REVISION_COMMENT, TRACEBACK_URL, USER}
+  import material.store.ResponseMetadata.{TRACEBACK_URL, USER, COMPLETED}
 
-  private def mostRecentRevision(listing: ObjectListing) = {
-    val prefixes = listing.getCommonPrefixes.asScala
+  private def isComplete(client: AmazonS3Client, prefix: String) = {
+    if (! StatusCache.contains(prefix))
+      if(client.getObjectMetadata(bucket, prefix).getUserMetadata.containsKey(COMPLETED))
+        StatusCache.add(prefix)
+
+    StatusCache.contains(prefix)
+  }
+
+  private def mostRecentRevision(client: AmazonS3Client, listing: ObjectListing) = {
+    val prefixes = listing.getCommonPrefixes.asScala.filter(p => isComplete(client, p))
     if (prefixes.size > 0) Some(prefixes.map(_.split("/").last).map(Revision).max)
     else None
   }
@@ -50,7 +69,7 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
         latestSoFar
       }else {
         val objects = client.listNextBatchOfObjects(listing)
-        val recent = (latestSoFar, mostRecentRevision(objects)) match {
+        val recent = (latestSoFar, mostRecentRevision(client, objects)) match {
           case (Some(l), Some(m)) => Some(l.max(m))
           case (Some(l), None) => Some(l)
           case (None, Some(m)) => Some(m)
@@ -59,8 +78,7 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
         latestOfInternal(client, objects, recent)
       }
     }
-    // returning nulls is not the best way to
-    latestOfInternal(client, listing, mostRecentRevision(listing))
+    latestOfInternal(client, listing, mostRecentRevision(client, listing))
   }
 
   private def getLatestRevision(artifact: Artifact, bucket: String, client: AmazonS3Client): FSOperationStatus = {
@@ -75,7 +93,7 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
           val userMetadata = metadata.getUserMetadata()
           val tracebackUrl = userMetadata.get(TRACEBACK_URL)
           val user = userMetadata.get(USER)
-          RevisionSuccess(r, new Date(), tracebackUrl, user)
+          RevisionSuccess(r, metadata.getLastModified, tracebackUrl, user)
         }.getOrElse(OperationFailure(new RuntimeException(s"No artifacts under the specified $bucket, key prefix: ${artifact.prefix}")))
       case Failure(th) => OperationFailure(th)
     }
