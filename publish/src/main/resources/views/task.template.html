@@ -46,7 +46,7 @@
 
                 });
                 $scope.$watch("sources", function(){
-                    $scope.sourceDestinations = $scope.sources.toJSON();
+                    $scope.sourceDestinations = angular.copy($scope.sources).toJSON();
                 }, true);
 
                 clearInterval(interval);
