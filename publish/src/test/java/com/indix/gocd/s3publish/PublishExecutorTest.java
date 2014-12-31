@@ -78,6 +78,7 @@ public class PublishExecutorTest {
         AmazonS3Client mockClient = mockClient();
         doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
         when(config.getValue(SOURCEDESTINATIONS)).thenReturn("[{\"source\": \"README.md\", \"destination\": \"\"}]");
+        doReturn(new String[]{"README.md"}).when(publishExecutor).parseSourcePath(anyString(), anyString());
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
         assertTrue(executionResult.isSuccessful());

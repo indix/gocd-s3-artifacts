@@ -1,3 +1,4 @@
+val ant = "org.apache.ant" % "ant" % "1.9.4"
 val apacheCommons = "org.apache.commons" % "commons-lang3" % "3.1"
 val commonsIo = "commons-io" % "commons-io" % "1.3.2"
 val awsS3 = "com.amazonaws" % "aws-java-sdk-s3" % "1.9.11"
@@ -39,7 +40,7 @@ lazy val publish = (project in file("publish")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      apacheCommons, commonsIo, awsS3, junit, junitInterface, hamcrest, mockito
+      ant, apacheCommons, commonsIo, awsS3, junit, junitInterface, hamcrest, mockito
     ),
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
   )
