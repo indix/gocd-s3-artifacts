@@ -3,6 +3,7 @@ project/boot/
 .history
 .cache
 .idea/
+.idea_modules/
 
 
 #OS X
