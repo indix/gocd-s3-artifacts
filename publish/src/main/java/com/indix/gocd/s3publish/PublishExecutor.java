@@ -32,6 +32,8 @@ import static com.indix.gocd.utils.utils.Lists.foreach;
 
 
 public class PublishExecutor implements TaskExecutor {
+    private Logger log = Logger.getLoggerFor(PublishTask.class);
+
     @Override
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
         final GoEnvironment env = new GoEnvironment();
@@ -63,6 +65,7 @@ public class PublishExecutor implements TaskExecutor {
             });
         } catch (JSONException e) {
             String message = "Failed while parsing configuration";
+            log.error(message);
             return ExecutionResult.failure(message, e);
         }
         setMetadata(env, bucket, store);
@@ -134,6 +137,7 @@ public class PublishExecutor implements TaskExecutor {
 
     private ExecutionResult envNotFound(String environmentVariable) {
         String message = String.format("%s environment variable not present", environmentVariable);
+        log.error(message);
         return ExecutionResult.failure(message);
     }
 
