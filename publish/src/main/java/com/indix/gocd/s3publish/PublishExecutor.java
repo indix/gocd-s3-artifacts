@@ -22,6 +22,7 @@ import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Lists;
 import com.indix.gocd.utils.utils.Tuple2;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.tools.ant.DirectoryScanner;
 
 import static com.indix.gocd.utils.Constants.*;
@@ -81,7 +82,7 @@ public class PublishExecutor implements TaskExecutor {
         directoryScanner.setBasedir(workingDir);
         directoryScanner.setIncludes(new String[]{source});
         directoryScanner.scan();
-        return directoryScanner.getIncludedFiles();
+        return ArrayUtils.addAll(directoryScanner.getIncludedFiles(), directoryScanner.getIncludedDirectories());
     }
 
     /*

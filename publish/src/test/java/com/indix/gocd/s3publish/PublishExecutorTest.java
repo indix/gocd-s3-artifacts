@@ -77,15 +77,15 @@ public class PublishExecutorTest {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         AmazonS3Client mockClient = mockClient();
         doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
-        when(config.getValue(SOURCEDESTINATIONS)).thenReturn("[{\"source\": \"README.md\", \"destination\": \"\"}]");
-        doReturn(new String[]{"README.md"}).when(publishExecutor).parseSourcePath(anyString(), anyString());
+        when(config.getValue(SOURCEDESTINATIONS)).thenReturn("[{\"source\": \"target/*\", \"destination\": \"\"}]");
+        doReturn(new String[]{"README.md", "s3publish-0.1.31.jar"}).when(publishExecutor).parseSourcePath(anyString(), anyString());
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
         assertTrue(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("Published all artifacts to S3"));
 
         ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
-        verify(mockClient, times(2)).putObject(putObjectRequestArgumentCaptor.capture());
+        verify(mockClient, times(3)).putObject(putObjectRequestArgumentCaptor.capture());
         List<PutObjectRequest> allPutObjectRequests = putObjectRequestArgumentCaptor.getAllValues();
 
 
@@ -96,12 +96,15 @@ public class PublishExecutorTest {
                 .build();
         assertThat(metadataPutRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));
 
-        PutObjectRequest filePutRequest = allPutObjectRequests.get(1);
+        PutObjectRequest readmePutRequest = allPutObjectRequests.get(1);
+        assertThat(readmePutRequest.getBucketName(), is("testS3Bucket"));
+        assertThat(readmePutRequest.getKey(), is("pipeline/stage/job/pipelineCounter.stageCounter/README.md"));
+        assertNull(readmePutRequest.getMetadata());
 
-        assertThat(filePutRequest.getBucketName(), is("testS3Bucket"));
-        assertThat(filePutRequest.getKey(), is("pipeline/stage/job/pipelineCounter.stageCounter/README.md"));
-
-        assertNull(filePutRequest.getMetadata());
+        PutObjectRequest jarPutRequest = allPutObjectRequests.get(2);
+        assertThat(jarPutRequest.getBucketName(), is("testS3Bucket"));
+        assertThat(jarPutRequest.getKey(), is("pipeline/stage/job/pipelineCounter.stageCounter/s3publish-0.1.31.jar"));
+        assertNull(jarPutRequest.getMetadata());
     }
 
     private TaskExecutionContext mockContext(final Map<String, String> environmentMap) {
