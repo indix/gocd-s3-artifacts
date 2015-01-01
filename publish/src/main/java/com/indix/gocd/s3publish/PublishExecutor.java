@@ -7,6 +7,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 
 import com.amazonaws.util.json.JSONException;
 import com.indix.gocd.utils.GoEnvironment;
+import com.thoughtworks.go.plugin.api.logging.Logger;
 import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
@@ -21,6 +22,8 @@ import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Lists;
 import com.indix.gocd.utils.utils.Tuple2;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.tools.ant.DirectoryScanner;
 
 import static com.indix.gocd.utils.Constants.*;
 import static com.indix.gocd.utils.utils.Functions.VoidFunction;
@@ -29,6 +32,7 @@ import static com.indix.gocd.utils.utils.Lists.foreach;
 
 
 public class PublishExecutor implements TaskExecutor {
+    private Logger log = Logger.getLoggerFor(PublishTask.class);
 
     @Override
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
@@ -48,17 +52,37 @@ public class PublishExecutor implements TaskExecutor {
             foreach(sourceDestinations, new VoidFunction<Tuple2<String, String>>() {
                 @Override
                 public void execute(Tuple2<String, String> input) {
-                    String source = input._1();
-                    String destination = input._2();
-                    File localFileToUpload = new File(String.format("%s/%s", context.workingDir(), source));
-                    pushToS3(context, env, store, localFileToUpload, destination);
+                    final String source = input._1();
+                    final String destination = input._2();
+                    String[] files = parseSourcePath(source, context.workingDir());
+
+                    foreach(files, new VoidFunction<String>() {
+                        @Override
+                        public void execute(String includedFile) {
+                            File localFileToUpload = new File(String.format("%s/%s", context.workingDir(), includedFile));
+                            pushToS3(context, env, store, localFileToUpload, destination);
+                        }
+                    });
                 }
             });
         } catch (JSONException e) {
-            return ExecutionResult.failure("Failed while parsing configuration", e);
+            String message = "Failed while parsing configuration";
+            log.error(message);
+            return ExecutionResult.failure(message, e);
         }
 
         return ExecutionResult.success("Published all artifacts to S3");
+    }
+
+    /*
+        Made public only for tests
+     */
+    public String[] parseSourcePath(String source, String workingDir) {
+        DirectoryScanner directoryScanner = new DirectoryScanner();
+        directoryScanner.setBasedir(workingDir);
+        directoryScanner.setIncludes(new String[]{source});
+        directoryScanner.scan();
+        return ArrayUtils.addAll(directoryScanner.getIncludedFiles(), directoryScanner.getIncludedDirectories());
     }
 
     /*
@@ -112,7 +136,9 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private ExecutionResult envNotFound(String environmentVariable) {
-        return ExecutionResult.failure(String.format("%s environment variable not present", environmentVariable));
+        String message = String.format("%s environment variable not present", environmentVariable);
+        log.error(message);
+        return ExecutionResult.failure(message);
     }
 
     private void setMetadata(GoEnvironment env, String bucket, S3ArtifactStore store) {
