@@ -41,8 +41,6 @@ public class PublishExecutor implements TaskExecutor {
         final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
         final S3ArtifactStore store = new S3ArtifactStore(s3Client(env), bucket);
 
-        setMetadata(env, bucket, store);
-
         try {
             List<Tuple2<String, String>> sourceDestinations = PublishTask.getSourceDestinations(config.getValue(SOURCEDESTINATIONS));
             foreach(sourceDestinations, new VoidFunction<Tuple2<String, String>>() {
@@ -57,6 +55,7 @@ public class PublishExecutor implements TaskExecutor {
         } catch (JSONException e) {
             return ExecutionResult.failure("Failed while parsing configuration", e);
         }
+        setMetadata(env, bucket, store);
 
         return ExecutionResult.success("Published all artifacts to S3");
     }
@@ -94,6 +93,7 @@ public class PublishExecutor implements TaskExecutor {
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.addUserMetadata(METADATA_USER, user);
         objectMetadata.addUserMetadata(METADATA_TRACEBACK_URL, tracebackUrl);
+        objectMetadata.addUserMetadata(COMPLETED, COMPLETED);
         return objectMetadata;
     }
 
