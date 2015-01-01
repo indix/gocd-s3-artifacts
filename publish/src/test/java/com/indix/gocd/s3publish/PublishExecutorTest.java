@@ -88,17 +88,17 @@ public class PublishExecutorTest {
         List<PutObjectRequest> allPutObjectRequests = putObjectRequestArgumentCaptor.getAllValues();
 
 
-        PutObjectRequest metadataPutRequest = allPutObjectRequests.get(0);
+        PutObjectRequest filePutRequest = allPutObjectRequests.get(0);
+        assertThat(filePutRequest.getBucketName(), is("testS3Bucket"));
+        assertThat(filePutRequest.getKey(), is("pipeline/stage/job/pipelineCounter.stageCounter/README.md"));
+
+        PutObjectRequest metadataPutRequest = allPutObjectRequests.get(1);
         Map<String, String> expectedUserMetadata = Maps.<String, String>builder()
                 .with(METADATA_USER, "Krishna")
                 .with(METADATA_TRACEBACK_URL, "http://localhost:8153/go/tab/build/detail/pipeline/pipelineCounter/stage/stageCounter/job")
+                .with(COMPLETED, COMPLETED)
                 .build();
         assertThat(metadataPutRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));
-
-        PutObjectRequest filePutRequest = allPutObjectRequests.get(1);
-
-        assertThat(filePutRequest.getBucketName(), is("testS3Bucket"));
-        assertThat(filePutRequest.getKey(), is("pipeline/stage/job/pipelineCounter.stageCounter/README.md"));
 
         assertNull(filePutRequest.getMetadata());
     }
