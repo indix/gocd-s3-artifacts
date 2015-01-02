@@ -23,10 +23,10 @@ sealed trait ArtifactStore {
 }
 
 object ResponseMetadata{
-  val TRACEBACK_URL = "TRACEBACK_URL"
-  val USER = "USER"
-  val REVISION_COMMENT = "REVISION_COMMENT"
-  val COMPLETED = "COMPLETED"
+  val TRACEBACK_URL = "traceback_url"
+  val USER = "user"
+  val REVISION_COMMENT = "revision_comment"
+  val COMPLETED = "completed"
 }
 
 case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends ArtifactStore  with LoggerUtil {
