@@ -3,7 +3,6 @@ val apacheCommons = "org.apache.commons" % "commons-lang3" % "3.1"
 val commonsIo = "commons-io" % "commons-io" % "1.3.2"
 val awsS3 = "com.amazonaws" % "aws-java-sdk-s3" % "1.9.11"
 val nscalaTime = "com.github.nscala-time" %% "nscala-time" % "1.6.0"
-val concurrentLinkedHashmap = "com.googlecode.concurrentlinkedhashmap" % "concurrentlinkedhashmap-lru" % "1.4.1"
 
 val junit = "junit" % "junit" % "4.10" % Test
 val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test
@@ -51,7 +50,7 @@ lazy val material = (project in file("material")).
     name := "s3material",
     crossPaths := false,
     libraryDependencies ++= Seq(
-      apacheCommons, commonsIo, awsS3, nscalaTime, concurrentLinkedHashmap, scalaTest, mockito
+      apacheCommons, commonsIo, awsS3, nscalaTime, scalaTest, mockito
     )
   )
 

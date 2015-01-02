@@ -11,7 +11,6 @@ import scala.collection.JavaConversions._
 import scala.util.Failure
 import scala.util.Success
 import java.util.Date
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap
 
 
 sealed trait ArtifactStore {
@@ -30,15 +29,6 @@ object ResponseMetadata{
   val COMPLETED = "COMPLETED"
 }
 
-object StatusCache {
-  private val cacheSize = 50000
-  private val prefixes = new ConcurrentLinkedHashMap.Builder[String, Boolean].maximumWeightedCapacity(cacheSize).build()
-  def add(prefix: String) = {
-    prefixes.put(prefix, true)
-  }
-  def contains(prefix: String) = prefixes.contains(prefix)
-}
-
 case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends ArtifactStore  with LoggerUtil {
   override def get(from: String, to: String) = copyToLocal(bucket, from, to, s3Client)
   override def put(from: String, to: String) = copyFromLocal(bucket, from, to, s3Client)
@@ -50,11 +40,7 @@ case class S3ArtifactStore(s3Client: AmazonS3Client, bucket: String) extends Art
   import material.store.ResponseMetadata.{TRACEBACK_URL, USER, COMPLETED}
 
   private def isComplete(client: AmazonS3Client, prefix: String) = {
-    if (! StatusCache.contains(prefix))
-      if(client.getObjectMetadata(bucket, prefix).getUserMetadata.containsKey(COMPLETED))
-        StatusCache.add(prefix)
-
-    StatusCache.contains(prefix)
+      client.getObjectMetadata(bucket, prefix).getUserMetadata.containsKey(COMPLETED)
   }
 
   private def mostRecentRevision(client: AmazonS3Client, listing: ObjectListing) = {
