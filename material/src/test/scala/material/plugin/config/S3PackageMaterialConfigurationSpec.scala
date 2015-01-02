@@ -43,8 +43,4 @@ class S3PackageMaterialConfigurationSpec extends FlatSpec {
     keys should contain (S3PackageMaterialConfiguration.STAGE_NAME)
   }
 
-  it should "validation package configuration and return no errors if all configurations are valid" in {
-    System.getProperties().list(System.out)
-    println(System.getProperty("os.name"))
-  }
 }
