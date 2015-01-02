@@ -17,16 +17,12 @@ case class Config(name: String, displayName: String, order: Int, required: java.
 
 object S3PackageMaterialConfiguration {
   val S3_BUCKET = "S3_BUCKET"
-  val S3_ACCESS_KEY_ID = "S3_AWS_ACCESS_KEY_ID"
-  val S3_SECRET_ACCESS_KEY = "S3_AWS_SECRET_ACCESS_KEY"
   val PIPELINE_NAME = "PIPELINE_NAME"
   val STAGE_NAME = "STAGE_NAME"
   val JOB_NAME = "JOB_NAME"
   
   val repoConfigs = List(
-    Config(S3_BUCKET, "S3 Bucket", 0),
-    Config(S3_ACCESS_KEY_ID, "S3 Access Key ID", 1),
-    Config(S3_SECRET_ACCESS_KEY, "S3 Secret Access Key", 2)
+    Config(S3_BUCKET, "S3 Bucket", 0)
   )
   
   val packageConfigs = List(

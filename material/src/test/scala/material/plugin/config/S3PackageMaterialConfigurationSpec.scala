@@ -13,8 +13,6 @@ class S3PackageMaterialConfigurationSpec extends FlatSpec {
     val properties = repoConfig.list().asScala.map(_.asInstanceOf[PackageMaterialProperty])
     val keys = properties.map(_.getKey)
     keys should contain (S3PackageMaterialConfiguration.S3_BUCKET)
-    keys should contain (S3PackageMaterialConfiguration.S3_ACCESS_KEY_ID)
-    keys should contain (S3PackageMaterialConfiguration.S3_SECRET_ACCESS_KEY)
   }
 
   it should "validate repository configuration and return no errors if all configurations are valid" in {
@@ -33,7 +31,7 @@ class S3PackageMaterialConfigurationSpec extends FlatSpec {
       p.withDefault("   ")
     }
     val validationErrors = configuration.isRepositoryConfigurationValid(repoConfig).getErrors.asScala
-    validationErrors.length should be(3)
+    validationErrors.length should be(1)
   }
 
   it should "return package configuration" in {
@@ -46,6 +44,7 @@ class S3PackageMaterialConfigurationSpec extends FlatSpec {
   }
 
   it should "validation package configuration and return no errors if all configurations are valid" in {
-
+    System.getProperties().list(System.out)
+    println(System.getProperty("os.name"))
   }
 }
