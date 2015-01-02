@@ -4,6 +4,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.store.S3ArtifactStore;
+import com.thoughtworks.go.plugin.api.logging.Logger;
 import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import static com.indix.gocd.utils.Constants.*;
 
 public class FetchExecutor implements TaskExecutor {
+    private static Logger logger = Logger.getLoggerFor(FetchTask.class);
 
     @Override
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
@@ -63,7 +65,8 @@ public class FetchExecutor implements TaskExecutor {
             FileUtils.cleanDirectory(destinationDirectory);
             FileUtils.deleteDirectory(destinationDirectory);
             FileUtils.forceMkdir(destinationDirectory);
-        } catch (IOException ignored) {
+        } catch (IOException ioe) {
+            logger.error(ioe.getMessage(), ioe);
         }
     }
 
