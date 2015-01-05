@@ -38,6 +38,10 @@ public class S3ArtifactStore {
         client.getObject(getObjectRequest, destinationFile);
     }
 
+    public ObjectMetadata getMetadata(String key) {
+        return client.getObjectMetadata(bucket, key);
+    }
+
     public void getPrefix(String prefix, String to) {
         ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
                 .withBucketName(bucket)

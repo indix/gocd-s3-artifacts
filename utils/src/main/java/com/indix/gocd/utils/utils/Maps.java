@@ -8,6 +8,9 @@ public class Maps {
     public static <K, V> MapBuilder<K, V> builder() {
         return new MapBuilder<K, V>();
     }
+    public static <K, V> boolean isEmpty(Map<K, V> map) {
+        return map.isEmpty();
+    }
 
     public static class MapBuilder<K, V> {
         private Map<K, V> internal = new HashMap<K, V>();
