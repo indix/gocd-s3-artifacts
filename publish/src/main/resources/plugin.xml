@@ -3,7 +3,7 @@
     <about>
         <name>Publish to S3</name>
         <version>0.1.0</version>
-        <target-go-version>14.3.0</target-go-version>
+        <target-go-version>14.4.0</target-go-version>
         <description>Publish artifacts to S3</description>
         <vendor>
             <name>Indix</name>

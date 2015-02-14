@@ -3,6 +3,7 @@ val apacheCommons = "org.apache.commons" % "commons-lang3" % "3.1"
 val commonsIo = "commons-io" % "commons-io" % "1.3.2"
 val awsS3 = "com.amazonaws" % "aws-java-sdk-s3" % "1.9.11"
 val nscalaTime = "com.github.nscala-time" %% "nscala-time" % "1.6.0"
+val goPluginLibrary = "cd.go.plugin" % "go-plugin-api" % "14.4.0" % Provided
 
 val junit = "junit" % "junit" % "4.10" % Test
 val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test
@@ -17,8 +18,11 @@ lazy val root = project in file(".") aggregate(utils, publish, material, fetch)
 lazy val commonSettings = Seq(
   organization := "com.indix",
   version := appVersion,
-  scalaVersion := "2.10.3",
-  unmanagedBase := file(".") / "lib"
+  scalaVersion := "2.10.4",
+  unmanagedBase := file(".") / "lib",
+  libraryDependencies ++= Seq(
+    apacheCommons, commonsIo, awsS3, goPluginLibrary, mockito
+  )
 )
 
 lazy val utils = (project in file("utils")).
@@ -28,7 +32,7 @@ lazy val utils = (project in file("utils")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      apacheCommons, commonsIo, awsS3, junit, junitInterface, hamcrest, mockito
+      junit, junitInterface, hamcrest
     ),
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
   )
@@ -41,7 +45,7 @@ lazy val publish = (project in file("publish")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      ant, apacheCommons, commonsIo, awsS3, junit, junitInterface, hamcrest, mockito
+      ant, junit, junitInterface, hamcrest
     ),
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
   )
@@ -52,7 +56,7 @@ lazy val material = (project in file("material")).
     name := "s3material",
     crossPaths := false,
     libraryDependencies ++= Seq(
-      apacheCommons, commonsIo, awsS3, nscalaTime, scalaTest, mockito
+      nscalaTime, scalaTest
     )
   )
 
@@ -64,7 +68,7 @@ lazy val fetch = (project in file("fetch")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      apacheCommons, commonsIo, awsS3, junit, hamcrest, mockito
+      junit, hamcrest
     ),
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
   )

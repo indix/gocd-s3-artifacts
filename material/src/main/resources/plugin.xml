@@ -3,7 +3,7 @@
     <about>
         <name>S3 Material</name>
         <version>0.1.0</version>
-        <target-go-version>14.3.0</target-go-version>
+        <target-go-version>14.4.0</target-go-version>
         <description>S3 as material</description>
         <vendor>
             <name>Indix</name>
