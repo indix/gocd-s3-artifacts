@@ -10,11 +10,13 @@ val hamcrest = "org.hamcrest" % "hamcrest-all" % "1.3" % Test
 val mockito = "org.mockito" % "mockito-all" % "1.9.0" % Test
 val scalaTest = "org.scalatest" %% "scalatest" % "2.2.0" % Test
 
+val appVersion = sys.env.get("SNAP_PIPELINE_COUNTER") getOrElse sys.env.get("GO_PIPELINE_LABEL") getOrElse "1.0.0-SNAPSHOT"
+
 lazy val root = project in file(".") aggregate(utils, publish, material, fetch)
 
 lazy val commonSettings = Seq(
   organization := "com.indix",
-  version := "0.1.0",
+  version := appVersion,
   scalaVersion := "2.10.3",
   unmanagedBase := file(".") / "lib"
 )
