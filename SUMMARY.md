@@ -2,5 +2,5 @@
 
 * [Introduction](README.md)
 * [Installation](installation.md)
-* Publish
+* [Publish](publish.md)
 
