@@ -1,16 +1,18 @@
 package com.indix.gocd.utils;
 
+import static org.hamcrest.CoreMatchers.is;
+
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
 
 import java.util.Map;
-
-import static org.hamcrest.CoreMatchers.is;
-
 import com.indix.gocd.utils.utils.Maps;
+import static com.indix.gocd.utils.Constants.GO_SERVER_DASHBOARD_URL;
+
 
 public class GoEnvironmentTest {
     Map<String, String> mockEnvironment = Maps.<String, String>builder()
+            .with(GO_SERVER_DASHBOARD_URL, "http://go.server:8153")
             .with("GO_SERVER_URL", "https://localhost:8154/go")
             .with("GO_PIPELINE_NAME", "s3-publish-test")
             .with("GO_PIPELINE_COUNTER", "20")
@@ -23,7 +25,7 @@ public class GoEnvironmentTest {
 
     @Test
     public void shouldGenerateTracebackUrl() {
-        assertThat(goEnvironment.traceBackUrl(), is("https://localhost:8154/go/tab/build/detail/s3-publish-test/20/build-and-publish/1/publish"));
+        assertThat(goEnvironment.traceBackUrl(), is("http://go.server:8153/go/tab/build/detail/s3-publish-test/20/build-and-publish/1/publish"));
     }
 
     @Test

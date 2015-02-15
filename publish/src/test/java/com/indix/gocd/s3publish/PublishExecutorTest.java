@@ -34,6 +34,7 @@ public class PublishExecutorTest {
                 .with(AWS_SECRET_ACCESS_KEY, "secretKey")
                 .with(AWS_ACCESS_KEY_ID, "accessId")
                 .with(GO_ARTIFACTS_S3_BUCKET, "testS3Bucket")
+                .with(GO_SERVER_DASHBOARD_URL, "http://go.server:8153")
                 .with("GO_PIPELINE_NAME", "pipeline")
                 .with("GO_STAGE_NAME", "stage")
                 .with("GO_JOB_NAME", "job")
@@ -96,7 +97,7 @@ public class PublishExecutorTest {
         PutObjectRequest metadataPutRequest = allPutObjectRequests.get(2);
         Map<String, String> expectedUserMetadata = Maps.<String, String>builder()
                 .with(METADATA_USER, "Krishna")
-                .with(METADATA_TRACEBACK_URL, "http://localhost:8153/go/tab/build/detail/pipeline/pipelineCounter/stage/stageCounter/job")
+                .with(METADATA_TRACEBACK_URL, "http://go.server:8153/go/tab/build/detail/pipeline/pipelineCounter/stage/stageCounter/job")
                 .with(COMPLETED, COMPLETED)
                 .build();
         assertThat(metadataPutRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));

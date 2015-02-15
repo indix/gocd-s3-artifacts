@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static com.indix.gocd.utils.Constants.GO_SERVER_DASHBOARD_URL;
 
 /**
  * Wrapper around Go's Environment variables
@@ -33,13 +34,13 @@ public class GoEnvironment {
     }
 
     public String traceBackUrl() {
-        String serverUrl = get("GO_SERVER_URL");
+        String serverUrl = get(GO_SERVER_DASHBOARD_URL);
         String pipelineName = get("GO_PIPELINE_NAME");
         String pipelineCounter = get("GO_PIPELINE_COUNTER");
         String stageName = get("GO_STAGE_NAME");
         String stageCounter = get("GO_STAGE_COUNTER");
         String jobName = get("GO_JOB_NAME");
-        return String.format("%s/tab/build/detail/%s/%s/%s/%s/%s", serverUrl, pipelineName, pipelineCounter, stageName, stageCounter, jobName);
+        return String.format("%s/go/tab/build/detail/%s/%s/%s/%s/%s", serverUrl, pipelineName, pipelineCounter, stageName, stageCounter, jobName);
     }
 
     public String triggeredUser() {
