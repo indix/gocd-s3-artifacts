@@ -9,4 +9,11 @@ public class Functions {
             return null;
         }
     }
+
+    public static abstract class Predicate<T> implements Function<T, Boolean> {
+        public abstract Boolean execute(T input);
+        public Boolean apply(T input){
+            return execute(input);
+        }
+    }
 }

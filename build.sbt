@@ -51,6 +51,7 @@ lazy val publish = (project in file("publish")).
   )
 
 lazy val material = (project in file("material")).
+  dependsOn(utils).
   settings(commonSettings: _*).
   settings(
     name := "s3material",
