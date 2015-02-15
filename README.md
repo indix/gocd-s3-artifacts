@@ -11,6 +11,11 @@ This repo holds two task plugins and a package poller plugin.
 - indix.s3fetch - Task plugin to fetch artifacts from S3
 - indix.s3material - Package poller plugin to poll for new artifacts in S3.
 
+Documentation
+-----
+
+Detailed documentation is available here - http://ind9.github.io/gocd-s3-artifacts
+
 Build
 -----
 
