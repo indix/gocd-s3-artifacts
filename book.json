@@ -1,0 +1,25 @@
+{
+    "title": "GoCD S3 Artifacts",
+    "description": "Documentation for the GoCD S3 artifacts plugins",
+    "links": {
+        "sidebar": {
+            "Home": "http://ind9.github.io/gocd-s3-artifacts",
+            "Contribute": "https://github.com/ind9/gocd-s3-artifacts"
+        },
+        "sharing": {
+            "google": "http://ind9.github.io/gocd-s3-artifacts",
+            "facebook": "http://ind9.github.io/gocd-s3-artifacts",
+            "twitter": "http://ind9.github.io/gocd-s3-artifacts",
+            "all": "http://ind9.github.io/gocd-s3-artifacts"
+        }
+    },
+    "plugins": [
+        "anchors",
+        "ga"
+    ],
+    "pluginsConfig": {
+        "ga": {
+            "token": "UA-59836563-1"
+        }
+    }
+}
