@@ -58,7 +58,8 @@ lazy val material = (project in file("material")).
     crossPaths := false,
     libraryDependencies ++= Seq(
       nscalaTime, scalaTest
-    )
+    ),
+    javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
   )
 
 lazy val fetch = (project in file("fetch")).
