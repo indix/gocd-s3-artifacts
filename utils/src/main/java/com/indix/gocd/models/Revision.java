@@ -9,7 +9,7 @@ public class Revision implements Comparable {
 
     public Revision(String revision) {
         this.revision = revision;
-        this.parts = revision.split(".");
+        this.parts = revision.split("\\.");
         this.major = Integer.valueOf(parts[0]);
         this.minor = Integer.valueOf(parts[1]);
         if (parts.length == 3) {

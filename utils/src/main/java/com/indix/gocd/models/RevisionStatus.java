@@ -1,7 +1,5 @@
 package com.indix.gocd.models;
 
-import com.indix.gocd.models.Revision;
-
 import java.util.Date;
 
 public class RevisionStatus {

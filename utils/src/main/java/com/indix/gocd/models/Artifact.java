@@ -25,12 +25,12 @@ public class Artifact {
     }
 
     public String prefix(){
-        return String.format("%s/%s/%s", pipelineName, stageName, jobName);
+        return String.format("%s/%s/%s/", pipelineName, stageName, jobName);
     }
 
     public String prefixWithRevision(){
         if(revision != null)
-            return String.format("%s/%s/%s/%s", pipelineName, stageName, jobName, revision.getRevision());
+            return String.format("%s/%s/%s/%s/", pipelineName, stageName, jobName, revision.getRevision());
         else
             return prefix();
     }

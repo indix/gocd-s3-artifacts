@@ -73,13 +73,30 @@ public class S3ArtifactStore {
     }
 
     public boolean bucketExists() {
-        List<Bucket> buckets = client.listBuckets();
-        return Lists.exists(buckets, new Functions.Predicate<Bucket>() {
-            @Override
-            public Boolean execute(Bucket input) {
-                return input.getName().equals(bucket);
-            }
-        });
+        try {
+            List<Bucket> buckets = client.listBuckets();
+            return Lists.exists(buckets, new Functions.Predicate<Bucket>() {
+                @Override
+                public Boolean execute(Bucket input) {
+                    return input.getName().equals(bucket);
+                }
+            });
+        } catch(Exception ex) {
+            return false;
+        }
+    }
+
+    public boolean exists(String bucket, String key) {
+        ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+                .withBucketName(bucket)
+                .withPrefix(key)
+                .withDelimiter("/");
+        try {
+            ObjectListing objectListing = client.listObjects(listObjectsRequest);
+            return objectListing != null && objectListing.getCommonPrefixes().size() > 0;
+        } catch(Exception ex) {
+            return false;
+        }
     }
 
     private Boolean isComplete(AmazonS3Client client, String prefix) {
