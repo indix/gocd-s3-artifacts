@@ -5,7 +5,7 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Glossary | GoCD S3 Artifacts</title>
+        <title>Material Poller | GoCD S3 Artifacts</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -20,9 +20,7 @@
     
     
     
-    
-
-    
+    <link rel="prev" href="./publish.html" />
     
 
         
@@ -38,7 +36,7 @@
 
 
         
-    <div class="book" data-level="" data-basepath="." data-revision="1424207958794">
+    <div class="book" data-level="3" data-basepath="." data-revision="1424207958794">
     
 
 <div class="book-summary">
@@ -136,7 +134,7 @@
         </li>
     
         
-        <li class="chapter " data-level="3" data-path="material_poller.html">
+        <li class="chapter active" data-level="3" data-path="material_poller.html">
             
                 
                     <a href="./material_poller.html">
@@ -247,12 +245,48 @@
             <div class="page-wrapper" tabindex="-1">
                 <div class="page-inner">
                 
+                
+                    <section class="normal" id="section-gitbook_3">
+                    
+                        <h1 id="material-poller"><a name="material-poller" class="plugin-anchor" href="#material-poller"><span class="fa fa-link"></span></a>Material Poller</h1>
+<p>This is a package repository plugin that polls S3 for artifacts and triggers the pipeline as appropriate.</p>
+<h2 id="adding-the-package-repository"><a name="adding-the-package-repository" class="plugin-anchor" href="#adding-the-package-repository"><span class="fa fa-link"></span></a>Adding the package repository</h2>
+<p>The package repository can be configured by heading to <code>Admin -&gt; Package Repositories</code></p>
+<p>In the <code>Add Package Repository</code> form, provide a name for the S3 package repository. This is a unique name to identify the S3 package repository.</p>
+<p>Next, choose <code>s3material</code> as the <code>Type</code> of the package repository. This should bring up a text box to enter the S3 bucket name. Enter the name of the bucket where you want to store the artifacts in this field.</p>
+<p>Use the <code>Check Connection</code> button to verify that the credentials are fine and the provided bucket exists. This state is shown in the following screenshot:</p>
+<p><img src="material_configuration.png" alt=""></p>
+<p>Click on <code>Save</code> to add the S3 package repository.</p>
+<h2 id="configuring-as-material"><a name="configuring-as-material" class="plugin-anchor" href="#configuring-as-material"><span class="fa fa-link"></span></a>Configuring as material</h2>
+<p>Once the package has been created, we can add a Package material to any pipeline. The steps for adding the package material to an existing pipeline or to a new one are the same.</p>
+<p>Following <code>Materials</code> tab of an existing pipeline, choose <code>Add Material</code> and select <code>Package</code>. The <code>Add Material - Package</code> dialog comes up. Here, choose the Repository name (<code>gocd</code> in the example) and choose to define a new package. On doing this, the <code>New Package</code> form comes up.</p>
+<p>Provide an identifiable name for the <code>Package Name</code>. Also configure the <code>Pipeline Name</code>, <code>Stage Name</code> and <code>Job Name</code> based on where we want to get the artifacts from.</p>
+<p>Click on <code>Check Package</code> to ensure that we have entered the right pipeline, stage and job details, and that the artifacts exist on S3.</p>
+<p>This state is shown in the following screenshot:</p>
+<p><img src="material_package_configuration.png" alt=""></p>
+<p>Click on <code>Save Package And Material</code> button to save the new package and material.</p>
+<p>Note that the saved package can be reused in other jobs/pipelines.</p>
+<h2 id="trackback-and-artifact-information"><a name="trackback-and-artifact-information" class="plugin-anchor" href="#trackback-and-artifact-information"><span class="fa fa-link"></span></a>Trackback and artifact information</h2>
+<p>Once the material is added, it will poll for new artifacts on S3. If found, a new run of the pipeline will be triggered. The Trackback URL will point to the source of the artifacts, as shown in the following screenshot:</p>
+<p><img src="material_trackback.png" alt=""></p>
+<p>The material plugin will also set environment variables that identify the source label, S3 bucket, pipeline name, stage name and job name, as shown form the job log output below:</p>
+<pre><code>[go] setting environment variable &apos;GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_LABEL&apos; to value &apos;11.1&apos;
+[go] setting environment variable &apos;GO_REPO_GOCD_TESTPUBLISHS3ARTIFACTS_S3_BUCKET&apos; to value &apos;gocd&apos;
+[go] setting environment variable &apos;GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_PIPELINE_NAME&apos; to value &apos;TestPublish&apos;
+[go] setting environment variable &apos;GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_STAGE_NAME&apos; to value &apos;defaultStage&apos;
+[go] setting environment variable &apos;GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_JOB_NAME&apos; to value &apos;defaultJob&apos;
+</code></pre><p>The Fetch plugin, will make use of this information to get the artifacts. This information can be used to fetch artifacts from S3 using a custom script if necessary. </p>
 
-
+                    
+                    </section>
+                
+                
                 </div>
             </div>
         </div>
 
+        
+        <a href="./publish.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: Publish"><i class="fa fa-angle-left"></i></a>
         
         
     </div>
