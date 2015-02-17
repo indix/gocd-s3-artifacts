@@ -53,11 +53,3 @@ The material plugin will also set environment variables that identify the source
 ```
 
 The Fetch plugin, will make use of this information to get the artifacts. This information can be used to fetch artifacts from S3 using a custom script if necessary. 
-
-
-
-
-
-
-
-
