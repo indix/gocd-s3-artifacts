@@ -5,9 +5,9 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Introduction | GoCD S3 Artifacts</title>
+        <title>Required environment variables | GoCD S3 Artifacts</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <meta name="description" content="Documentation for the GoCD S3 artifacts plugins">
+        <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
         <meta name="HandheldFriendly" content="true"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
@@ -19,8 +19,10 @@
         
     
     
-    <link rel="next" href="./installation.html" />
+    <link rel="next" href="./publish.html" />
     
+    
+    <link rel="prev" href="./installation.html" />
     
 
         
@@ -36,7 +38,7 @@
 
 
         
-    <div class="book" data-level="0" data-basepath="." data-revision="1424194836440">
+    <div class="book" data-level="1.1" data-basepath="." data-revision="1424194836440">
     
 
 <div class="book-summary">
@@ -66,7 +68,7 @@
         
     
         
-        <li class="chapter active" data-level="0" data-path="index.html">
+        <li class="chapter " data-level="0" data-path="index.html">
             
                 
                     <a href="./index.html">
@@ -97,7 +99,7 @@
                 
     
         
-        <li class="chapter " data-level="1.1" data-path="required_environment_variables.html">
+        <li class="chapter active" data-level="1.1" data-path="required_environment_variables.html">
             
                 
                     <a href="./required_environment_variables.html">
@@ -222,22 +224,14 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_2">
+                    <section class="normal" id="section-gitbook_4">
                     
-                        <h1 id="gocd-s3-artifacts"><a name="gocd-s3-artifacts" class="plugin-anchor" href="#gocd-s3-artifacts"><span class="fa fa-link"></span></a>GoCD S3 Artifacts</h1>
-<p>This is a collection of necessary GoCD plugins to enable publishing, polling and fetching artifacts from Amazon S3.</p>
-<p>We built these at Indix due to our need to share artifacts across many Go servers</p>
-<p>There are two task plugins and one material plugin that enable artifacts on S3:</p>
-<ol>
-<li><p><strong>indix.s3publish</strong> - Task plugin to push artifacts to S3.</p>
-</li>
-<li><p><strong>indix.s3fetch</strong> - Task plugin to fetch artifacts from S3.</p>
-</li>
-<li><p><strong>indix.s3material</strong> - Package poller plugin to poll for new artifacts in S3.</p>
-</li>
-</ol>
-<p>While the plugins could be used independently of each other, they work best together as a collection of plugins.</p>
-<p>If you are interested in a multi-server setup, note that it is not be necessary to install all the three plugins to all the Go servers. If a Go server is going to be only a source of artifacts, only the publish plugin needs to be installed on it. If a Go server is going to need artifacts from other servers, then only the fetch and material plugins are need on it.</p>
+                        <h1 id="required-environment-variables"><a name="required-environment-variables" class="plugin-anchor" href="#required-environment-variables"><span class="fa fa-link"></span></a>Required environment variables</h1>
+<p>All the three plugins require the following environment variables to work.</p>
+<p>These can be set as environment variables on the agents, pipeline or even Go&apos;s Environment. The recommended approach is to set these on the agents.</p>
+<p><code>AWS_SECRET_ACCESS_KEY</code> and  <code>AWS_ACCESS_KEY_ID</code> are the required AWS credentials to upload and download artifacts from S3.</p>
+<p><code>GO_ARTIFACTS_S3_BUCKET</code> is the name of the S3 bucket where artifacts will be uploaded. Artifacts are uploaded to the path <code>s3://&lt;GO_ARTIFACTS_S3_BUCKET&gt;/&lt;PIPELINE_NAME&gt;/&lt;STAGE_NAME&gt;/&lt;JOB_NAME&gt;/&lt;PIPELINE_COUNTER&gt;.&lt;STAGE_COUNTER&gt;</code> as the root path.</p>
+<p><code>GO_SERVER_DASHBOARD_URL</code> is the url of the Go server web UI (dashboard). This is needed to reliably determine the dashboard url so that we can provide a trackback url to the source of the artifacts from the consumer of the artifacts.</p>
 
                     
                     </section>
@@ -248,8 +242,10 @@
         </div>
 
         
+        <a href="./installation.html" class="navigation navigation-prev " aria-label="Previous page: Installation"><i class="fa fa-angle-left"></i></a>
         
-        <a href="./installation.html" class="navigation navigation-next navigation-unique" aria-label="Next page: Installation"><i class="fa fa-angle-right"></i></a>
+        
+        <a href="./publish.html" class="navigation navigation-next " aria-label="Next page: Publish"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

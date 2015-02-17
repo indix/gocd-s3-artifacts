@@ -5,9 +5,9 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Introduction | GoCD S3 Artifacts</title>
+        <title>Publish | GoCD S3 Artifacts</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <meta name="description" content="Documentation for the GoCD S3 artifacts plugins">
+        <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
         <meta name="HandheldFriendly" content="true"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
@@ -19,8 +19,8 @@
         
     
     
-    <link rel="next" href="./installation.html" />
     
+    <link rel="prev" href="./required_environment_variables.html" />
     
 
         
@@ -36,7 +36,7 @@
 
 
         
-    <div class="book" data-level="0" data-basepath="." data-revision="1424194836440">
+    <div class="book" data-level="2" data-basepath="." data-revision="1424194836440">
     
 
 <div class="book-summary">
@@ -66,7 +66,7 @@
         
     
         
-        <li class="chapter active" data-level="0" data-path="index.html">
+        <li class="chapter " data-level="0" data-path="index.html">
             
                 
                     <a href="./index.html">
@@ -118,7 +118,7 @@
         </li>
     
         
-        <li class="chapter " data-level="2" data-path="publish.html">
+        <li class="chapter active" data-level="2" data-path="publish.html">
             
                 
                     <a href="./publish.html">
@@ -222,22 +222,20 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_2">
+                    <section class="normal" id="section-gitbook_3">
                     
-                        <h1 id="gocd-s3-artifacts"><a name="gocd-s3-artifacts" class="plugin-anchor" href="#gocd-s3-artifacts"><span class="fa fa-link"></span></a>GoCD S3 Artifacts</h1>
-<p>This is a collection of necessary GoCD plugins to enable publishing, polling and fetching artifacts from Amazon S3.</p>
-<p>We built these at Indix due to our need to share artifacts across many Go servers</p>
-<p>There are two task plugins and one material plugin that enable artifacts on S3:</p>
-<ol>
-<li><p><strong>indix.s3publish</strong> - Task plugin to push artifacts to S3.</p>
-</li>
-<li><p><strong>indix.s3fetch</strong> - Task plugin to fetch artifacts from S3.</p>
-</li>
-<li><p><strong>indix.s3material</strong> - Package poller plugin to poll for new artifacts in S3.</p>
-</li>
-</ol>
-<p>While the plugins could be used independently of each other, they work best together as a collection of plugins.</p>
-<p>If you are interested in a multi-server setup, note that it is not be necessary to install all the three plugins to all the Go servers. If a Go server is going to be only a source of artifacts, only the publish plugin needs to be installed on it. If a Go server is going to need artifacts from other servers, then only the fetch and material plugins are need on it.</p>
+                        <h1 id="publish"><a name="publish" class="plugin-anchor" href="#publish"><span class="fa fa-link"></span></a>Publish</h1>
+<p>The Publish to S3 task plugin (indix.s3publish) is used to upload artifacts to S3.</p>
+<p>Once the plugin is installed, it should be available as a task, ready to be added into any of your jobs. From the admin section of the concerned job, click on the <code>Add new task</code> link and choose <code>Publish To S3</code> as the task, as shown in the following</p>
+<p><img src="add_task_publish.png" alt=""></p>
+<p>The resulting dialog for the task is shown in the following screenshot:</p>
+<p><img src="modal_publish.png" alt=""></p>
+<p>The interface is pretty similar to the Artifacts configuration in Go. Clicking on the <code>Add</code> link adds text boxes where source and destination paths for artifacts can be provided. This is shown in the following example screenshot:</p>
+<p><img src="modal_publish_2.png" alt=""></p>
+<p>The artifacts get uploaded to the S3 path <code>s3://&lt;GO_ARTIFACTS_S3_BUCKET&gt;/&lt;PIPELINE_NAME&gt;/&lt;STAGE_NAME&gt;/&lt;JOB_NAME&gt;/&lt;PIPELINE_COUNTER&gt;.&lt;STAGE_COUNTER&gt;</code> as the root path.</p>
+<p>For example, if the pipeline name is <code>TestPublish</code>, and the stage and job names are <code>defaultStage</code> and <code>defaultJob</code> respectively, the root path for the artifacts for the eight run of the pipeline and the first run of <code>defaultStage</code> will be <code>s3://gocd/TestPublish/defaultStage/defaultJob/8.1/</code>. <code>gocd</code> here is the name of the bucket for storing artifacts.</p>
+<p>As per the screenshot, the jar files in <code>fetch/target</code>, <code>material/target</code> and <code>publish/target</code> will be uploaded to the root of the artifacts. The <code>README.md</code> file will be uploaded unders the <code>docs</code> folder.</p>
+<p>After adding the necessary artifacts, click on <code>Save</code> to add the task to the job.</p>
 
                     
                     </section>
@@ -248,8 +246,8 @@
         </div>
 
         
+        <a href="./required_environment_variables.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: Required environment variables"><i class="fa fa-angle-left"></i></a>
         
-        <a href="./installation.html" class="navigation navigation-next navigation-unique" aria-label="Next page: Installation"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
