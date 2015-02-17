@@ -36,6 +36,11 @@ Click on `Save Package And Material` button to save the new package and material
 
 Note that the saved package can be reused in other jobs/pipelines.
 
+## Trackback and artifact information
+
+Once the material is added, it will poll for new artifacts on S3. If found, a new run of the pipeline will be triggered. The Trackback URL will point to the source of the artifacts, as shown in the following screenshot:
+
+
 
 
 
