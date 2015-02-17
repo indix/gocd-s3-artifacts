@@ -32,6 +32,10 @@ This state is shown in the following screenshot:
 
 ![](material_package_configuration.png)
 
+Click on `Save Package And Material` button to save the new package and material.
+
+Note that the saved package can be reused in other jobs/pipelines.
+
 
 
 
