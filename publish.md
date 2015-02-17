@@ -10,3 +10,7 @@ Once the plugin is installed, it should be available as a task, ready to be adde
 The resulting dialog for the task is shown in the following screenshot:
 
 ![](modal_publish.png)
+
+The interface is pretty similar to the Artifacts configuration in Go. Clicking on the `Add` link adds text boxes where source and destination paths for artifacts can be provided. This is shown in the following example screenshot:
+
+![](add_task_publish_2.png)
