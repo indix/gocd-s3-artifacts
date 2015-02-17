@@ -39,7 +39,20 @@ Note that the saved package can be reused in other jobs/pipelines.
 ## Trackback and artifact information
 
 Once the material is added, it will poll for new artifacts on S3. If found, a new run of the pipeline will be triggered. The Trackback URL will point to the source of the artifacts, as shown in the following screenshot:
+
 ![](material_trackback.png)
+
+The material plugin will also set environment variables that identify the source label, S3 bucket, pipeline name, stage name and job name, as shown form the job log output below:
+
+```
+[go] setting environment variable 'GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_LABEL' to value '11.1'
+[go] setting environment variable 'GO_REPO_GOCD_TESTPUBLISHS3ARTIFACTS_S3_BUCKET' to value 'gocd'
+[go] setting environment variable 'GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_PIPELINE_NAME' to value 'TestPublish'
+[go] setting environment variable 'GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_STAGE_NAME' to value 'defaultStage'
+[go] setting environment variable 'GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_JOB_NAME' to value 'defaultJob'
+```
+
+The Fetch plugin, will make use of this information to get the artifacts. This information can be used to fetch artifacts from S3 using a custom script if necessary. 
 
 
 
