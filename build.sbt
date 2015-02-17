@@ -56,8 +56,9 @@ lazy val material = (project in file("material")).
   settings(
     name := "s3material",
     crossPaths := false,
+    assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
     libraryDependencies ++= Seq(
-      nscalaTime, scalaTest
+      scalaTest
     ),
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
   )

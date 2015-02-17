@@ -1,11 +1,11 @@
 package material.plugin.config
 
+import com.indix.gocd.s3material.config.S3PackageMaterialConfiguration
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers._
 import scala.collection.JavaConverters._
 import com.thoughtworks.go.plugin.api.material.packagerepository.PackageMaterialProperty
 import com.thoughtworks.go.plugin.api.response.validation.ValidationError
-import scala.util.Random
 
 class S3PackageMaterialConfigurationSpec extends FlatSpec {
   "S3PackageMaterialConfiguration" should "return repository configuration" in {

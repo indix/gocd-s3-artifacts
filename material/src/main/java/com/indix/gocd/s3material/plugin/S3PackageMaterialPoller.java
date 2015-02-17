@@ -50,11 +50,11 @@ public class S3PackageMaterialPoller implements PackageMaterialPoller {
     public Result checkConnectionToPackage(PackageConfiguration packageConfiguration, RepositoryConfiguration repositoryConfiguration) {
         String s3Bucket = repositoryConfiguration.get(S3PackageMaterialConfiguration.S3_BUCKET).getValue();
         S3ArtifactStore artifactStore = new S3ArtifactStore(s3Client(), s3Bucket);
-        if(artifactStore.bucketExists()){
+        String prefix = artifact(packageConfiguration).prefix();
+        if(artifactStore.exists(s3Bucket, prefix))
             return ExecutionResult.success("Success");
-        }else{
-            return ExecutionResult.failure(String.format("Couldn't find bucket [%s]", s3Bucket));
-        }
+        else
+            return ExecutionResult.failure(String.format("Couldn't find artifact at [%s]", prefix));
     }
 
     private static AmazonS3Client s3Client() {
