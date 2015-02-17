@@ -19,4 +19,6 @@ The artifacts get uploaded to the S3 path `s3://<GO_ARTIFACTS_S3_BUCKET>/<PIPELI
 
 For example, if the pipeline name is `TestPublish`, and the stage and job names are `defaultStage` and `defaultJob` respectively, the root path for the artifacts for the eight run of the pipeline and the first run of `defaultStage` will be `s3://gocd/TestPublish/defaultStage/defaultJob/8.1/`. `gocd` here is the name of the bucket for storing artifacts.
 
-As per the screenshot, the jar files in `fetch/target`, `material/target` and `publish/target` will be uploaded to the root of the artifacts. The `README.md` file will be uploaded under tfolder.do
+As per the screenshot, the jar files in `fetch/target`, `material/target` and `publish/target` will be uploaded to the root of the artifacts. The `README.md` file will be uploaded unders the `docs` folder.
+
+After adding the necessary artifacts, click on `Save` to add the task to the job.
