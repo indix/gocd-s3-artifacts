@@ -13,7 +13,7 @@ The resulting dialog for the task is shown in the following screenshot:
 
 The interface is pretty similar to the Artifacts configuration in Go. Clicking on the `Add` link adds text boxes where source and destination paths for artifacts can be provided. This is shown in the following example screenshot:
 
-![](add_task_publish_2.png)
+![](modal_publish_2.png)
 
 The artifacts get uploaded to the S3 path `s3://<GO_ARTIFACTS_S3_BUCKET>/<PIPELINE_NAME>/<STAGE_NAME>/<JOB_NAME>/<PIPELINE_COUNTER>.<STAGE_COUNTER>` as the root path.
 
