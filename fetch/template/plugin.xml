@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<go-plugin id="indix.s3publish" version="1">
+<go-plugin id="indix.s3fetch" version="1">
     <about>
-        <name>Publish to S3</name>
-        <version>0.1.0</version>
+        <name>Fetch from S3</name>
+        <version>${version}</version>
         <target-go-version>14.4.0</target-go-version>
-        <description>Publish artifacts to S3</description>
+        <description>Fetch artifacts from S3</description>
         <vendor>
             <name>Indix</name>
             <url>www.indix.com</url>

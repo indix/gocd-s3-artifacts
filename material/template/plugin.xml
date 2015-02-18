@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<go-plugin id="indix.s3fetch" version="1">
+<go-plugin id="s3material" version="1">
     <about>
-        <name>Fetch from S3</name>
-        <version>0.1.0</version>
+        <name>S3 Material</name>
+        <version>${version}</version>
         <target-go-version>14.4.0</target-go-version>
-        <description>Fetch artifacts from S3</description>
+        <description>S3 as material</description>
         <vendor>
             <name>Indix</name>
             <url>www.indix.com</url>

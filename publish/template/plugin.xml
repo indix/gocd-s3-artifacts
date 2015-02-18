@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<go-plugin id="s3material" version="1">
+<go-plugin id="indix.s3publish" version="1">
     <about>
-        <name>S3 Material</name>
-        <version>0.1.0</version>
+        <name>Publish to S3</name>
+        <version>${version}</version>
         <target-go-version>14.4.0</target-go-version>
-        <description>S3 as material</description>
+        <description>Publish artifacts to S3</description>
         <vendor>
             <name>Indix</name>
             <url>www.indix.com</url>

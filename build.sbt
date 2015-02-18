@@ -22,7 +22,11 @@ lazy val commonSettings = Seq(
   unmanagedBase := file(".") / "lib",
   libraryDependencies ++= Seq(
     apacheCommons, commonsIo, awsS3, goPluginLibrary, mockito
-  )
+  ),
+  variables in EditSource += ("version", appVersion),
+  targetDirectory in EditSource <<= baseDirectory(_ / "target" / "transformed"),
+  sources in EditSource <++= baseDirectory.map(d => (d / "template" / "plugin.xml").get),
+  unmanagedResourceDirectories in Compile += { baseDirectory.value / "target" / "transformed" }
 )
 
 lazy val utils = (project in file("utils")).
