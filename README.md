@@ -22,5 +22,5 @@ Build
 To build all the plugins, do:
 
 ```bash
-sbt clean assembly
+./build.sh
 ```
