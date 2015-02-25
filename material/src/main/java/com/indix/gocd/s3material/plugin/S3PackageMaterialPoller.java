@@ -61,7 +61,7 @@ public class S3PackageMaterialPoller implements PackageMaterialPoller {
         // The s3 client has a nice way to pick up the creds.
         // It first checks the env to see if it contains the required key related variables/values
         // If not, it checks the java system properties to see if it's set there(ideally via -D args)
-        // If not, it falls back to check ~/.env/credentials file
+        // If not, it falls back to check ~/.aws/credentials file
         // If not, finally, very insecure way, it tries to fetch from the internal metadata service that each
         // instance comes with(if its exposed).
         return new AmazonS3Client();
