@@ -42,7 +42,7 @@ lazy val utils = (project in file("utils")).
   )
 
 lazy val publish = (project in file("publish")).
-  dependsOn(utils).
+  dependsOn(utils % "test->test;compile->compile").
   settings(commonSettings: _*).
   settings(
     name := "s3publish",
@@ -68,7 +68,7 @@ lazy val material = (project in file("material")).
   )
 
 lazy val fetch = (project in file("fetch")).
-  dependsOn(utils).
+  dependsOn(utils % "test->test;compile->compile").
   settings(commonSettings: _*).
   settings(
     name := "s3fetch",

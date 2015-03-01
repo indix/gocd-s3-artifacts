@@ -2,8 +2,8 @@ package com.indix.gocd.s3publish;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.indix.gocd.s3publish.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.GoEnvironment;
+import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.utils.Maps;
 import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;

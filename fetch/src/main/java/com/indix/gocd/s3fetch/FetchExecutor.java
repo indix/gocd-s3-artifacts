@@ -29,7 +29,7 @@ public class FetchExecutor implements TaskExecutor {
         if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
 
         final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
-        final S3ArtifactStore store = new S3ArtifactStore(s3Client(env), bucket);
+        final S3ArtifactStore store = s3ArtifactStore(env, bucket);
 
         String artifactPathOnS3 = getS3ArtifactPath(config, env);
         context.console().printLine(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
@@ -39,7 +39,7 @@ public class FetchExecutor implements TaskExecutor {
         try {
             store.getPrefix(artifactPathOnS3, destination);
         } catch (Exception e) {
-            ExecutionResult.failure("Failure while downloading artifacts", e);
+            return ExecutionResult.failure("Failure while downloading artifacts", e);
         }
 
         return ExecutionResult.success("Fetched all artifacts");
@@ -70,6 +70,10 @@ public class FetchExecutor implements TaskExecutor {
         } catch (IOException ioe) {
             logger.error(String.format("Error while setting up destination - %s", ioe.getMessage()), ioe);
         }
+    }
+
+    public S3ArtifactStore s3ArtifactStore(GoEnvironment env, String bucket) {
+        return new S3ArtifactStore(s3Client(env), bucket);
     }
 
     public AmazonS3Client s3Client(GoEnvironment env) {
