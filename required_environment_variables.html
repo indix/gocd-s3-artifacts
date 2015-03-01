@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="1.1" data-basepath="." data-revision="1425238815135">
+    <div class="book" data-level="1.1" data-basepath="." data-revision="1425239104121">
     
 
 <div class="book-summary">
@@ -261,7 +261,7 @@
                         <h1 id="required-environment-variables"><a name="required-environment-variables" class="plugin-anchor" href="#required-environment-variables"><span class="fa fa-link"></span></a>Required environment variables</h1>
 <p>The task plugins <code>Fetch</code> and <code>Publish</code> run on the agents. The <code>Material</code> plugin runs on the server.</p>
 <h2 id="server"><a name="server" class="plugin-anchor" href="#server"><span class="fa fa-link"></span></a>Server</h2>
-<p>The <code>Material</code> plugin needs AWS credentials to poll S3 for artifacts. These can be provided through the environment variables <code>AWS_SECRET_ACCESS_KEY</code> and  <code>AWS_ACCESS_KEY_ID</code>. The credentials are also picked up from the alternate locations that the <a href="http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3Client.html#AmazonS3Client(" target="_blank">AWS Java SDK looks at</a>)</p>
+<p>The <code>Material</code> plugin needs AWS credentials to poll S3 for artifacts. These can be provided through the environment variables <code>AWS_SECRET_ACCESS_KEY</code> and  <code>AWS_ACCESS_KEY_ID</code>. The credentials are also picked up from the alternate locations that the <a href="http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3Client.html#AmazonS3Client()" target="_blank">AWS Java SDK looks at.</a></p>
 <h2 id="agent"><a name="agent" class="plugin-anchor" href="#agent"><span class="fa fa-link"></span></a>Agent</h2>
 <p>Both the <code>Fetch</code> and <code>Task</code> plugins require the following environment variables to work. These can be set as environment variables on the agents, pipeline or even Go&apos;s Environment. The recommended approach is to set these on the agents.</p>
 <p><code>AWS_SECRET_ACCESS_KEY</code> and  <code>AWS_ACCESS_KEY_ID</code> are the required AWS credentials to upload and download artifacts from S3.</p>
