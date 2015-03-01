@@ -39,7 +39,9 @@ public class FetchExecutor implements TaskExecutor {
         try {
             store.getPrefix(artifactPathOnS3, destination);
         } catch (Exception e) {
-            return ExecutionResult.failure("Failure while downloading artifacts", e);
+            String message = String.format("Failure while downloading artifacts - %s", e.getMessage());
+            logger.error(message, e);
+            return ExecutionResult.failure(message, e);
         }
 
         return ExecutionResult.success("Fetched all artifacts");

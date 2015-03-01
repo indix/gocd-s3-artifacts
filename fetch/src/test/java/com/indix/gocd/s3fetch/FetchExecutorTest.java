@@ -81,12 +81,12 @@ public class FetchExecutorTest {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         AmazonS3Client mockClient = mockClient();
         doReturn(mockClient).when(fetchExecutor).s3Client(any(GoEnvironment.class));
-        doThrow(new AmazonClientException("Exception")).when(mockClient).listObjects(any(ListObjectsRequest.class));
+        doThrow(new AmazonClientException("Exception message")).when(mockClient).listObjects(any(ListObjectsRequest.class));
 
         ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
 
         assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("Failure while downloading artifacts"));
+        assertThat(executionResult.getMessagesForDisplay(), is("Failure while downloading artifacts - Exception message"));
     }
 
     @Test
