@@ -3,7 +3,6 @@ package com.indix.gocd.s3fetch;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Maps;
@@ -50,37 +49,19 @@ public class FetchExecutorTest {
     }
 
     @Test
-    public void shouldThrowIfAWS_ACCESS_KEY_IDNotPresent() {
+    public void shouldBeFailureIfFetchConfigNotValid() {
         Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_ACCESS_KEY_ID).build();
 
         ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
         assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_ACCESS_KEY_ID environment variable not present"));
-    }
-
-    @Test
-    public void shouldThrowIfAWS_SECRET_ACCESS_KEYNotPresent() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_SECRET_ACCESS_KEY).build();
-
-        ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
-    }
-
-    @Test
-    public void shouldThrowIfGO_ARTIFACTS_S3_BUCKETNotPresent() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.remove(GO_ARTIFACTS_S3_BUCKET).build();
-
-        ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("GO_ARTIFACTS_S3_BUCKET environment variable not present"));
+        assertThat(executionResult.getMessagesForDisplay(), is("[AWS_ACCESS_KEY_ID environment variable not present]"));
     }
 
     @Test
     public void shouldBeFailureIfUnableToFetchArtifacts() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         AmazonS3Client mockClient = mockClient();
-        doReturn(mockClient).when(fetchExecutor).s3Client(any(GoEnvironment.class));
+        doReturn(mockClient).when(fetchExecutor).s3Client(any(FetchConfig.class));
         doThrow(new AmazonClientException("Exception message")).when(mockClient).listObjects(any(ListObjectsRequest.class));
 
         ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
@@ -93,7 +74,7 @@ public class FetchExecutorTest {
     public void shouldBeSuccessResultOnSuccessfulFetch() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         S3ArtifactStore mockStore = mockStore();
-        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(GoEnvironment.class), eq(bucket));
+        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class));
 
         ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
 
