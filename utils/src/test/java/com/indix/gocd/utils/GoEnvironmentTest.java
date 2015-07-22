@@ -38,4 +38,19 @@ public class GoEnvironmentTest {
         assertThat(goEnvironment.artifactsLocationTemplate(), is("s3-publish-test/build-and-publish/publish/20.1"));
     }
 
+    @Test
+    public void shouldReplaceWithEnvVariables() {
+        final String envTestTemplate = "COUNT:${GO_STAGE_COUNTER} Name:${GO_STAGE_NAME} COUNT2:${GO_STAGE_COUNTER}";
+        final String replaced = goEnvironment.replaceVariables(envTestTemplate);
+
+        assertThat(replaced, is("COUNT:1 Name:build-and-publish COUNT2:1"));
+    }
+
+    @Test
+    public void shouldNotReplaceUnknownEnvVariables() {
+        final String envTestTemplate = "COUNT:${GO_STAGE_COUNTER} ${DOESNT_EXIST}";
+        final String replaced = goEnvironment.replaceVariables(envTestTemplate);
+
+        assertThat(replaced, is("COUNT:1 ${DOESNT_EXIST}"));
+    }
 }

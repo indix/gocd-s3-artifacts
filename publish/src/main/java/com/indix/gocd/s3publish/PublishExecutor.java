@@ -46,6 +46,8 @@ public class PublishExecutor implements TaskExecutor {
         final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
         final S3ArtifactStore store = new S3ArtifactStore(s3Client(env), bucket);
 
+        final String destinationPrefix = getDestinationPrefix(config, env);
+
         try {
             List<Tuple2<String, String>> sourceDestinations = PublishTask.getSourceDestinations(config.getValue(SOURCEDESTINATIONS));
             foreach(sourceDestinations, new VoidFunction<Tuple2<String, String>>() {
@@ -59,7 +61,8 @@ public class PublishExecutor implements TaskExecutor {
                         @Override
                         public void execute(String includedFile) {
                             File localFileToUpload = new File(String.format("%s/%s", context.workingDir(), includedFile));
-                            pushToS3(context, env, store, localFileToUpload, destination);
+
+                            pushToS3(context, destinationPrefix, store, localFileToUpload, destination);
                         }
                     });
                 }
@@ -69,7 +72,7 @@ public class PublishExecutor implements TaskExecutor {
             log.error(message);
             return ExecutionResult.failure(message, e);
         }
-        setMetadata(env, bucket, store);
+        setMetadata(env, bucket, destinationPrefix, store);
 
         return ExecutionResult.success("Published all artifacts to S3");
     }
@@ -94,8 +97,8 @@ public class PublishExecutor implements TaskExecutor {
         return new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey));
     }
 
-    private void pushToS3(final TaskExecutionContext context, final GoEnvironment env, final S3ArtifactStore store, File localFileToUpload, String destination) {
-        String templateSoFar = env.artifactsLocationTemplate();
+    private void pushToS3(final TaskExecutionContext context, final String destinationPrefix, final S3ArtifactStore store, File localFileToUpload, String destination) {
+        String templateSoFar = destinationPrefix;
         if(!org.apache.commons.lang3.StringUtils.isBlank(destination)) {
             templateSoFar += "/" + destination;
         }
@@ -142,16 +145,32 @@ public class PublishExecutor implements TaskExecutor {
         return ExecutionResult.failure(message);
     }
 
-    private void setMetadata(GoEnvironment env, String bucket, S3ArtifactStore store) {
+    private void setMetadata(GoEnvironment env, String bucket, String destinationPrefix, S3ArtifactStore store) {
         ObjectMetadata metadata = metadata(env);
         metadata.setContentLength(0);
         InputStream emptyContent = new ByteArrayInputStream(new byte[0]);
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucket,
-                env.artifactsLocationTemplate() + "/",
+                destinationPrefix + "/",
                 emptyContent,
                 metadata);
 
         store.put(putObjectRequest);
+    }
+
+    private String getDestinationPrefix(final TaskConfig config, final GoEnvironment env) {
+        String destinationPrefix = config.getValue(DESTINATION_PREFIX);
+
+        if(org.apache.commons.lang3.StringUtils.isBlank(destinationPrefix)) {
+            return env.artifactsLocationTemplate();
+        }
+
+        destinationPrefix = env.replaceVariables(destinationPrefix);
+
+        if(destinationPrefix.endsWith("/")) {
+            destinationPrefix = destinationPrefix.substring(0, destinationPrefix.length() - 1);
+        }
+
+        return destinationPrefix;
     }
 }
 
