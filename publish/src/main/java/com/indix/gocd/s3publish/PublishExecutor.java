@@ -98,9 +98,9 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private void pushToS3(final TaskExecutionContext context, final String destinationPrefix, final S3ArtifactStore store, File localFileToUpload, String destination) {
-        String templateSoFar = destinationPrefix;
+        String templateSoFar = ensureKeySegmentValid(destinationPrefix);
         if(!org.apache.commons.lang3.StringUtils.isBlank(destination)) {
-            templateSoFar += "/" + destination;
+            templateSoFar += destination;
         }
         List<FilePathToTemplate> filesToUpload = generateFilesToUpload(templateSoFar, localFileToUpload);
         foreach(filesToUpload, new VoidFunction<FilePathToTemplate>() {
@@ -126,7 +126,8 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private List<FilePathToTemplate> generateFilesToUpload(final String templateSoFar, final File fileToUpload) {
-        final String templateWithFolder = String.format("%s/%s", templateSoFar, fileToUpload.getName());
+        final String templateWithFolder = ensureKeySegmentValid(templateSoFar) + fileToUpload.getName(); // ensure it ends with a slash and add filename
+
         if (fileToUpload.isDirectory()) {
             return flatMap(fileToUpload.listFiles(), new Function<File, List<FilePathToTemplate>>() {
                 @Override
@@ -150,7 +151,7 @@ public class PublishExecutor implements TaskExecutor {
         metadata.setContentLength(0);
         InputStream emptyContent = new ByteArrayInputStream(new byte[0]);
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucket,
-                destinationPrefix + "/",
+                ensureKeySegmentValid(destinationPrefix),
                 emptyContent,
                 metadata);
 
@@ -171,6 +172,18 @@ public class PublishExecutor implements TaskExecutor {
         }
 
         return destinationPrefix;
+    }
+
+    private String ensureKeySegmentValid(String segment) {
+        if(org.apache.commons.lang3.StringUtils.isBlank(segment)) {
+            return segment;
+        }
+
+        if(!org.apache.commons.lang3.StringUtils.endsWith(segment, "/")) {
+            segment += "/";
+        }
+
+        return segment;
     }
 }
 

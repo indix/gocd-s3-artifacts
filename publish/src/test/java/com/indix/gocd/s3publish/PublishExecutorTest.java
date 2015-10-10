@@ -219,17 +219,17 @@ public class PublishExecutorTest {
                 .with(COMPLETED, COMPLETED)
                 .build();
         assertThat(metadataPutRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));
-        assertThat(metadataPutRequest.getKey(), is("/"));
+        assertThat(metadataPutRequest.getKey(), is(""));
 
         PutObjectRequest readmePutRequest = allPutObjectRequests.get(0);
         assertThat(readmePutRequest.getBucketName(), is("testS3Bucket"));
-        assertThat(readmePutRequest.getKey(), is("/README.md"));
+        assertThat(readmePutRequest.getKey(), is("README.md"));
         assertNull(readmePutRequest.getMetadata());
 
         PutObjectRequest jarPutRequest = allPutObjectRequests.get(1);
         assertNull(jarPutRequest.getMetadata());
         assertThat(jarPutRequest.getBucketName(), is("testS3Bucket"));
-        assertThat(jarPutRequest.getKey(), is("/s3publish-0.1.31.jar"));
+        assertThat(jarPutRequest.getKey(), is("s3publish-0.1.31.jar"));
         assertNull(jarPutRequest.getMetadata());
     }
 
