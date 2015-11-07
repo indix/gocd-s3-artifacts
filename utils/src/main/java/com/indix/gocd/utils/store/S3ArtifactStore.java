@@ -34,6 +34,7 @@ public class S3ArtifactStore {
     }
 
     public void put(PutObjectRequest putObjectRequest) {
+        putObjectRequest.setStorageClass(StorageClass.ReducedRedundancy);
         client.putObject(putObjectRequest);
     }
 
