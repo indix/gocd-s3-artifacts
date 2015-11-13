@@ -2,7 +2,7 @@ val ant = "org.apache.ant" % "ant" % "1.9.4"
 val apacheCommons = "org.apache.commons" % "commons-lang3" % "3.1"
 val commonsIo = "commons-io" % "commons-io" % "1.3.2"
 val awsS3 = "com.amazonaws" % "aws-java-sdk-s3" % "1.10.26"
-val nscalaTime = "com.github.nscala-time" %% "nscala-time" % "1.6.0"
+val nscalaTime = "com.github.nscala-time" %% "nscala-time" % "2.4.0"
 val goPluginLibrary = "cd.go.plugin" % "go-plugin-api" % "14.4.0" % Provided
 
 val junit = "junit" % "junit" % "4.10" % Test
