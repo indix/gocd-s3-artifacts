@@ -20,8 +20,8 @@ public class FetchConfig {
         this.env = new GoEnvironment();
         env.putAll(context.environment().asMap());
 
-        String repoName = config.getValue(FetchTask.REPO).toUpperCase();
-        String packageName = config.getValue(FetchTask.PACKAGE).toUpperCase();
+        String repoName = config.getValue(FetchTask.REPO).toUpperCase().replaceAll("-", "_");
+        String packageName = config.getValue(FetchTask.PACKAGE).toUpperCase().replaceAll("-", "_");
         this.materialLabel = env.get(String.format("GO_PACKAGE_%s_%s_LABEL", repoName, packageName));
         this.pipeline = env.get(String.format("GO_PACKAGE_%s_%s_PIPELINE_NAME", repoName, packageName));
         this.stage = env.get(String.format("GO_PACKAGE_%s_%s_STAGE_NAME", repoName, packageName));
