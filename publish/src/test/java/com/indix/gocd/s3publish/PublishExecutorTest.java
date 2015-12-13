@@ -17,6 +17,7 @@ import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
@@ -47,24 +48,15 @@ public class PublishExecutorTest {
     }
 
     @Test
-    public void shouldThrowIfAWS_ACCESS_KEY_IDOrAWS_USE_INSTANCE_PROFILE_CREDENTIALS_NotPresent() {
+    public void shouldThrowIfS3ClientCannotBeInitialized() {
         Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_ACCESS_KEY_ID).build();
 
+        doThrow(new IllegalArgumentException("AWS_ACCESS_KEY_ID environment variable not present"))
+                .when(publishExecutor).getS3Client(any(GoEnvironment.class));
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
         assertFalse(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("AWS_ACCESS_KEY_ID environment variable not present"));
     }
-
-    @Test
-    public void shouldThrowIfAWS_SECRET_ACCESS_KEYOrAWS_USE_INSTANCE_PROFILE_CREDENTIALS_NotPresent() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_SECRET_ACCESS_KEY).build();
-
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
-    }
-
-
 
     @Test
     public void shouldThrowIfGO_ARTIFACTS_S3_BUCKETNotPresent() {
@@ -79,7 +71,7 @@ public class PublishExecutorTest {
     public void shouldUploadALocalFileToS3() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         AmazonS3Client mockClient = mockClient();
-        doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
+        doReturn(mockClient).when(publishExecutor).getS3Client(any(GoEnvironment.class));
         when(config.getValue(SOURCEDESTINATIONS)).thenReturn("[{\"source\": \"target/*\", \"destination\": \"\"}]");
         doReturn(new String[]{"README.md", "s3publish-0.1.31.jar"}).when(publishExecutor).parseSourcePath(anyString(), anyString());
 

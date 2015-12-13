@@ -1,5 +1,6 @@
 package com.indix.gocd.s3publish;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -40,13 +41,17 @@ public class PublishExecutor implements TaskExecutor {
         final GoEnvironment env = new GoEnvironment();
         env.putAll(context.environment().asMap());
 
-        if (env.isAbsent(AWS_ACCESS_KEY_ID)) return envNotFound(AWS_ACCESS_KEY_ID);
-        if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) return envNotFound(AWS_SECRET_ACCESS_KEY);
         if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
         if (env.isAbsent(GO_SERVER_DASHBOARD_URL)) return envNotFound(GO_SERVER_DASHBOARD_URL);
-
+        AmazonS3Client s3Client;
+        try {
+            s3Client = getS3Client(env);
+        } catch (IllegalArgumentException ex) {
+            log.error(ex.getMessage());
+            return ExecutionResult.failure(ex.getMessage());
+        }
         final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
-        final S3ArtifactStore store = new S3ArtifactStore(s3Client(env), bucket);
+        final S3ArtifactStore store = new S3ArtifactStore(s3Client, bucket);
 
         try {
             List<Tuple2<String, String>> sourceDestinations = PublishTask.getSourceDestinations(config.getValue(SOURCEDESTINATIONS));
@@ -90,8 +95,12 @@ public class PublishExecutor implements TaskExecutor {
     /*
         Made public only for tests
      */
-    public AmazonS3Client s3Client(GoEnvironment env) {
-        return new AmazonS3Client(new AWSCredentialsFactory(env).getCredentialsProvider());
+    public AmazonS3Client getS3Client(GoEnvironment env) {
+        return new AmazonS3Client(awsCredentialsProvider(env));
+    }
+
+    private AWSCredentialsProvider awsCredentialsProvider(GoEnvironment env) {
+        return new AWSCredentialsFactory(env).getCredentialsProvider();
     }
 
     private void pushToS3(final TaskExecutionContext context, final GoEnvironment env, final S3ArtifactStore store, File localFileToUpload, String destination) {

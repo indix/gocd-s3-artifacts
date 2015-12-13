@@ -112,7 +112,8 @@ public class AWSCredentialsFactoryTest {
             sut.getCredentialsProvider();
             Assert.fail("expected IllegalArgumentException");
         } catch (IllegalArgumentException ex) {
-            assertThat(ex.getMessage(), startsWith("Unexpected value in AWS_USE_INSTANCE_PROFILE environment variable; was blah, but expected"));
+            assertThat(ex.getMessage(),
+                    startsWith("Unexpected value in AWS_USE_INSTANCE_PROFILE environment variable; was blah, but expected"));
         }
     }
 
