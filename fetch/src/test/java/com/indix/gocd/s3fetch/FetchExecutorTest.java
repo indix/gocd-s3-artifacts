@@ -50,7 +50,7 @@ public class FetchExecutorTest {
 
     @Test
     public void shouldBeFailureIfFetchConfigNotValid() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_ACCESS_KEY_ID).build();
+        Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build();
 
         ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
         assertFalse(executionResult.isSuccessful());

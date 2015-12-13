@@ -48,7 +48,7 @@ public class PublishExecutorTest {
 
     @Test
     public void shouldThrowIfAWS_ACCESS_KEY_IDNotPresent() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_ACCESS_KEY_ID).build();
+        Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build();
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
         assertFalse(executionResult.isSuccessful());
@@ -57,7 +57,7 @@ public class PublishExecutorTest {
 
     @Test
     public void shouldThrowIfAWS_SECRET_ACCESS_KEYNotPresent() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_SECRET_ACCESS_KEY).build();
+        Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_SECRET_ACCESS_KEY, "").build();
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
         assertFalse(executionResult.isSuccessful());
@@ -66,7 +66,7 @@ public class PublishExecutorTest {
 
     @Test
     public void shouldThrowIfGO_ARTIFACTS_S3_BUCKETNotPresent() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.remove(GO_ARTIFACTS_S3_BUCKET).build();
+        Map<String, String> mockVariables = mockEnvironmentVariables.with(GO_ARTIFACTS_S3_BUCKET, "").build();
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
         assertFalse(executionResult.isSuccessful());
