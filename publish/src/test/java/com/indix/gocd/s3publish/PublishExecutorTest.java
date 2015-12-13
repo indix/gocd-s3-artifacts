@@ -47,7 +47,7 @@ public class PublishExecutorTest {
     }
 
     @Test
-    public void shouldThrowIfAWS_ACCESS_KEY_IDNotPresent() {
+    public void shouldThrowIfAWS_ACCESS_KEY_IDOrAWS_USE_INSTANCE_PROFILE_CREDENTIALS_NotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_ACCESS_KEY_ID).build();
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
@@ -56,13 +56,15 @@ public class PublishExecutorTest {
     }
 
     @Test
-    public void shouldThrowIfAWS_SECRET_ACCESS_KEYNotPresent() {
+    public void shouldThrowIfAWS_SECRET_ACCESS_KEYOrAWS_USE_INSTANCE_PROFILE_CREDENTIALS_NotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_SECRET_ACCESS_KEY).build();
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
         assertFalse(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
     }
+
+
 
     @Test
     public void shouldThrowIfGO_ARTIFACTS_S3_BUCKETNotPresent() {
