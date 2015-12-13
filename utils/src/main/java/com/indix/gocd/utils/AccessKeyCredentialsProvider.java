@@ -6,6 +6,12 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.util.StringUtils;
 
+/*
+ * Using this provider instead of built-in EnvironmentVariableCredentialsProvider since the latter will use either of the
+ * environment variables AWS_ACCESS_KEY_ID (or AWS_ACCESS_KEY) and AWS_SECRET_KEY (or AWS_SECRET_ACCESS_KEY), thus
+ * potentially breaking backward compatibility with prior versions of the GOCD S3 plugins which explicitly only work
+ * with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY variables.
+ */
 public class AccessKeyCredentialsProvider implements AWSCredentialsProvider {
     private String accessKey;
     private String secretKey;

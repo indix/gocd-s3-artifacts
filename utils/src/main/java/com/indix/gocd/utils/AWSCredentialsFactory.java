@@ -37,6 +37,7 @@ public class AWSCredentialsFactory {
             if (env.isAbsent(AWS_SECRET_ACCESS_KEY))
                 throwEnvNotFoundIllegalArgumentException(AWS_SECRET_ACCESS_KEY);
 
+            // See AccessKeyCredentialsProvider as to why use it instead of built-in EnvironmentVariablesCredentialsProvider
             providers.add(new AccessKeyCredentialsProvider(
                     env.get(AWS_ACCESS_KEY_ID),
                     env.get(AWS_SECRET_ACCESS_KEY)
