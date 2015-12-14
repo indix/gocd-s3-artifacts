@@ -2,12 +2,8 @@ package com.indix.gocd.utils;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
-import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.indix.gocd.utils.utils.Maps;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
@@ -15,18 +11,15 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AWSCredentialsFactoryTest {
-    Maps.MapBuilder<String, String> mockEnvironmentVariables;
 
     @Mock
     private GoEnvironment goEnvironment;
