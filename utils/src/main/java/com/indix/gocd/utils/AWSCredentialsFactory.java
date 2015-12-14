@@ -54,6 +54,28 @@ public class AWSCredentialsFactory {
         return makeProvidersChain(providers);
     }
 
+    public List<String> validationErrors() {
+        List<String> result = new ArrayList<String>();
+
+        if (!env.isAbsent(AWS_USE_INSTANCE_PROFILE) &&
+                !validUseInstanceProfileValues.contains(env.get(AWS_USE_INSTANCE_PROFILE).toLowerCase())) {
+                    result.add(
+                        getEnvInvalidFormatMessage(AWS_USE_INSTANCE_PROFILE, env.get(AWS_USE_INSTANCE_PROFILE),
+                        validUseInstanceProfileValues.toString())
+                        );
+            return result;
+        }
+        if (env.isAbsent(AWS_USE_INSTANCE_PROFILE) ||
+                !affirmativeUseInstanceProfileValues.contains(env.get(AWS_USE_INSTANCE_PROFILE).toLowerCase())) {
+                    if (env.isAbsent(AWS_ACCESS_KEY_ID))
+                        result.add(getEnvNotFoundIllegalArgumentMessage(AWS_ACCESS_KEY_ID));
+                    if (env.isAbsent(AWS_SECRET_ACCESS_KEY))
+                        result.add(getEnvNotFoundIllegalArgumentMessage(AWS_SECRET_ACCESS_KEY));
+        }
+
+        return result;
+    }
+
     /*
     public just to enable testing
      */
@@ -62,14 +84,18 @@ public class AWSCredentialsFactory {
     }
 
     private void throwEnvNotFoundIllegalArgumentException(String environmentVariable) {
-        String message = String.format("%s environment variable not present", environmentVariable);
-        throw new IllegalArgumentException(message);
+        throw new IllegalArgumentException(getEnvNotFoundIllegalArgumentMessage(environmentVariable));
     }
 
+    private String getEnvNotFoundIllegalArgumentMessage(String environmentVariable) {
+        return String.format("%s environment variable not present", environmentVariable);
+    }
     private void throwEnvInvalidFormat(String environmentVariable, String value, String expected) {
-        String message = String.format(
+        throw new IllegalArgumentException(getEnvInvalidFormatMessage(environmentVariable, value, expected));
+    }
+
+    private String getEnvInvalidFormatMessage(String environmentVariable, String value, String expected) {
+        return String.format(
                 "Unexpected value in %s environment variable; was %s, but expected one of the following %s",
                 environmentVariable, value, expected);
-        throw new IllegalArgumentException(message);
-    }
-}
+    }}
