@@ -1,5 +1,6 @@
 package com.indix.gocd.s3fetch;
 
+import com.indix.gocd.utils.AWSCredentialsFactory;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.utils.Maps;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
@@ -8,8 +9,12 @@ import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -18,16 +23,25 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.spy;
 
+@RunWith(MockitoJUnitRunner.class)
 public class FetchConfigTest {
     private final String bucket = "gocd";
     Maps.MapBuilder<String, String> mockEnvironmentVariables;
-    private TaskConfig config;
-    private FetchConfig fetchConfig;
     private final String secretKey = "secretKey";
     private final String accessId = "accessId";
+
+    @Mock
+    private TaskConfig config;
+
+    @Mock
+    private AWSCredentialsFactory factory;
+
+    private FetchConfig fetchConfig;
 
     @Before
     public void setUp() throws Exception {
@@ -75,30 +89,23 @@ public class FetchConfigTest {
 
     @Test
     public void shouldBeValid() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        fetchConfig = spy(new FetchConfig(config, mockContext(mockEnvironmentVariables.build())));
+        doReturn(new ArrayList<String>()).when(fetchConfig).getAwsCredentialsValidationErrors();
         ValidationResult validationResult = fetchConfig.validate();
         assertTrue(validationResult.isSuccessful());
     }
 
     @Test
-    public void shouldNotBeValidIfAWSSecretAccessKeyNotPresent() {
-        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.remove(AWS_SECRET_ACCESS_KEY).build()));
+    public void shouldNotBeValidIfAWSCredentialsValidationFails() {
+        fetchConfig = spy(new FetchConfig(config, mockContext( mockEnvironmentVariables.build())));
+        doReturn(Arrays.asList(new String[] {"some error"})).when(fetchConfig).getAwsCredentialsValidationErrors();
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
         ArrayList<String> messages = new ArrayList<String>();
-        messages.add("AWS_SECRET_ACCESS_KEY environment variable not present");
+        messages.add("some error");
         assertThat(validationResult.getMessages(), Matchers.<List<String>>is(messages));
     }
 
-    @Test
-    public void shouldNotBeValidIfAWSAccessKeyIdNotPresent() {
-        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.remove(AWS_ACCESS_KEY_ID).build()));
-        ValidationResult validationResult = fetchConfig.validate();
-        assertFalse(validationResult.isSuccessful());
-        ArrayList<String> messages = new ArrayList<String>();
-        messages.add("AWS_ACCESS_KEY_ID environment variable not present");
-        assertThat(validationResult.getMessages(), Matchers.<List<String>>is(messages));
-    }
 
     @Test
     public void shouldNotBeValidIfS3BucketNotPresent() {
