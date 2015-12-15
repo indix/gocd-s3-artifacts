@@ -9,6 +9,7 @@ import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
 
@@ -22,8 +23,8 @@ public class FetchConfig {
 
     public FetchConfig(TaskConfig config, TaskExecutionContext context) {
         this.env = new GoEnvironment();
-        this.awsCredentialsFactory = new AWSCredentialsFactory(this.env);
         env.putAll(context.environment().asMap());
+        this.awsCredentialsFactory = new AWSCredentialsFactory(this.env.asMap());
 
         String repoName = config.getValue(FetchTask.REPO).toUpperCase().replaceAll("-", "_");
         String packageName = config.getValue(FetchTask.PACKAGE).toUpperCase().replaceAll("-", "_");
@@ -52,21 +53,11 @@ public class FetchConfig {
         return env.artifactsLocationTemplate(pipeline, stage, job, pipelineCounter, stageCounter);
     }
 
-    public String getAWSAccessKeyId() {
-        return env.get(AWS_ACCESS_KEY_ID);
-    }
-
-    public String getAWSSecretAccessKey() {
-        return env.get(AWS_SECRET_ACCESS_KEY);
-    }
-
-    public String getUseAWSInstanceProfile() {
-        return env.get(AWS_USE_INSTANCE_PROFILE);
-    }
-
     public String getS3Bucket() {
         return env.get(GO_ARTIFACTS_S3_BUCKET);
     }
+
+    public Map<String,String> asMap() { return env.asMap(); }
 
     public AWSCredentialsFactory getAWSCredentialsFactory() { return this.awsCredentialsFactory; }
 

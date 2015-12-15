@@ -7,18 +7,13 @@ import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.indix.gocd.utils.Constants.*;
 import static org.hamcrest.Matchers.is;
@@ -26,7 +21,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.isNotNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -62,28 +56,6 @@ public class FetchConfigTest {
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_JOB_NAME", "defaultJob");
     }
 
-    @Test
-    public void shouldGetAWSSecretAccessKey() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
-        String awsSecretAccessKey = fetchConfig.getAWSSecretAccessKey();
-        assertThat(awsSecretAccessKey, is(secretKey));
-    }
-
-    @Test
-    public void shouldGetAWSAccessKeyId() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
-        String awsSecretAccessKey = fetchConfig.getAWSAccessKeyId();
-        assertThat(awsSecretAccessKey, is(accessId));
-    }
-
-    @Test
-    public void shouldGetAWSUseInstanceProfileKey() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables
-                .with(AWS_USE_INSTANCE_PROFILE,"Yes").build()));
-        String useAWSInstanceProfile = fetchConfig.getUseAWSInstanceProfile();
-        assertThat(useAWSInstanceProfile, is("Yes"));
-    }
-
 
     @Test
     public void shouldGetAWSCredentialsFactory() {
@@ -117,7 +89,7 @@ public class FetchConfigTest {
     @Test
     public void shouldNotBeValidIfAWSCredentialsValidationFails() {
         fetchConfig = spy(new FetchConfig(config, mockContext( mockEnvironmentVariables.build())));
-        doReturn(Arrays.asList(new String[] {"some error"})).when(fetchConfig).getAwsCredentialsValidationErrors();
+        doReturn(Collections.singletonList("some error")).when(fetchConfig).getAwsCredentialsValidationErrors();
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
         ArrayList<String> messages = new ArrayList<String>();

@@ -99,7 +99,7 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private AWSCredentialsProvider awsCredentialsProvider(GoEnvironment env) {
-        return new AWSCredentialsFactory(env).getCredentialsProvider();
+        return new AWSCredentialsFactory(env.asMap()).getCredentialsProvider();
     }
 
     private void pushToS3(final TaskExecutionContext context, final GoEnvironment env, final S3ArtifactStore store, File localFileToUpload, String destination) {

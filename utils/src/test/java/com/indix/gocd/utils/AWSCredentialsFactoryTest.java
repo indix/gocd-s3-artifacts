@@ -3,14 +3,18 @@ package com.indix.gocd.utils;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.indix.gocd.utils.utils.Maps;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
 import static org.hamcrest.Matchers.is;
@@ -21,12 +25,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class AWSCredentialsFactoryTest {
 
-    @Mock
-    private GoEnvironment goEnvironment;
-
-    @Spy
-    @InjectMocks
-    private AWSCredentialsFactory sut = new AWSCredentialsFactory(goEnvironment);
+    private Map<String,String> environment;
 
     @Captor
     private ArgumentCaptor<ArrayList<AWSCredentialsProvider>> argumentCaptor;
@@ -34,11 +33,18 @@ public class AWSCredentialsFactoryTest {
     @Mock
     private AWSCredentialsProviderChain mockCredentialProviderChain;
 
+    @Before
+    public void TestSetup()
+    {
+        this.environment = new HashMap<String, String>();
+    }
+
     @Test
     public void shouldThrowIfAWS_ACCESS_KEY_IDOrAWS_USE_INSTANCE_PROFILE_CREDENTIALS_NotPresent() {
-        when(goEnvironment.isAbsent(AWS_ACCESS_KEY_ID)).thenReturn(true);
-        when(goEnvironment.isAbsent(AWS_SECRET_ACCESS_KEY)).thenReturn(false);
-        when(goEnvironment.isAbsent(AWS_USE_INSTANCE_PROFILE)).thenReturn(true);
+        environment =  Maps.<String, String>builder()
+                .with(AWS_SECRET_ACCESS_KEY, "secretKey")
+                .build();
+        AWSCredentialsFactory sut = new AWSCredentialsFactory(environment);
         try {
             sut.getCredentialsProvider();
             Assert.fail("expected IllegalArgumentException");
@@ -50,10 +56,10 @@ public class AWSCredentialsFactoryTest {
 
     @Test
     public void shouldThrowIfAWS_SECRET_ACCESS_KEYOrAWS_USE_INSTANCE_PROFILE_CREDENTIALS_NotPresent() {
-        when(goEnvironment.isAbsent(AWS_ACCESS_KEY_ID)).thenReturn(false);
-        when(goEnvironment.isAbsent(AWS_SECRET_ACCESS_KEY)).thenReturn(true);
-        when(goEnvironment.isAbsent(AWS_USE_INSTANCE_PROFILE)).thenReturn(true);
-
+        environment =  Maps.<String, String>builder()
+                .with(AWS_ACCESS_KEY_ID, "secretKey")
+                .build();
+        AWSCredentialsFactory sut = new AWSCredentialsFactory(environment);
         try {
             sut.getCredentialsProvider();
             Assert.fail("expected IllegalArgumentException");
@@ -64,12 +70,11 @@ public class AWSCredentialsFactoryTest {
 
     @Test
     public void shouldCreateEnvironmentVariableProviderWhenAWS_ACCESS_and_SECRET_KEY_ID_Provided() {
-        when(goEnvironment.isAbsent(AWS_ACCESS_KEY_ID)).thenReturn(false);
-        when(goEnvironment.isAbsent(AWS_SECRET_ACCESS_KEY)).thenReturn(false);
-        when(goEnvironment.isAbsent(AWS_USE_INSTANCE_PROFILE)).thenReturn(true);
-        when(goEnvironment.get(AWS_ACCESS_KEY_ID)).thenReturn("access Key");
-        when(goEnvironment.get(AWS_SECRET_ACCESS_KEY)).thenReturn("secret Key");
-
+        environment =  Maps.<String, String>builder()
+                .with(AWS_ACCESS_KEY_ID, "access Key")
+                .with(AWS_SECRET_ACCESS_KEY, "secret Key")
+                .build();
+        AWSCredentialsFactory sut = spy(new AWSCredentialsFactory(environment));
         AWSCredentialsProviderChain result = (AWSCredentialsProviderChain)sut.getCredentialsProvider();
         assertNotNull(result);
         verify(sut, times(1)).makeProvidersChain(argumentCaptor.capture());
@@ -80,11 +85,10 @@ public class AWSCredentialsFactoryTest {
 
     @Test
     public void shouldCreateInstanceProfileProviderWhen_AWS_USE_INSTANCE_PROFILEIsTrue() {
-        when(goEnvironment.isAbsent(AWS_ACCESS_KEY_ID)).thenReturn(true);
-        when(goEnvironment.isAbsent(AWS_SECRET_ACCESS_KEY)).thenReturn(true);
-        when(goEnvironment.isAbsent(AWS_USE_INSTANCE_PROFILE)).thenReturn(false);
-        when(goEnvironment.get(AWS_USE_INSTANCE_PROFILE)).thenReturn("True");
-
+        environment =  Maps.<String, String>builder()
+                .with(AWS_USE_INSTANCE_PROFILE, "True")
+                .build();
+        AWSCredentialsFactory sut = spy(new AWSCredentialsFactory(environment));
         AWSCredentialsProviderChain result = (AWSCredentialsProviderChain)sut.getCredentialsProvider();
         assertNotNull(result);
         verify(sut, times(1)).makeProvidersChain(argumentCaptor.capture());
@@ -96,11 +100,10 @@ public class AWSCredentialsFactoryTest {
 
     @Test
     public void shouldThrowIf_AWS_USE_INSTANCE_PROFILEIsProvidedButNotOneOfExpectedValues() {
-        when(goEnvironment.isAbsent(AWS_ACCESS_KEY_ID)).thenReturn(true);
-        when(goEnvironment.isAbsent(AWS_SECRET_ACCESS_KEY)).thenReturn(true);
-        when(goEnvironment.isAbsent(AWS_USE_INSTANCE_PROFILE)).thenReturn(false);
-        when(goEnvironment.get(AWS_USE_INSTANCE_PROFILE)).thenReturn("blah");
-
+        environment =  Maps.<String, String>builder()
+                .with(AWS_USE_INSTANCE_PROFILE, "blah")
+                .build();
+        AWSCredentialsFactory sut = new AWSCredentialsFactory(environment);
         try {
             sut.getCredentialsProvider();
             Assert.fail("expected IllegalArgumentException");
@@ -113,13 +116,12 @@ public class AWSCredentialsFactoryTest {
 
     @Test
     public void shouldCreateEnvironmentVariableProviderWhenAWS_ACCESS_and_SECRET_KEY_ID_ProvidedAnd_AWS_USE_INSTANCE_PROFILE_IsSetToNo() {
-        when(goEnvironment.isAbsent(AWS_ACCESS_KEY_ID)).thenReturn(false);
-        when(goEnvironment.isAbsent(AWS_SECRET_ACCESS_KEY)).thenReturn(false);
-        when(goEnvironment.isAbsent(AWS_USE_INSTANCE_PROFILE)).thenReturn(false);
-        when(goEnvironment.get(AWS_USE_INSTANCE_PROFILE)).thenReturn("No");
-        when(goEnvironment.get(AWS_ACCESS_KEY_ID)).thenReturn("access Key");
-        when(goEnvironment.get(AWS_SECRET_ACCESS_KEY)).thenReturn("secret Key");
-
+        environment =  Maps.<String, String>builder()
+                .with(AWS_ACCESS_KEY_ID, "access Key")
+                .with(AWS_SECRET_ACCESS_KEY, "secret Key")
+                .with(AWS_USE_INSTANCE_PROFILE, "No")
+                .build();
+        AWSCredentialsFactory sut = spy(new AWSCredentialsFactory(environment));
         AWSCredentialsProviderChain result = (AWSCredentialsProviderChain)sut.getCredentialsProvider();
         assertNotNull(result);
         verify(sut, times(1)).makeProvidersChain(argumentCaptor.capture());

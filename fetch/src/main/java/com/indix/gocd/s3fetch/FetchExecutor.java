@@ -1,7 +1,7 @@
 package com.indix.gocd.s3fetch;
 
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.indix.gocd.utils.AWSCredentialsFactory;
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.thoughtworks.go.plugin.api.logging.Logger;
 import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
@@ -25,8 +25,9 @@ public class FetchExecutor implements TaskExecutor {
         if(!validationResult.isSuccessful()) {
             return ExecutionResult.failure(validationResult.getMessages().toString());
         }
+        final AWSCredentialsFactory factory = new AWSCredentialsFactory(fetchConfig.asMap());
 
-        final S3ArtifactStore store = s3ArtifactStore(fetchConfig);
+        final S3ArtifactStore store = s3ArtifactStore(fetchConfig, factory);
 
         String artifactPathOnS3 = fetchConfig.getArtifactsLocationTemplate();
         context.console().printLine(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
@@ -57,12 +58,12 @@ public class FetchExecutor implements TaskExecutor {
         }
     }
 
-    public S3ArtifactStore s3ArtifactStore(FetchConfig config) {
-        return new S3ArtifactStore(s3Client(config), config.getS3Bucket());
+    public S3ArtifactStore s3ArtifactStore(FetchConfig config, AWSCredentialsFactory factory) {
+        return new S3ArtifactStore(s3Client(factory), config.getS3Bucket());
     }
 
-    public AmazonS3Client s3Client(FetchConfig config) {
-        return new AmazonS3Client(new BasicAWSCredentials(config.getAWSAccessKeyId(), config.getAWSSecretAccessKey()));
+    public AmazonS3Client s3Client(AWSCredentialsFactory factory) {
+        return new AmazonS3Client(factory.getCredentialsProvider());
     }
 
 }
