@@ -68,6 +68,8 @@ public class FetchConfig {
         return env.get(GO_ARTIFACTS_S3_BUCKET);
     }
 
+    public AWSCredentialsFactory getAWSCredentialsFactory() { return this.awsCredentialsFactory; }
+
     public List<String> getAwsCredentialsValidationErrors() {
         return awsCredentialsFactory.validationErrors();
     }

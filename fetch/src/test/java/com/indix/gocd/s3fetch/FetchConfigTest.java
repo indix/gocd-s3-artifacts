@@ -7,7 +7,9 @@ import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -23,6 +25,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.isNotNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -39,13 +42,13 @@ public class FetchConfigTest {
     private TaskConfig config;
 
     @Mock
-    private AWSCredentialsFactory factory;
+    private AWSCredentialsFactory awsCredentialsFactoryMock;
 
     private FetchConfig fetchConfig;
 
     @Before
     public void setUp() throws Exception {
-        config = mock(TaskConfig.class);
+//        config = mock(TaskConfig.class);
         when(config.getValue(FetchTask.REPO)).thenReturn(bucket);
         when(config.getValue(FetchTask.PACKAGE)).thenReturn("TestPublishS3Artifacts");
         mockEnvironmentVariables = Maps.<String, String>builder()
@@ -71,6 +74,23 @@ public class FetchConfigTest {
         fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
         String awsSecretAccessKey = fetchConfig.getAWSAccessKeyId();
         assertThat(awsSecretAccessKey, is(accessId));
+    }
+
+    @Test
+    public void shouldGetAWSUseInstanceProfileKey() {
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables
+                .with(AWS_USE_INSTANCE_PROFILE,"Yes").build()));
+        String useAWSInstanceProfile = fetchConfig.getUseAWSInstanceProfile();
+        assertThat(useAWSInstanceProfile, is("Yes"));
+    }
+
+
+    @Test
+    @Ignore
+    public void shouldGetAWSCredentialsFactory() {
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        AWSCredentialsFactory factory = fetchConfig.getAWSCredentialsFactory();
+        assertThat(factory, is(awsCredentialsFactoryMock));
     }
 
     @Test
