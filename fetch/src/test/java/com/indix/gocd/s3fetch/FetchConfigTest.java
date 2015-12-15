@@ -82,7 +82,7 @@ public class FetchConfigTest {
 
     @Test
     public void shouldNotBeValidIfAWSSecretAccessKeyNotPresent() {
-        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.remove(AWS_SECRET_ACCESS_KEY).build()));
+        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(AWS_SECRET_ACCESS_KEY, "").build()));
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
         ArrayList<String> messages = new ArrayList<String>();
@@ -92,7 +92,7 @@ public class FetchConfigTest {
 
     @Test
     public void shouldNotBeValidIfAWSAccessKeyIdNotPresent() {
-        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.remove(AWS_ACCESS_KEY_ID).build()));
+        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build()));
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
         ArrayList<String> messages = new ArrayList<String>();
@@ -102,7 +102,7 @@ public class FetchConfigTest {
 
     @Test
     public void shouldNotBeValidIfS3BucketNotPresent() {
-        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.remove(GO_ARTIFACTS_S3_BUCKET).build()));
+        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(GO_ARTIFACTS_S3_BUCKET, "").build()));
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
         ArrayList<String> messages = new ArrayList<String>();
