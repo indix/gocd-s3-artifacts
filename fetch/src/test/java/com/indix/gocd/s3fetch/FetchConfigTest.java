@@ -22,6 +22,7 @@ import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -48,7 +49,6 @@ public class FetchConfigTest {
 
     @Before
     public void setUp() throws Exception {
-//        config = mock(TaskConfig.class);
         when(config.getValue(FetchTask.REPO)).thenReturn(bucket);
         when(config.getValue(FetchTask.PACKAGE)).thenReturn("TestPublishS3Artifacts");
         mockEnvironmentVariables = Maps.<String, String>builder()
@@ -86,11 +86,10 @@ public class FetchConfigTest {
 
 
     @Test
-    @Ignore
     public void shouldGetAWSCredentialsFactory() {
         fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
         AWSCredentialsFactory factory = fetchConfig.getAWSCredentialsFactory();
-        assertThat(factory, is(awsCredentialsFactoryMock));
+        assertThat(factory, is(notNullValue()));
     }
 
     @Test

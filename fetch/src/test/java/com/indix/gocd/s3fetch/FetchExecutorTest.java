@@ -47,7 +47,6 @@ public class FetchExecutorTest {
 
     @Before
     public void setUp() throws Exception {
-//        config = mock(TaskConfig.class);
         when(config.getValue(FetchTask.REPO)).thenReturn(bucket);
         when(config.getValue(FetchTask.PACKAGE)).thenReturn("TestPublishS3Artifacts");
         when(config.getValue(FetchTask.DESTINATION)).thenReturn(destination);
@@ -62,7 +61,6 @@ public class FetchExecutorTest {
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_STAGE_NAME", "defaultStage")
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_JOB_NAME", "defaultJob");
 
-//        fetchExecutor = spy(new FetchExecutor());
     }
 
     @Test
@@ -77,7 +75,6 @@ public class FetchExecutorTest {
     @Test
     public void shouldBeFailureIfUnableToFetchArtifacts() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
-//        AmazonS3Client mockClient = mockClient();
         doReturn(s3ClientMock).when(fetchExecutor).s3Client(any(FetchConfig.class));
         doThrow(new AmazonClientException("Exception message")).when(s3ClientMock).listObjects(any(ListObjectsRequest.class));
 
@@ -107,5 +104,4 @@ public class FetchExecutorTest {
 
     private S3ArtifactStore mockStore() { return mock(S3ArtifactStore.class); }
 
-//    private AmazonS3Client mockClient() { return mock(AmazonS3Client.class); }
 }
