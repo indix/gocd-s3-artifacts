@@ -50,7 +50,10 @@ public class PublishExecutor implements TaskExecutor {
             return ExecutionResult.failure(ex.getMessage());
         }
         final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
-        final S3ArtifactStore store = new S3ArtifactStore(s3Client, bucket);
+        String kmsKey = null;
+        if (env.has(AWS_KMS_KEY_ID))
+            kmsKey = env.get(AWS_KMS_KEY_ID);
+        final S3ArtifactStore store = new S3ArtifactStore(s3Client, bucket, kmsKey);
 
         try {
             List<Tuple2<String, String>> sourceDestinations = PublishTask.getSourceDestinations(config.getValue(SOURCEDESTINATIONS));

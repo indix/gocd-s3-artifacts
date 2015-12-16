@@ -18,19 +18,32 @@ import java.util.Map;
 public class S3ArtifactStore {
     private AmazonS3Client client;
     private String bucket;
+    private String kmsKey = null;
 
     public S3ArtifactStore(AmazonS3Client client, String bucket) {
         this.client = client;
         this.bucket = bucket;
     }
 
-    public void put(String from, String to) {
-        put(new PutObjectRequest(bucket, to, new File(from)));
+    public S3ArtifactStore(AmazonS3Client client, String bucket, String kmsKey) {
+        this.client = client;
+        this.bucket = bucket;
+        this.kmsKey = kmsKey;
     }
 
-    public void put(String from, String to, ObjectMetadata metadata) {
-        put(new PutObjectRequest(bucket, to, new File(from))
-                .withMetadata(metadata));
+    public void put(String from, String to) {
+        put(from, to, null, kmsKey);
+    }
+
+    public void put(String from, String to, ObjectMetadata metadata, String kmsKey) {
+        PutObjectRequest request = new PutObjectRequest(bucket, to, new File(from));
+        if (metadata != null)
+            request = request.withMetadata(metadata);
+        if (kmsKey != null && !kmsKey.isEmpty())
+            request = request.withSSEAwsKeyManagementParams(
+                    new SSEAwsKeyManagementParams(kmsKey)
+            );
+        put(request);
     }
 
     public void put(PutObjectRequest putObjectRequest) {

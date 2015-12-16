@@ -11,4 +11,5 @@ public class Constants {
     public static final String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
     public static final String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
     public static final String AWS_USE_INSTANCE_PROFILE = "AWS_USE_INSTANCE_PROFILE";
+    public static final String AWS_KMS_KEY_ID = "AWS_KMS_KEY_ID";
 }
