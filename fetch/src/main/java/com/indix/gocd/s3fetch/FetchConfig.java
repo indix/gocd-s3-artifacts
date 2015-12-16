@@ -1,11 +1,15 @@
 package com.indix.gocd.s3fetch;
 
 import com.amazonaws.util.StringUtils;
+import com.indix.gocd.utils.AWSCredentialsFactory;
 import com.indix.gocd.utils.GoEnvironment;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationError;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
+
+import java.util.List;
+import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
 
@@ -15,10 +19,12 @@ public class FetchConfig {
     private final String stage;
     private final String job;
     private GoEnvironment env;
+    private AWSCredentialsFactory awsCredentialsFactory;
 
     public FetchConfig(TaskConfig config, TaskExecutionContext context) {
         this.env = new GoEnvironment();
         env.putAll(context.environment().asMap());
+        this.awsCredentialsFactory = new AWSCredentialsFactory(this.env.asMap());
 
         String repoName = config.getValue(FetchTask.REPO).toUpperCase().replaceAll("-", "_");
         String packageName = config.getValue(FetchTask.PACKAGE).toUpperCase().replaceAll("-", "_");
@@ -30,8 +36,9 @@ public class FetchConfig {
 
     public ValidationResult validate() {
         ValidationResult validationResult = new ValidationResult();
-        if (env.isAbsent(AWS_ACCESS_KEY_ID)) validationResult.addError(envNotFound(AWS_ACCESS_KEY_ID));
-        if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) validationResult.addError(envNotFound(AWS_SECRET_ACCESS_KEY));
+        for (String error : getAwsCredentialsValidationErrors()) {
+            validationResult.addError(new ValidationError(error));
+        }
         if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) validationResult.addError(envNotFound(GO_ARTIFACTS_S3_BUCKET));
         if (StringUtils.isNullOrEmpty(materialLabel))
             validationResult.addError(new ValidationError("Please check Repository name or Package name configuration. Also ensure that the appropriate S3 material is configured for the pipeline."));
@@ -46,16 +53,16 @@ public class FetchConfig {
         return env.artifactsLocationTemplate(pipeline, stage, job, pipelineCounter, stageCounter);
     }
 
-    public String getAWSAccessKeyId() {
-        return env.get(AWS_ACCESS_KEY_ID);
-    }
-
-    public String getAWSSecretAccessKey() {
-        return env.get(AWS_SECRET_ACCESS_KEY);
-    }
-
     public String getS3Bucket() {
         return env.get(GO_ARTIFACTS_S3_BUCKET);
+    }
+
+    public Map<String,String> asMap() { return env.asMap(); }
+
+    public AWSCredentialsFactory getAWSCredentialsFactory() { return this.awsCredentialsFactory; }
+
+    public List<String> getAwsCredentialsValidationErrors() {
+        return awsCredentialsFactory.validationErrors();
     }
 
     private ValidationError envNotFound(String environmentVariable) {

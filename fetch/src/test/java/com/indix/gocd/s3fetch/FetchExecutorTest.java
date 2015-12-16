@@ -3,6 +3,7 @@ package com.indix.gocd.s3fetch;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
+import com.indix.gocd.utils.AWSCredentialsFactory;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Maps;
@@ -11,6 +12,11 @@ import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Map;
 
@@ -20,17 +26,27 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-
+@RunWith(MockitoJUnitRunner.class)
 public class FetchExecutorTest {
     private final String destination = "artifacts";
     private final String bucket = "gocd";
     Maps.MapBuilder<String, String> mockEnvironmentVariables;
-    private FetchExecutor fetchExecutor;
+
+    @Mock
     private TaskConfig config;
+
+    @Mock
+    private AmazonS3Client s3ClientMock;
+
+    @Mock
+    private AWSCredentialsFactory awsCredentialsFactory;
+
+    @Spy
+    @InjectMocks
+    private FetchExecutor fetchExecutor = new FetchExecutor();
 
     @Before
     public void setUp() throws Exception {
-        config = mock(TaskConfig.class);
         when(config.getValue(FetchTask.REPO)).thenReturn(bucket);
         when(config.getValue(FetchTask.PACKAGE)).thenReturn("TestPublishS3Artifacts");
         when(config.getValue(FetchTask.DESTINATION)).thenReturn(destination);
@@ -45,7 +61,6 @@ public class FetchExecutorTest {
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_STAGE_NAME", "defaultStage")
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_JOB_NAME", "defaultJob");
 
-        fetchExecutor = spy(new FetchExecutor());
     }
 
     @Test
@@ -60,9 +75,8 @@ public class FetchExecutorTest {
     @Test
     public void shouldBeFailureIfUnableToFetchArtifacts() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
-        AmazonS3Client mockClient = mockClient();
-        doReturn(mockClient).when(fetchExecutor).s3Client(any(FetchConfig.class));
-        doThrow(new AmazonClientException("Exception message")).when(mockClient).listObjects(any(ListObjectsRequest.class));
+        doReturn(s3ClientMock).when(fetchExecutor).s3Client(any(AWSCredentialsFactory.class));
+        doThrow(new AmazonClientException("Exception message")).when(s3ClientMock).listObjects(any(ListObjectsRequest.class));
 
         ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
 
@@ -74,7 +88,7 @@ public class FetchExecutorTest {
     public void shouldBeSuccessResultOnSuccessfulFetch() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         S3ArtifactStore mockStore = mockStore();
-        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class));
+        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class),any(AWSCredentialsFactory.class));
 
         ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
 
@@ -90,5 +104,4 @@ public class FetchExecutorTest {
 
     private S3ArtifactStore mockStore() { return mock(S3ArtifactStore.class); }
 
-    private AmazonS3Client mockClient() { return mock(AmazonS3Client.class); }
 }

@@ -3,11 +3,14 @@ package com.indix.gocd.utils;
 import static org.hamcrest.CoreMatchers.is;
 
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import java.util.Map;
 import com.indix.gocd.utils.utils.Maps;
 import static com.indix.gocd.utils.Constants.GO_SERVER_DASHBOARD_URL;
+import static org.junit.Assert.assertTrue;
 
 
 public class GoEnvironmentTest {
@@ -36,6 +39,13 @@ public class GoEnvironmentTest {
     @Test
     public void shouldGenerateArtifactLocationTemplate() {
         assertThat(goEnvironment.artifactsLocationTemplate(), is("s3-publish-test/build-and-publish/publish/20.1"));
+    }
+
+    @Test
+    public void shouldReturnAsMap() {
+        for(Map.Entry<String, String> entry : mockEnvironment.entrySet()) {
+            assertEquals(entry.getValue(), goEnvironment.asMap().get(entry.getKey()));
+        }
     }
 
 }

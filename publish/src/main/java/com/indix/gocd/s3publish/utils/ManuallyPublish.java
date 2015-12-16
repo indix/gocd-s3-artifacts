@@ -25,6 +25,9 @@ Utility to manually publish an artifact (if required) without being in Go.
 Run this Task with the following ENV variables
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
+(or)
+-- AWS_USE_INSTANCE_PROFILE
+and
 - GO_ARTIFACTS_S3_BUCKET
 - GO_SERVER_URL
 - GO_PIPELINE_NAME

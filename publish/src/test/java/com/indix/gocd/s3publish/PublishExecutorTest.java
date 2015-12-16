@@ -47,21 +47,14 @@ public class PublishExecutorTest {
     }
 
     @Test
-    public void shouldThrowIfAWS_ACCESS_KEY_IDNotPresent() {
+    public void shouldThrowIfS3ClientCannotBeInitialized() {
         Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_ACCESS_KEY_ID).build();
 
+        doThrow(new IllegalArgumentException("AWS_ACCESS_KEY_ID environment variable not present"))
+                .when(publishExecutor).getS3Client(any(GoEnvironment.class));
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
         assertFalse(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("AWS_ACCESS_KEY_ID environment variable not present"));
-    }
-
-    @Test
-    public void shouldThrowIfAWS_SECRET_ACCESS_KEYNotPresent() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_SECRET_ACCESS_KEY).build();
-
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
     }
 
     @Test
@@ -77,7 +70,7 @@ public class PublishExecutorTest {
     public void shouldUploadALocalFileToS3() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         AmazonS3Client mockClient = mockClient();
-        doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
+        doReturn(mockClient).when(publishExecutor).getS3Client(any(GoEnvironment.class));
         when(config.getValue(SOURCEDESTINATIONS)).thenReturn("[{\"source\": \"target/*\", \"destination\": \"\"}]");
         doReturn(new String[]{"README.md", "s3publish-0.1.31.jar"}).when(publishExecutor).parseSourcePath(anyString(), anyString());
 

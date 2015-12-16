@@ -21,6 +21,8 @@ public class GoEnvironment {
         return this;
     }
 
+    public Map<String,String> asMap() { return environment; }
+
     public String get(String name) {
         return environment.get(name);
     }
