@@ -23,7 +23,9 @@ import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Lists;
 import com.indix.gocd.utils.utils.Tuple2;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.TaskConfigurationChecker;
 
 import static com.indix.gocd.utils.Constants.*;
 import static com.indix.gocd.utils.utils.Functions.VoidFunction;
@@ -72,7 +74,12 @@ public class PublishExecutor implements TaskExecutor {
             log.error(message);
             return ExecutionResult.failure(message, e);
         }
-        setMetadata(env, bucket, destinationPrefix, store);
+
+        // A configured destination prefix is used to deploy files rather than publish artifacts
+        // We only want to set metadata when publishing artifacts
+        if(!hasConfigDestinationPrefix(config)) {
+            setMetadata(env, bucket, destinationPrefix, store);
+        }
 
         return ExecutionResult.success("Published all artifacts to S3");
     }
@@ -99,7 +106,7 @@ public class PublishExecutor implements TaskExecutor {
 
     private void pushToS3(final TaskExecutionContext context, final String destinationPrefix, final S3ArtifactStore store, File localFileToUpload, String destination) {
         String templateSoFar = ensureKeySegmentValid(destinationPrefix);
-        if(!org.apache.commons.lang3.StringUtils.isBlank(destination)) {
+        if(!StringUtils.isBlank(destination)) {
             templateSoFar += destination;
         }
         List<FilePathToTemplate> filesToUpload = generateFilesToUpload(templateSoFar, localFileToUpload);
@@ -158,12 +165,22 @@ public class PublishExecutor implements TaskExecutor {
         store.put(putObjectRequest);
     }
 
-    private String getDestinationPrefix(final TaskConfig config, final GoEnvironment env) {
-        String destinationPrefix = config.getValue(DESTINATION_PREFIX);
+    private String getConfigDestinationPrefix(final TaskConfig config) {
+        return config.getValue(DESTINATION_PREFIX);
+    }
 
-        if(org.apache.commons.lang3.StringUtils.isBlank(destinationPrefix)) {
-            return env.artifactsLocationTemplate();
+    private boolean hasConfigDestinationPrefix(final TaskConfig config) {
+        String destinationPrefix = getConfigDestinationPrefix(config);
+
+        return !StringUtils.isBlank(destinationPrefix);
+    }
+
+    private String getDestinationPrefix(final TaskConfig config, final GoEnvironment env) {
+        if(!hasConfigDestinationPrefix(config)) {
+            return  env.artifactsLocationTemplate();
         }
+
+        String destinationPrefix = getConfigDestinationPrefix(config);
 
         destinationPrefix = env.replaceVariables(destinationPrefix);
 
@@ -175,11 +192,11 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private String ensureKeySegmentValid(String segment) {
-        if(org.apache.commons.lang3.StringUtils.isBlank(segment)) {
+        if(StringUtils.isBlank(segment)) {
             return segment;
         }
 
-        if(!org.apache.commons.lang3.StringUtils.endsWith(segment, "/")) {
+        if(!StringUtils.endsWith(segment, "/")) {
             segment += "/";
         }
 

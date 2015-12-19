@@ -138,16 +138,7 @@ public class PublishExecutorTest {
 
         assertTrue(executionResult.isSuccessful());
 
-        final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 3);
-
-        PutObjectRequest metadataPutRequest = allPutObjectRequests.get(2);
-        Map<String, String> expectedUserMetadata = Maps.<String, String>builder()
-                .with(METADATA_USER, "Krishna")
-                .with(METADATA_TRACEBACK_URL, "http://go.server:8153/go/tab/build/detail/pipeline/pipelineCounter/stage/stageCounter/job")
-                .with(COMPLETED, COMPLETED)
-                .build();
-        assertThat(metadataPutRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));
-        assertThat(metadataPutRequest.getKey(), is("destinationPrefix/"));
+        final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
 
         PutObjectRequest readmePutRequest = allPutObjectRequests.get(0);
         assertThat(readmePutRequest.getBucketName(), is("testS3Bucket"));
@@ -174,16 +165,7 @@ public class PublishExecutorTest {
 
         assertTrue(executionResult.isSuccessful());
 
-        final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 3);
-
-        PutObjectRequest metadataPutRequest = allPutObjectRequests.get(2);
-        Map<String, String> expectedUserMetadata = Maps.<String, String>builder()
-                .with(METADATA_USER, "Krishna")
-                .with(METADATA_TRACEBACK_URL, "http://go.server:8153/go/tab/build/detail/pipeline/pipelineCounter/stage/stageCounter/job")
-                .with(COMPLETED, COMPLETED)
-                .build();
-        assertThat(metadataPutRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));
-        assertThat(metadataPutRequest.getKey(), is("test/pipelineCounter/"));
+        final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
 
         PutObjectRequest readmePutRequest = allPutObjectRequests.get(0);
         assertThat(readmePutRequest.getBucketName(), is("testS3Bucket"));
@@ -210,16 +192,7 @@ public class PublishExecutorTest {
 
         assertTrue(executionResult.isSuccessful());
 
-        final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 3);
-
-        PutObjectRequest metadataPutRequest = allPutObjectRequests.get(2);
-        Map<String, String> expectedUserMetadata = Maps.<String, String>builder()
-                .with(METADATA_USER, "Krishna")
-                .with(METADATA_TRACEBACK_URL, "http://go.server:8153/go/tab/build/detail/pipeline/pipelineCounter/stage/stageCounter/job")
-                .with(COMPLETED, COMPLETED)
-                .build();
-        assertThat(metadataPutRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));
-        assertThat(metadataPutRequest.getKey(), is(""));
+        final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
 
         PutObjectRequest readmePutRequest = allPutObjectRequests.get(0);
         assertThat(readmePutRequest.getBucketName(), is("testS3Bucket"));
