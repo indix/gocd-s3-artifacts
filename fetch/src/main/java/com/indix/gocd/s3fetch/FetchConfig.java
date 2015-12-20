@@ -30,8 +30,10 @@ public class FetchConfig {
 
     public ValidationResult validate() {
         ValidationResult validationResult = new ValidationResult();
-        if (env.isAbsent(AWS_ACCESS_KEY_ID)) validationResult.addError(envNotFound(AWS_ACCESS_KEY_ID));
-        if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) validationResult.addError(envNotFound(AWS_SECRET_ACCESS_KEY));
+        if (env.isAbsent(AWS_USE_IAM_ROLE)) {
+            if (env.isAbsent(AWS_ACCESS_KEY_ID)) validationResult.addError(envNotFound(AWS_ACCESS_KEY_ID));
+            if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) validationResult.addError(envNotFound(AWS_SECRET_ACCESS_KEY));
+        }
         if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) validationResult.addError(envNotFound(GO_ARTIFACTS_S3_BUCKET));
         if (StringUtils.isNullOrEmpty(materialLabel))
             validationResult.addError(new ValidationError("Please check Repository name or Package name configuration. Also ensure that the appropriate S3 material is configured for the pipeline."));
@@ -44,6 +46,10 @@ public class FetchConfig {
         String pipelineCounter = counters[0];
         String stageCounter = counters[1];
         return env.artifactsLocationTemplate(pipeline, stage, job, pipelineCounter, stageCounter);
+    }
+
+    public boolean hasAWSUseIamRole() {
+        return env.has(AWS_USE_IAM_ROLE);
     }
 
     public String getAWSAccessKeyId() {
