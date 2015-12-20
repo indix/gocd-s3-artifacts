@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.indix.gocd.utils.Constants.SOURCEDESTINATIONS;
+import static com.indix.gocd.utils.Constants.DESTINATION_PREFIX;
 import static com.indix.gocd.utils.utils.Lists.foreach;
 import static org.apache.commons.lang3.StringUtils.trim;
 
@@ -30,6 +31,7 @@ public class PublishTask implements Task {
     public TaskConfig config() {
         TaskConfig taskConfig = new TaskConfig();
         taskConfig.addProperty(SOURCEDESTINATIONS);
+        taskConfig.addProperty(DESTINATION_PREFIX);
         return taskConfig;
     }
 

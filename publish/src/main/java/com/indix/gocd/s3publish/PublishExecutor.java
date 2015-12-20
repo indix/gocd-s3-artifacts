@@ -23,7 +23,9 @@ import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Lists;
 import com.indix.gocd.utils.utils.Tuple2;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.TaskConfigurationChecker;
 
 import static com.indix.gocd.utils.Constants.*;
 import static com.indix.gocd.utils.utils.Functions.VoidFunction;
@@ -46,6 +48,8 @@ public class PublishExecutor implements TaskExecutor {
         final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
         final S3ArtifactStore store = new S3ArtifactStore(s3Client(env), bucket);
 
+        final String destinationPrefix = getDestinationPrefix(config, env);
+
         try {
             List<Tuple2<String, String>> sourceDestinations = PublishTask.getSourceDestinations(config.getValue(SOURCEDESTINATIONS));
             foreach(sourceDestinations, new VoidFunction<Tuple2<String, String>>() {
@@ -59,7 +63,8 @@ public class PublishExecutor implements TaskExecutor {
                         @Override
                         public void execute(String includedFile) {
                             File localFileToUpload = new File(String.format("%s/%s", context.workingDir(), includedFile));
-                            pushToS3(context, env, store, localFileToUpload, destination);
+
+                            pushToS3(context, destinationPrefix, store, localFileToUpload, destination);
                         }
                     });
                 }
@@ -69,7 +74,12 @@ public class PublishExecutor implements TaskExecutor {
             log.error(message);
             return ExecutionResult.failure(message, e);
         }
-        setMetadata(env, bucket, store);
+
+        // A configured destination prefix is used to deploy files rather than publish artifacts
+        // We only want to set metadata when publishing artifacts
+        if(!hasConfigDestinationPrefix(config)) {
+            setMetadata(env, bucket, destinationPrefix, store);
+        }
 
         return ExecutionResult.success("Published all artifacts to S3");
     }
@@ -94,10 +104,10 @@ public class PublishExecutor implements TaskExecutor {
         return new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey));
     }
 
-    private void pushToS3(final TaskExecutionContext context, final GoEnvironment env, final S3ArtifactStore store, File localFileToUpload, String destination) {
-        String templateSoFar = env.artifactsLocationTemplate();
-        if(!org.apache.commons.lang3.StringUtils.isBlank(destination)) {
-            templateSoFar += "/" + destination;
+    private void pushToS3(final TaskExecutionContext context, final String destinationPrefix, final S3ArtifactStore store, File localFileToUpload, String destination) {
+        String templateSoFar = ensureKeySegmentValid(destinationPrefix);
+        if(!StringUtils.isBlank(destination)) {
+            templateSoFar += destination;
         }
         List<FilePathToTemplate> filesToUpload = generateFilesToUpload(templateSoFar, localFileToUpload);
         foreach(filesToUpload, new VoidFunction<FilePathToTemplate>() {
@@ -123,7 +133,8 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private List<FilePathToTemplate> generateFilesToUpload(final String templateSoFar, final File fileToUpload) {
-        final String templateWithFolder = String.format("%s/%s", templateSoFar, fileToUpload.getName());
+        final String templateWithFolder = ensureKeySegmentValid(templateSoFar) + fileToUpload.getName(); // ensure it ends with a slash and add filename
+
         if (fileToUpload.isDirectory()) {
             return flatMap(fileToUpload.listFiles(), new Function<File, List<FilePathToTemplate>>() {
                 @Override
@@ -142,16 +153,54 @@ public class PublishExecutor implements TaskExecutor {
         return ExecutionResult.failure(message);
     }
 
-    private void setMetadata(GoEnvironment env, String bucket, S3ArtifactStore store) {
+    private void setMetadata(GoEnvironment env, String bucket, String destinationPrefix, S3ArtifactStore store) {
         ObjectMetadata metadata = metadata(env);
         metadata.setContentLength(0);
         InputStream emptyContent = new ByteArrayInputStream(new byte[0]);
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucket,
-                env.artifactsLocationTemplate() + "/",
+                ensureKeySegmentValid(destinationPrefix),
                 emptyContent,
                 metadata);
 
         store.put(putObjectRequest);
+    }
+
+    private String getConfigDestinationPrefix(final TaskConfig config) {
+        return config.getValue(DESTINATION_PREFIX);
+    }
+
+    private boolean hasConfigDestinationPrefix(final TaskConfig config) {
+        String destinationPrefix = getConfigDestinationPrefix(config);
+
+        return !StringUtils.isBlank(destinationPrefix);
+    }
+
+    private String getDestinationPrefix(final TaskConfig config, final GoEnvironment env) {
+        if(!hasConfigDestinationPrefix(config)) {
+            return  env.artifactsLocationTemplate();
+        }
+
+        String destinationPrefix = getConfigDestinationPrefix(config);
+
+        destinationPrefix = env.replaceVariables(destinationPrefix);
+
+        if(destinationPrefix.endsWith("/")) {
+            destinationPrefix = destinationPrefix.substring(0, destinationPrefix.length() - 1);
+        }
+
+        return destinationPrefix;
+    }
+
+    private String ensureKeySegmentValid(String segment) {
+        if(StringUtils.isBlank(segment)) {
+            return segment;
+        }
+
+        if(!StringUtils.endsWith(segment, "/")) {
+            segment += "/";
+        }
+
+        return segment;
     }
 }
 
