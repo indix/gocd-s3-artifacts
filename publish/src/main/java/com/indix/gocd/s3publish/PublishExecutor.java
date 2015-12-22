@@ -1,6 +1,7 @@
 package com.indix.gocd.s3publish;
 
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -40,8 +41,10 @@ public class PublishExecutor implements TaskExecutor {
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
         final GoEnvironment env = new GoEnvironment();
         env.putAll(context.environment().asMap());
-        if (env.isAbsent(AWS_ACCESS_KEY_ID)) return envNotFound(AWS_ACCESS_KEY_ID);
-        if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) return envNotFound(AWS_SECRET_ACCESS_KEY);
+        if (env.isAbsent(AWS_USE_IAM_ROLE)) {
+            if (env.isAbsent(AWS_ACCESS_KEY_ID)) return envNotFound(AWS_ACCESS_KEY_ID);
+            if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) return envNotFound(AWS_SECRET_ACCESS_KEY);
+        }
         if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
         if (env.isAbsent(GO_SERVER_DASHBOARD_URL)) return envNotFound(GO_SERVER_DASHBOARD_URL);
 
@@ -99,9 +102,13 @@ public class PublishExecutor implements TaskExecutor {
         Made public only for tests
      */
     public AmazonS3Client s3Client(GoEnvironment env) {
-        String accessKey = env.get(AWS_ACCESS_KEY_ID);
-        String secretKey = env.get(AWS_SECRET_ACCESS_KEY);
-        return new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey));
+        AmazonS3Client client = null;
+        if (env.has(AWS_USE_IAM_ROLE)) {
+            client = new AmazonS3Client(new InstanceProfileCredentialsProvider());
+        } else {
+            client = new AmazonS3Client(new BasicAWSCredentials(env.get(AWS_ACCESS_KEY_ID), env.get(AWS_SECRET_ACCESS_KEY)));
+        }
+        return client;
     }
 
     private void pushToS3(final TaskExecutionContext context, final String destinationPrefix, final S3ArtifactStore store, File localFileToUpload, String destination) {
