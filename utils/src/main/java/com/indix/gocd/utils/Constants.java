@@ -4,6 +4,7 @@ public class Constants {
     public static final String METADATA_USER = "user";
     public static final String METADATA_TRACEBACK_URL = "traceback_url";
     public static final String COMPLETED = "completed";
+    public static final String GO_ARTIFACTS_ARCHIVE_FILENAME = "artifacts.zip";
 
     public static final String GO_ARTIFACTS_S3_BUCKET = "GO_ARTIFACTS_S3_BUCKET";
     public static final String GO_SERVER_DASHBOARD_URL = "GO_SERVER_DASHBOARD_URL";

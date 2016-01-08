@@ -66,14 +66,18 @@ public class PublishExecutor implements TaskExecutor {
 
         try {
             List<Tuple2<String, String>> sourceDestinations = PublishTask.getSourceDestinations(config.getValue(SOURCEDESTINATIONS));
-            foreach(sourceDestinations, new VoidFunction<Tuple2<String, String>>() {
+            foreach(sourceDestinations, new Functions.VoidFunction<Tuple2<String, String>>() {
                 @Override
-                public void execute(Tuple2<String, String> input) throws IOException {
+                public void execute(Tuple2<String, String> input) {
                     final String source = input._1();
                     final String destination = input._2();
 
                     if (CompressArtifactsInS3(env)) {
-                        CompressDirectoryStructureAndUploadArchiveToS3(source, destination, context, env, store);
+                        try {
+                            CompressDirectoryStructureAndUploadArchiveToS3(source, destination, context, env, store);
+                        } catch (IOException e) {
+                            throw new RuntimeException("Failed while compressing artifacts", e);
+                        }
                     } else {
                         UploadDirectoryStructureToS3(source, destination, context, env, store);
                     }
@@ -84,10 +88,9 @@ public class PublishExecutor implements TaskExecutor {
             log.error(message);
             return ExecutionResult.failure(message, e);
         }
-        catch (IOException e) {
-            String message = "Failed while compressing artifacts";
-            log.error(message);
-            return ExecutionResult.failure(message, e);
+        catch (RuntimeException e) {
+            log.error(e.getMessage());
+            return ExecutionResult.failure(e.getMessage(), e);
         }
         setMetadata(env, bucket, store);
 
@@ -107,16 +110,36 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private void CompressDirectoryStructureAndUploadArchiveToS3(String source, final String destination, final TaskExecutionContext context, final GoEnvironment env, final S3ArtifactStore store)
-    throws IOException {
-        File zipFile = CompressSourceIntoDestinationZipFile(source, destination, zipArchiveManager);
+            throws IOException
+    {
+        File zipFile = CompressSourceIntoDestinationZipFile(String.format("%s/%s", context.workingDir(), source), zipArchiveManager);
 
         pushToS3(context, env, store, zipFile, destination);
+
+        CleanUpZip(zipFile);
     }
 
-    private File CompressSourceIntoDestinationZipFile(String source, String destination, IZipArchiveManager zipArchiveManager) throws IOException {
-        Path zipPath = Files.createTempDirectory("gos3");
-        String zipFilePath = zipPath.toString().concat("/").concat(destination).concat(".zip");
-        zipArchiveManager.compressDirectory(source, zipFilePath);
+    private void CleanUpZip(File zipFile) {
+        try {
+            zipFile.getParentFile().deleteOnExit();
+        } catch (RuntimeException e)
+        {
+            log.warn(String.format("Could not delete zip file folder %s", zipFile.getAbsolutePath()));
+        }
+    }
+
+    private File CompressSourceIntoDestinationZipFile(String source, IZipArchiveManager zipArchiveManager) throws IOException {
+        String zipFilePath = Files.createTempDirectory("gos3").toString().concat("/").concat(GO_ARTIFACTS_ARCHIVE_FILENAME);
+        String sourcePath = source;
+        if (sourcePath.endsWith("/")) {
+            sourcePath = sourcePath.substring(0,sourcePath.length()-1);
+        }
+        if (sourcePath.endsWith("/*")) {
+            sourcePath = sourcePath.substring(0,sourcePath.length()-2);
+        }
+
+        log.info(String.format("Compressing %s into %s", sourcePath, zipFilePath));
+        zipArchiveManager.compressDirectory(sourcePath, zipFilePath);
         return new File(zipFilePath);
     }
 
