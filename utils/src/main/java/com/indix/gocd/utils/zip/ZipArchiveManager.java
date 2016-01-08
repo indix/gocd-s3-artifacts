@@ -1,7 +1,11 @@
 package com.indix.gocd.utils.zip;
 
+import org.apache.commons.io.DirectoryWalker;
+import org.apache.commons.io.IOUtils;
+
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -10,58 +14,66 @@ import java.util.zip.ZipOutputStream;
 public class ZipArchiveManager implements IZipArchiveManager {
 
     public void compressDirectory(String dir, String zipFile) throws IOException {
-        File directory = new File(dir);
-        List<String> fileList = getFileList(directory);
+        ZipOutputStream zos  = null;
 
-        FileOutputStream fos  = new FileOutputStream(zipFile);
-        ZipOutputStream zos = new ZipOutputStream(fos);
+        try {
+            zos  = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(new File(zipFile))));
+            new DirectoryStructureWalker(dir, zos).walk();
+        }
+        finally {
+            if (zos != null) {
+                zos.close();
+            }
+        }
+    }
 
-        for (String filePath : fileList) {
-            //System.out.println("Compressing: " + filePath);
+    class DirectoryStructureWalker extends DirectoryWalker {
+        private final String configDirectory;
+        private final ZipOutputStream zipStream;
+        private final ArrayList<String> excludeFiles;
 
-            CreateZipEntry(directory, zos, filePath);
-
-            //
-            // Read file content and write to zip output stream.
-            //
-            FileInputStream fis = new FileInputStream(filePath);
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = fis.read(buffer)) > 0) {
-                zos.write(buffer, 0, length);
+        public DirectoryStructureWalker(String configDirectory, ZipOutputStream zipStream, File ...excludeFiles) {
+            this.excludeFiles = new ArrayList<String>();
+            for (File excludeFile : excludeFiles) {
+                this.excludeFiles.add(excludeFile.getAbsolutePath());
             }
 
-            zos.closeEntry();
-            fis.close();
+            this.configDirectory = new File(configDirectory).getAbsolutePath();
+            this.zipStream = zipStream;
         }
 
-        //
-        // Close zip output stream and file output stream. This will
-        // complete the compression process.
-        //
-        zos.close();
-        fos.close();
-    }
+        @Override
+        protected boolean handleDirectory(File directory, int depth, Collection results) throws IOException {
+            if (! directory.getAbsolutePath().equals(configDirectory)) {
+                ZipEntry e = new ZipEntry(fromRoot(directory) + "/");
+                zipStream.putNextEntry(e);
+            }
+            return true;
+        }
 
-    private void CreateZipEntry(File directory, ZipOutputStream zos, String filePath) throws IOException {
-        String name = filePath.substring(directory.getAbsolutePath().length() + 1,
-                filePath.length());
-        ZipEntry zipEntry = new ZipEntry(name);
-        zos.putNextEntry(zipEntry);
-    }
-
-    private List<String>  getFileList(File directory) {
-        List<String> fileList = new ArrayList<String>();
-        File[] files = directory.listFiles();
-        if (files != null && files.length > 0) {
-            for (File file : files) {
-                if (file.isFile()) {
-                    fileList.add(file.getAbsolutePath());
-                } else {
-                    getFileList(file);
+        @Override
+        protected void handleFile(File file, int depth, Collection results) throws IOException {
+            if (excludeFiles.contains(file.getAbsolutePath())) {
+                return;
+            }
+            zipStream.putNextEntry(new ZipEntry(fromRoot(file)));
+            BufferedInputStream in = null;
+            try {
+                in = new BufferedInputStream(new FileInputStream(file));
+                IOUtils.copy(in, zipStream);
+            } finally {
+                if (in != null) {
+                    in.close();
                 }
             }
         }
-        return fileList;
+
+        private String fromRoot(File directory) {
+            return directory.getAbsolutePath().substring(configDirectory.length() + 1);
+        }
+
+        public void walk() throws IOException {
+            walk(new File(this.configDirectory), null);
+        }
     }
 }
