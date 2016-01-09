@@ -3,6 +3,8 @@ package com.indix.gocd.s3fetch;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.indix.gocd.utils.AWSCredentialsFactory;
 import com.indix.gocd.utils.store.S3ArtifactStore;
+import com.indix.gocd.utils.zip.IZipArchiveManager;
+import com.indix.gocd.utils.zip.ZipArchiveManager;
 import com.thoughtworks.go.plugin.api.logging.Logger;
 import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
@@ -16,6 +18,7 @@ import java.io.IOException;
 
 public class FetchExecutor implements TaskExecutor {
     private static Logger logger = Logger.getLoggerFor(FetchTask.class);
+    private IZipArchiveManager zipArchiveManager = getZipArchiveManager();
 
     @Override
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
@@ -42,9 +45,30 @@ public class FetchExecutor implements TaskExecutor {
             return ExecutionResult.failure(message, e);
         }
 
+        File[] files = new File(destination).listFiles();
+        if (files.length == 1 && files[0].getName() == "archive.zip") {
+            try {
+                logger.info(String.format("Artifact is archive.zip: un-compressing"));
+                zipArchiveManager.extractArchive(files[0].getAbsolutePath(), destination);
+            } catch (IOException e) {
+                String message = String.format("Error during un-compressing archive: %s", e.getMessage());
+                logger.error(message);
+                return ExecutionResult.failure(message, e);
+            }
+            CleanUpZip(files[0]);
+        }
+
         return ExecutionResult.success("Fetched all artifacts");
     }
 
+    private void CleanUpZip(File zipFile) {
+        try {
+            zipFile.deleteOnExit();
+        } catch (RuntimeException e)
+        {
+            logger.warn(String.format("Could not delete zip file %s", zipFile.getAbsolutePath()));
+        }
+    }
     private void setupDestinationDirectory(String destination) {
         File destinationDirectory = new File(destination);
         try {
@@ -66,5 +90,8 @@ public class FetchExecutor implements TaskExecutor {
         return new AmazonS3Client(factory.getCredentialsProvider());
     }
 
+    public IZipArchiveManager getZipArchiveManager() {
+        return new ZipArchiveManager();
+    }
 }
 
