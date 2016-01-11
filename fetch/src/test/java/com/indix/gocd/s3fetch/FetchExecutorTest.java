@@ -7,18 +7,26 @@ import com.indix.gocd.utils.AWSCredentialsFactory;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Maps;
+import com.indix.gocd.utils.zip.IZipArchiveManager;
 import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
@@ -41,6 +49,12 @@ public class FetchExecutorTest {
 
     @Mock
     private AWSCredentialsFactory awsCredentialsFactory;
+
+    @Mock
+    private IZipArchiveManager zipArchiveManager;
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Spy
     @InjectMocks
@@ -96,11 +110,98 @@ public class FetchExecutorTest {
         assertTrue(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("Fetched all artifacts"));
         verify(mockStore, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", "./artifacts");
-
     }
+
+
+    @Test
+    public void shouldNotUnzipArchiveIfFetchReturnsMultipleFiles() {
+        Map<String, String> mockVariables = mockEnvironmentVariables.build();
+        S3ArtifactStore mockStore = mockStore();
+        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class),any(AWSCredentialsFactory.class));
+        String rootFolder = tempFolder.getRoot().getAbsolutePath();
+
+        doAnswer(new Answer<Void>() {
+            public Void answer(InvocationOnMock invocation) {
+                try {
+                    Files.createFile(Paths.get(tempFolder.getRoot().getAbsolutePath(), destination, "test.zip"));
+                    Files.createFile(Paths.get(tempFolder.getRoot().getAbsolutePath(), destination, "artifacts.zip"));
+                } catch (IOException e) {fail("Exception not expected");}
+                return null;
+            }
+        }).when(mockStore).getPrefix(anyString(), anyString());
+
+        ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables,rootFolder));
+
+        try {
+            verify(zipArchiveManager, times(0)).extractArchive(anyString(), anyString());
+        } catch (IOException e) { fail("Exception not expected");}
+        assertTrue(executionResult.isSuccessful());
+        assertThat(executionResult.getMessagesForDisplay(), is("Fetched all artifacts"));
+        verify(mockStore, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", rootFolder.concat("/").concat(destination));
+    }
+
+
+    @Test
+    public void shouldNotUnzipArchiveIfFetchReturnsOneFileThatIsNotArtifactsZip() {
+        Map<String, String> mockVariables = mockEnvironmentVariables.build();
+        S3ArtifactStore mockStore = mockStore();
+        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class),any(AWSCredentialsFactory.class));
+        String rootFolder = tempFolder.getRoot().getAbsolutePath();
+
+        doAnswer(new Answer<Void>() {
+            public Void answer(InvocationOnMock invocation) {
+                try {
+                    Files.createFile(Paths.get(tempFolder.getRoot().getAbsolutePath(), destination, "test.zip"));
+                } catch (IOException e) {fail("Exception not expected");}
+                return null;
+            }
+        }).when(mockStore).getPrefix(anyString(), anyString());
+
+        ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables,rootFolder));
+
+        try {
+            verify(zipArchiveManager, times(0)).extractArchive(anyString(), anyString());
+        } catch (IOException e) { fail("Exception not expected");}
+        assertTrue(executionResult.isSuccessful());
+        assertThat(executionResult.getMessagesForDisplay(), is("Fetched all artifacts"));
+        verify(mockStore, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", rootFolder.concat("/").concat(destination));
+    }
+
+
+    @Test
+    public void shouldUnzipArchiveIfFetchReturnsOneFileThatIsArtifactsZip() {
+        Map<String, String> mockVariables = mockEnvironmentVariables.build();
+        S3ArtifactStore mockStore = mockStore();
+        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class),any(AWSCredentialsFactory.class));
+        String rootFolder = tempFolder.getRoot().getAbsolutePath();
+
+        doAnswer(new Answer<Void>() {
+            public Void answer(InvocationOnMock invocation) {
+                try {
+                    Files.createFile(Paths.get(tempFolder.getRoot().getAbsolutePath(), destination, "artifacts.zip"));
+                } catch (IOException e) {fail("Exception not expected");}
+                return null;
+            }
+        }).when(mockStore).getPrefix(anyString(), anyString());
+
+        ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables,rootFolder));
+
+        try {
+            File zipFile = new File(String.format("%s/%s/%s", rootFolder, destination, "artifacts.zip"));
+            verify(zipArchiveManager, times(1)).extractArchive(zipFile.getAbsolutePath(), zipFile.getParent());
+        } catch (IOException e) { fail("Exception not expected");}
+        assertTrue(executionResult.isSuccessful());
+        assertThat(executionResult.getMessagesForDisplay(), is("Fetched all artifacts"));
+        verify(mockStore, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", rootFolder.concat("/").concat(destination));
+    }
+
 
     private TaskExecutionContext mockContext(final Map<String, String> environmentMap) {
         return new MockTaskExecutionContext(environmentMap);
+    }
+
+    private TaskExecutionContext mockContext(final Map<String, String> environmentMap, String workingDir) {
+        return new MockTaskExecutionContext(environmentMap, workingDir);
     }
 
     private S3ArtifactStore mockStore() { return mock(S3ArtifactStore.class); }

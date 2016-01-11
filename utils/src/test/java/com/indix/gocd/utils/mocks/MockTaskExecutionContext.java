@@ -5,14 +5,21 @@ import com.thoughtworks.go.plugin.api.task.EnvironmentVariables;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
 
 public class MockTaskExecutionContext implements TaskExecutionContext {
     private Map<String, String> mockEnvironmentVariables;
+    private String workingDir = ".";
 
     public MockTaskExecutionContext(Map<String, String> mockEnvironmentVariables) {
         this.mockEnvironmentVariables = mockEnvironmentVariables;
+    }
+
+    public MockTaskExecutionContext(Map<String, String> mockEnvironmentVariables, String workingDir) {
+        this.mockEnvironmentVariables = mockEnvironmentVariables;
+        this.workingDir = workingDir;
     }
 
     @Override
@@ -62,6 +69,6 @@ public class MockTaskExecutionContext implements TaskExecutionContext {
 
     @Override
     public String workingDir() {
-        return ".";
+        return this.workingDir;
     }
 }
