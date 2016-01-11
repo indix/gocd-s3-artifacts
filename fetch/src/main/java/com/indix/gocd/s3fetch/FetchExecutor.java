@@ -13,8 +13,11 @@ import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import com.thoughtworks.go.plugin.api.task.TaskExecutor;
 import org.apache.commons.io.FileUtils;
 
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.List;
 
 public class FetchExecutor implements TaskExecutor {
     private static Logger logger = Logger.getLoggerFor(FetchTask.class);
@@ -44,18 +47,19 @@ public class FetchExecutor implements TaskExecutor {
             logger.error(message, e);
             return ExecutionResult.failure(message, e);
         }
-
-        File[] files = new File(destination).listFiles();
-        if (files.length == 1 && files[0].getName() == "archive.zip") {
+        List<File> files = (List<File>)FileUtils.listFiles(new File(destination), new String[] {"zip"}, true);
+        if (files.size() == 1 && files.get(0).getName().endsWith("artifacts.zip")) {
+            File zipFile = files.get(0);
             try {
-                logger.info(String.format("Artifact is archive.zip: un-compressing"));
-                zipArchiveManager.extractArchive(files[0].getAbsolutePath(), destination);
+                logger.debug(String.format("Artifact is archive.zip: un-compressing %s into %s",
+                        zipFile.getAbsolutePath(), zipFile.getParent()));
+                zipArchiveManager.extractArchive(zipFile.getAbsolutePath(), zipFile.getParent());
             } catch (IOException e) {
                 String message = String.format("Error during un-compressing archive: %s", e.getMessage());
                 logger.error(message);
                 return ExecutionResult.failure(message, e);
             }
-            CleanUpZip(files[0]);
+            CleanUpZip(zipFile);
         }
 
         return ExecutionResult.success("Fetched all artifacts");
