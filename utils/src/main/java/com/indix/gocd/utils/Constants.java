@@ -11,7 +11,7 @@ public class Constants {
     public static final String SOURCEDESTINATIONS = "sourceDestinations";
     public static final String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
     public static final String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
-    public static final String AWS_USE_INSTANCE_PROFILE = "AWS_USE_INSTANCE_PROFILE";
+    public static final String AWS_USE_IAM_ROLE = "AWS_USE_IAM_ROLE";
     public static final String AWS_KMS_KEY_ID = "AWS_KMS_KEY_ID";
     public static final String GO_ARTIFACTS_COMPRESS_IN_S3 = "GO_ARTIFACTS_COMPRESS_IN_S3";
 

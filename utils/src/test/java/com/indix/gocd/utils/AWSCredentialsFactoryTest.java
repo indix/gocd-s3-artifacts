@@ -40,7 +40,7 @@ public class AWSCredentialsFactoryTest {
     }
 
     @Test
-    public void shouldThrowIfAWS_ACCESS_KEY_IDOrAWS_USE_INSTANCE_PROFILE_CREDENTIALS_NotPresent() {
+    public void shouldThrowIfAWS_ACCESS_KEY_IDOrAWS_USE_IAM_ROLE_CREDENTIALS_NotPresent() {
         environment =  Maps.<String, String>builder()
                 .with(AWS_SECRET_ACCESS_KEY, "secretKey")
                 .build();
@@ -55,7 +55,7 @@ public class AWSCredentialsFactoryTest {
     }
 
     @Test
-    public void shouldThrowIfAWS_SECRET_ACCESS_KEYOrAWS_USE_INSTANCE_PROFILE_CREDENTIALS_NotPresent() {
+    public void shouldThrowIfAWS_SECRET_ACCESS_KEYOrAWS_USE_IAM_ROLE_CREDENTIALS_NotPresent() {
         environment =  Maps.<String, String>builder()
                 .with(AWS_ACCESS_KEY_ID, "secretKey")
                 .build();
@@ -84,9 +84,9 @@ public class AWSCredentialsFactoryTest {
     }
 
     @Test
-    public void shouldCreateInstanceProfileProviderWhen_AWS_USE_INSTANCE_PROFILEIsTrue() {
+    public void shouldCreateInstanceProfileProviderWhen_AWS_USE_IAM_ROLEIsTrue() {
         environment =  Maps.<String, String>builder()
-                .with(AWS_USE_INSTANCE_PROFILE, "True")
+                .with(AWS_USE_IAM_ROLE, "True")
                 .build();
         AWSCredentialsFactory sut = spy(new AWSCredentialsFactory(environment));
         AWSCredentialsProviderChain result = (AWSCredentialsProviderChain)sut.getCredentialsProvider();
@@ -99,9 +99,9 @@ public class AWSCredentialsFactoryTest {
 
 
     @Test
-    public void shouldThrowIf_AWS_USE_INSTANCE_PROFILEIsProvidedButNotOneOfExpectedValues() {
+    public void shouldThrowIf_AWS_USE_IAM_ROLEIsProvidedButNotOneOfExpectedValues() {
         environment =  Maps.<String, String>builder()
-                .with(AWS_USE_INSTANCE_PROFILE, "blah")
+                .with(AWS_USE_IAM_ROLE, "blah")
                 .build();
         AWSCredentialsFactory sut = new AWSCredentialsFactory(environment);
         try {
@@ -109,17 +109,17 @@ public class AWSCredentialsFactoryTest {
             Assert.fail("expected IllegalArgumentException");
         } catch (IllegalArgumentException ex) {
             assertThat(ex.getMessage(),
-                    startsWith("Unexpected value in AWS_USE_INSTANCE_PROFILE environment variable; was blah, but expected"));
+                    startsWith("Unexpected value in AWS_USE_IAM_ROLE environment variable; was blah, but expected"));
         }
     }
 
 
     @Test
-    public void shouldCreateEnvironmentVariableProviderWhenAWS_ACCESS_and_SECRET_KEY_ID_ProvidedAnd_AWS_USE_INSTANCE_PROFILE_IsSetToNo() {
+    public void shouldCreateEnvironmentVariableProviderWhenAWS_ACCESS_and_SECRET_KEY_ID_ProvidedAnd_AWS_USE_IAM_ROLE_IsSetToNo() {
         environment =  Maps.<String, String>builder()
                 .with(AWS_ACCESS_KEY_ID, "access Key")
                 .with(AWS_SECRET_ACCESS_KEY, "secret Key")
-                .with(AWS_USE_INSTANCE_PROFILE, "No")
+                .with(AWS_USE_IAM_ROLE, "No")
                 .build();
         AWSCredentialsFactory sut = spy(new AWSCredentialsFactory(environment));
         AWSCredentialsProviderChain result = (AWSCredentialsProviderChain)sut.getCredentialsProvider();

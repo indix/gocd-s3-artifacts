@@ -26,7 +26,7 @@
     <span class="form_error" ng-show="GOINPUTNAME[sourceDestinations].$error.server">{{ GOINPUTNAME[sourceDestinations].$error.server }}</span>
 </div>
 <div class="form_item_block">
-    <p class="required">Make sure (AWS_SECRET_ACCESS_KEY/AWS_ACCESS_KEY_ID or AWS_USE_INSTANCE_PROFILE=True),
+    <p class="required">Make sure (AWS_SECRET_ACCESS_KEY/AWS_ACCESS_KEY_ID or AWS_USE_IAM_ROLE=True),
         GO_ARTIFACTS_S3_BUCKET and GO_SERVER_DASHBOARD_URL environment variables are present with appropriate values
         on any of pipeline / Go Environments / on all agent machines.
         Also, if encryption is desired, specify KMS key name in AWS_KMS_KEY_ID environment variable.</p>
