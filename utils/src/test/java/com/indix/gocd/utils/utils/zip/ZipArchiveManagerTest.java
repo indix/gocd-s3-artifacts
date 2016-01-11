@@ -8,20 +8,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ZipArchiveManagerTest {
@@ -44,7 +39,7 @@ public class ZipArchiveManagerTest {
     public void shouldCreateZipFile() {
 
         try {
-            File createdFile= folderToCompress.newFile("myfile.txt");
+            folderToCompress.newFile("myfile.txt");
             String archivePath = tempFolder.getRoot().toString().concat("/compressed.zip");
             sut.compressDirectory(folderToCompress.getRoot().toString(),archivePath);
 

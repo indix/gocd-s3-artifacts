@@ -13,9 +13,7 @@ import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import com.thoughtworks.go.plugin.api.task.TaskExecutor;
 import org.apache.commons.io.FileUtils;
 
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.List;
 
