@@ -5,10 +5,12 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.utils.Maps;
+import com.indix.gocd.utils.zip.IZipArchiveManager;
 import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -106,6 +108,37 @@ public class PublishExecutorTest {
         assertThat(jarPutRequest.getBucketName(), is("testS3Bucket"));
         assertThat(jarPutRequest.getKey(), is("pipeline/stage/job/pipelineCounter.stageCounter/s3publish-0.1.31.jar"));
         assertNull(jarPutRequest.getMetadata());
+    }
+
+
+    @Test
+    public void shouldUploadCompressedArchiveToS3() {
+        Map<String, String> mockVariables = mockEnvironmentVariables.with(GO_ARTIFACTS_COMPRESS_IN_S3,"True").build();
+        AmazonS3Client mockClient = mockClient();
+        doReturn(mockClient).when(publishExecutor).getS3Client(any(GoEnvironment.class));
+        doReturn(mock(IZipArchiveManager.class)).when(publishExecutor).getZipArchiveManager();
+        when(config.getValue(SOURCEDESTINATIONS)).thenReturn("[{\"source\": \"target/*\", \"destination\": \"\"}]");
+
+        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
+        assertTrue(executionResult.isSuccessful());
+        assertThat(executionResult.getMessagesForDisplay(), is("Published all artifacts to S3"));
+
+        ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+        verify(mockClient, times(2)).putObject(putObjectRequestArgumentCaptor.capture());
+        List<PutObjectRequest> allPutObjectRequests = putObjectRequestArgumentCaptor.getAllValues();
+
+
+        PutObjectRequest filePutRequest = allPutObjectRequests.get(0);
+        assertThat(filePutRequest.getBucketName(), is("testS3Bucket"));
+        assertThat(filePutRequest.getKey(), is("pipeline/stage/job/pipelineCounter.stageCounter/artifacts.zip"));
+
+        PutObjectRequest metadataPutRequest = allPutObjectRequests.get(1);
+        Map<String, String> expectedUserMetadata = Maps.<String, String>builder()
+                .with(METADATA_USER, "Krishna")
+                .with(METADATA_TRACEBACK_URL, "http://go.server:8153/go/tab/build/detail/pipeline/pipelineCounter/stage/stageCounter/job")
+                .with(COMPLETED, COMPLETED)
+                .build();
+        assertThat(metadataPutRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));
     }
 
     private TaskExecutionContext mockContext(final Map<String, String> environmentMap) {
