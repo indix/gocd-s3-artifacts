@@ -66,7 +66,7 @@ public class FetchExecutor implements TaskExecutor {
 
     private void CleanUpZip(File zipFile) {
         try {
-            zipFile.deleteOnExit();
+            zipFile.delete();
         } catch (RuntimeException e)
         {
             logger.warn(String.format("Could not delete zip file %s", zipFile.getAbsolutePath()));

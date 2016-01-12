@@ -120,7 +120,7 @@ public class PublishExecutor implements TaskExecutor {
 
     private void CleanUpZip(File zipFile) {
         try {
-            zipFile.getParentFile().deleteOnExit();
+            zipFile.getParentFile().delete();
         } catch (RuntimeException e)
         {
             log.warn(String.format("Could not delete zip file folder %s", zipFile.getAbsolutePath()));
