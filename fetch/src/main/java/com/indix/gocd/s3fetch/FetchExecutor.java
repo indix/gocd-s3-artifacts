@@ -46,18 +46,19 @@ public class FetchExecutor implements TaskExecutor {
             return ExecutionResult.failure(message, e);
         }
         List<File> files = (List<File>)FileUtils.listFiles(new File(destination), new String[] {"zip"}, true);
-        if (files.size() == 1 && files.get(0).getName().endsWith("artifacts.zip")) {
-            File zipFile = files.get(0);
-            try {
-                logger.debug(String.format("Artifact is archive.zip: un-compressing %s into %s",
-                        zipFile.getAbsolutePath(), zipFile.getParent()));
-                zipArchiveManager.extractArchive(zipFile.getAbsolutePath(), zipFile.getParent());
-            } catch (IOException e) {
-                String message = String.format("Error during un-compressing archive: %s", e.getMessage());
-                logger.error(message);
-                return ExecutionResult.failure(message, e);
+        for(File zipFile:files) {
+            if (zipFile.getName().endsWith("artifacts.zip")) {
+                try {
+                    logger.debug(String.format("Artifact is archive.zip: un-compressing %s into %s",
+                            zipFile.getAbsolutePath(), zipFile.getParent()));
+                    zipArchiveManager.extractArchive(zipFile.getAbsolutePath(), zipFile.getParent());
+                } catch (IOException e) {
+                    String message = String.format("Error during un-compressing archive: %s", e.getMessage());
+                    logger.error(message);
+                    return ExecutionResult.failure(message, e);
+                }
+                CleanUpZip(zipFile);
             }
-            CleanUpZip(zipFile);
         }
 
         return ExecutionResult.success("Fetched all artifacts");
