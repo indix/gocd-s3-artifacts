@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.AWS_ACCESS_KEY_ID;
 import static com.indix.gocd.utils.Constants.AWS_SECRET_ACCESS_KEY;
-import static com.indix.gocd.utils.Constants.AWS_USE_INSTANCE_PROFILE;
+import static com.indix.gocd.utils.Constants.AWS_USE_IAM_ROLE;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -61,7 +61,7 @@ public class AWSCredentialsFactoryValidationsTest {
     @Test
     public void shouldIncludeBothAWSKeyCredentialsMissingValidationErrorWhenUseInstanceProfileIsFalse() {
         environment =  Maps.<String, String>builder()
-                .with(AWS_USE_INSTANCE_PROFILE, "False")
+                .with(AWS_USE_IAM_ROLE, "False")
                 .build();
         AWSCredentialsFactory sut = new AWSCredentialsFactory(environment);
         List<String> validationErrors = sut.validationErrors();
@@ -72,12 +72,12 @@ public class AWSCredentialsFactoryValidationsTest {
     @Test
     public void shouldIncludeAllAWSCredentialsMissingValidationError() {
         environment =  Maps.<String, String>builder()
-                .with(AWS_USE_INSTANCE_PROFILE, "some invalid value")
+                .with(AWS_USE_IAM_ROLE, "some invalid value")
                 .build();
         AWSCredentialsFactory sut = new AWSCredentialsFactory(environment);
         List<String> validationErrors = sut.validationErrors();
         assertEquals(1, validationErrors.size());
         assertThat(validationErrors.get(0),
-                startsWith("Unexpected value in AWS_USE_INSTANCE_PROFILE environment variable; was some invalid value, but expected"));
+                startsWith("Unexpected value in AWS_USE_IAM_ROLE environment variable; was some invalid value, but expected"));
     }
 }

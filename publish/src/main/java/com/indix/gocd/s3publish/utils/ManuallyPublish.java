@@ -26,7 +26,7 @@ Run this Task with the following ENV variables
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 (or)
--- AWS_USE_INSTANCE_PROFILE
+-- AWS_USE_IAM_ROLE
 and
 - GO_ARTIFACTS_S3_BUCKET
 - GO_SERVER_URL

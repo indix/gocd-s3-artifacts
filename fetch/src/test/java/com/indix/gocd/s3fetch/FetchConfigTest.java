@@ -150,6 +150,27 @@ public class FetchConfigTest {
         assertTrue(validationResult.isSuccessful());
     }
 
+
+    @Test
+    public void shouldAllowFetchTaskVariablesWithPeriodsInTheName() throws Exception {
+        config = mock(TaskConfig.class);
+        when(config.getValue(FetchTask.REPO)).thenReturn("repo-with.period");
+        when(config.getValue(FetchTask.PACKAGE)).thenReturn("package-with.period");
+        mockEnvironmentVariables = Maps.<String, String>builder()
+                .with(AWS_SECRET_ACCESS_KEY, secretKey)
+                .with(AWS_ACCESS_KEY_ID, accessId)
+                .with(GO_ARTIFACTS_S3_BUCKET, bucket)
+                .with("GO_PACKAGE_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_LABEL", "20.1")
+                .with("GO_REPO_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_S3_BUCKET", bucket)
+                .with("GO_PACKAGE_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_PIPELINE_NAME", "TestPublish")
+                .with("GO_PACKAGE_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_STAGE_NAME", "defaultStage")
+                .with("GO_PACKAGE_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_JOB_NAME", "defaultJob");
+
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        ValidationResult validationResult = fetchConfig.validate();
+        assertTrue(validationResult.isSuccessful());
+    }
+
     private TaskExecutionContext mockContext(final Map<String, String> environmentMap) {
         return new MockTaskExecutionContext(environmentMap);
     }

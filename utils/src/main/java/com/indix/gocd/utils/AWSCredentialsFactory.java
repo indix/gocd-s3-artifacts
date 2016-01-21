@@ -7,7 +7,7 @@ import java.util.*;
 
 import static com.indix.gocd.utils.Constants.AWS_ACCESS_KEY_ID;
 import static com.indix.gocd.utils.Constants.AWS_SECRET_ACCESS_KEY;
-import static com.indix.gocd.utils.Constants.AWS_USE_INSTANCE_PROFILE;
+import static com.indix.gocd.utils.Constants.AWS_USE_IAM_ROLE;
 
 public class AWSCredentialsFactory {
     private static final List<String> validUseInstanceProfileValues = new ArrayList<String>(Arrays.asList("true","false","yes","no","1","0"));
@@ -21,16 +21,16 @@ public class AWSCredentialsFactory {
 
     public AWSCredentialsProvider getCredentialsProvider() {
         List<AWSCredentialsProvider> providers = new ArrayList<AWSCredentialsProvider>();
-        if (env.containsKey(AWS_USE_INSTANCE_PROFILE)) {
-            String useInstanceProfileCode = env.get(AWS_USE_INSTANCE_PROFILE);
+        if (env.containsKey(AWS_USE_IAM_ROLE)) {
+            String useInstanceProfileCode = env.get(AWS_USE_IAM_ROLE);
             if (affirmativeUseInstanceProfileValues.contains(useInstanceProfileCode.toLowerCase())) {
                 log.debug(String.format(
-                        "AWS_USE_INSTANCE_PROFILE=%s;Initializing with InstanceProfileCredentialsProvider",
+                        "AWS_USE_IAM_ROLE=%s;Initializing with InstanceProfileCredentialsProvider",
                         useInstanceProfileCode));
                 providers.add(new InstanceProfileCredentialsProvider());
             }
             else if (!validUseInstanceProfileValues.contains(useInstanceProfileCode.toLowerCase())) {
-                throwEnvInvalidFormat(AWS_USE_INSTANCE_PROFILE, useInstanceProfileCode,
+                throwEnvInvalidFormat(AWS_USE_IAM_ROLE, useInstanceProfileCode,
                         validUseInstanceProfileValues.toString());
             }
         }
@@ -55,16 +55,16 @@ public class AWSCredentialsFactory {
     public List<String> validationErrors() {
         List<String> result = new ArrayList<String>();
 
-        if (env.containsKey(AWS_USE_INSTANCE_PROFILE) &&
-                !validUseInstanceProfileValues.contains(env.get(AWS_USE_INSTANCE_PROFILE).toLowerCase())) {
+        if (env.containsKey(AWS_USE_IAM_ROLE) &&
+                !validUseInstanceProfileValues.contains(env.get(AWS_USE_IAM_ROLE).toLowerCase())) {
                     result.add(
-                        getEnvInvalidFormatMessage(AWS_USE_INSTANCE_PROFILE, env.get(AWS_USE_INSTANCE_PROFILE),
+                        getEnvInvalidFormatMessage(AWS_USE_IAM_ROLE, env.get(AWS_USE_IAM_ROLE),
                         validUseInstanceProfileValues.toString())
                         );
             return result;
         }
-        if (!env.containsKey(AWS_USE_INSTANCE_PROFILE) ||
-                !affirmativeUseInstanceProfileValues.contains(env.get(AWS_USE_INSTANCE_PROFILE).toLowerCase())) {
+        if (!env.containsKey(AWS_USE_IAM_ROLE) ||
+                !affirmativeUseInstanceProfileValues.contains(env.get(AWS_USE_IAM_ROLE).toLowerCase())) {
                     if (!env.containsKey(AWS_ACCESS_KEY_ID))
                         result.add(getEnvNotFoundIllegalArgumentMessage(AWS_ACCESS_KEY_ID));
                     if (!env.containsKey(AWS_SECRET_ACCESS_KEY))

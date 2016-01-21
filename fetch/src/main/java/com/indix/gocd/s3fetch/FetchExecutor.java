@@ -23,49 +23,59 @@ public class FetchExecutor implements TaskExecutor {
 
     @Override
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
-        final FetchConfig fetchConfig = new FetchConfig(config, context);
-
-        ValidationResult validationResult = fetchConfig.validate();
-        if(!validationResult.isSuccessful()) {
-            return ExecutionResult.failure(validationResult.getMessages().toString());
-        }
-        final AWSCredentialsFactory factory = new AWSCredentialsFactory(fetchConfig.asMap());
-
-        final S3ArtifactStore store = s3ArtifactStore(fetchConfig, factory);
-
-        String artifactPathOnS3 = fetchConfig.getArtifactsLocationTemplate();
-        context.console().printLine(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
-        String destination = String.format("%s/%s", context.workingDir(), config.getValue(FetchTask.DESTINATION));
-        setupDestinationDirectory(destination);
-
+        logger.info("Starting to execute fetch");
         try {
-            store.getPrefix(artifactPathOnS3, destination);
-        } catch (Exception e) {
-            String message = String.format("Failure while downloading artifacts - %s", e.getMessage());
-            logger.error(message, e);
-            return ExecutionResult.failure(message, e);
-        }
-        List<File> files = (List<File>)FileUtils.listFiles(new File(destination), new String[] {"zip"}, true);
-        if (files.size() == 1 && files.get(0).getName().endsWith("artifacts.zip")) {
-            File zipFile = files.get(0);
+            final FetchConfig fetchConfig = new FetchConfig(config, context);
+
+            ValidationResult validationResult = fetchConfig.validate();
+            if (!validationResult.isSuccessful()) {
+                logger.error(String.format("s3 fetch configuration is invalid: %s", validationResult.getMessages().toString()));
+                return ExecutionResult.failure(validationResult.getMessages().toString());
+            }
+            final AWSCredentialsFactory factory = new AWSCredentialsFactory(fetchConfig.asMap());
+
+            final S3ArtifactStore store = s3ArtifactStore(fetchConfig, factory);
+
+            String artifactPathOnS3 = fetchConfig.getArtifactsLocationTemplate();
+            context.console().printLine(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
+            String destination = String.format("%s/%s", context.workingDir(), config.getValue(FetchTask.DESTINATION));
+            setupDestinationDirectory(destination);
+
             try {
-                logger.debug(String.format("Artifact is archive.zip: un-compressing %s into %s",
-                        zipFile.getAbsolutePath(), zipFile.getParent()));
-                zipArchiveManager.extractArchive(zipFile.getAbsolutePath(), zipFile.getParent());
-            } catch (IOException e) {
-                String message = String.format("Error during un-compressing archive: %s", e.getMessage());
-                logger.error(message);
+                store.getPrefix(artifactPathOnS3, destination);
+            } catch (Exception e) {
+                String message = String.format("Failure while downloading artifacts - %s", e.getMessage());
+                logger.error(message, e);
                 return ExecutionResult.failure(message, e);
             }
-            CleanUpZip(zipFile);
-        }
+            List<File> files = (List<File>) FileUtils.listFiles(new File(destination), new String[]{"zip"}, true);
+            for (File zipFile : files) {
+                if (zipFile.getName().endsWith("artifacts.zip")) {
+                    try {
+                        logger.debug(String.format("Artifact is archive.zip: un-compressing %s into %s",
+                                zipFile.getAbsolutePath(), zipFile.getParent()));
+                        zipArchiveManager.extractArchive(zipFile.getAbsolutePath(), zipFile.getParent());
+                    } catch (IOException e) {
+                        String message = String.format("Error during un-compressing archive: %s", e.getMessage());
+                        logger.error(message);
+                        return ExecutionResult.failure(message, e);
+                    }
+                    CleanUpZip(zipFile);
+                }
+            }
 
-        return ExecutionResult.success("Fetched all artifacts");
+            return ExecutionResult.success("Fetched all artifacts");
+        }
+        catch (Exception e) {
+            String message = String.format("Error during fetch from s3: %s", e.getMessage());
+            logger.error(message);
+            return ExecutionResult.failure(message, e);
+        }
     }
 
     private void CleanUpZip(File zipFile) {
         try {
-            zipFile.deleteOnExit();
+            zipFile.delete();
         } catch (RuntimeException e)
         {
             logger.warn(String.format("Could not delete zip file %s", zipFile.getAbsolutePath()));
