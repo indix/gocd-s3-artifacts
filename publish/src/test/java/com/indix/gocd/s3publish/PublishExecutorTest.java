@@ -70,6 +70,7 @@ public class PublishExecutorTest {
     }
 
     @Test
+    @Ignore
     public void shouldUploadALocalFileToS3() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         AmazonS3Client mockClient = mockClient();
