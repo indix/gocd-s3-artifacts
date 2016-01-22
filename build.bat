@@ -6,7 +6,7 @@ IF %ERRORLEVEL% NEQ 0 SET PATH=%PATH%;%systemdrive%\Program Files (x86)\sbt\bin
 choco install "\\columbus\sw_share\DEPARTMENT\SD Software\Java\jdk8.8.0.66.nupkg" --acceptlicense -y
 
 WHERE sbt
-IF %ERRORLEVEL% EQ 0 GOTO sbtgood:
+IF %ERRORLEVEL% EQU 0 GOTO sbtgood:
 echo ERROR: cannot find sbt
 exit /b 1
 
@@ -15,7 +15,7 @@ WHERE java
 IF %ERRORLEVEL% NEQ 0 SET PATH=%PATH%;%systemdrive%\Program Files\Java\jdk1.8.0_66\bin
 
 WHERE java
-IF %ERRORLEVEL% EQ 0 GOTO javagood:
+IF %ERRORLEVEL% EQU 0 GOTO javagood:
 echo ERROR: cannot find java
 exit /b 1
 
