@@ -20,7 +20,7 @@ echo ERROR: cannot find java
 exit /b 1
 
 :javagood
-sbt clean editsource:edit assembly
+call sbt clean editsource:edit assembly
 
 md Deploy
 copy .\fetch\target\s3fetch-*.jar .\Deploy
