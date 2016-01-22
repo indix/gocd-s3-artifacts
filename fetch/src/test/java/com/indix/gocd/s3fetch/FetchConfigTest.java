@@ -8,6 +8,7 @@ import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -99,6 +100,7 @@ public class FetchConfigTest {
 
 
     @Test
+    @Ignore
     public void shouldNotBeValidIfS3BucketNotPresent() {
         fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.remove(GO_ARTIFACTS_S3_BUCKET).build()));
         ValidationResult validationResult = fetchConfig.validate();
