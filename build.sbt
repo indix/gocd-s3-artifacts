@@ -9,6 +9,7 @@ val junit = "junit" % "junit" % "4.10" % Test
 val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test
 val hamcrest = "org.hamcrest" % "hamcrest-all" % "1.3" % Test
 val mockito = "org.mockito" % "mockito-all" % "1.9.0" % Test
+val powermock = "org.powermock" % "powermock" % "1.4.10" % Test
 val scalaTest = "org.scalatest" %% "scalatest" % "2.2.0" % Test
 
 val appVersion = sys.env.get("SNAP_PIPELINE_COUNTER") orElse sys.env.get("GO_PIPELINE_LABEL") getOrElse "1.0.0-SNAPSHOT"

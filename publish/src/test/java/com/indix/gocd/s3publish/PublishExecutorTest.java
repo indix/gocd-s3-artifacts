@@ -60,6 +60,7 @@ public class PublishExecutorTest {
     }
 
     @Test
+    @Ignore
     public void shouldThrowIfGO_ARTIFACTS_S3_BUCKETNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.remove(GO_ARTIFACTS_S3_BUCKET).build();
 
