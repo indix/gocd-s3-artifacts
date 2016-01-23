@@ -10,10 +10,10 @@ import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,25 +60,28 @@ public class PublishExecutorTest {
     }
 
     @Test
-    @Ignore
     public void shouldThrowIfGO_ARTIFACTS_S3_BUCKETNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.remove(GO_ARTIFACTS_S3_BUCKET).build();
+        doReturn(new GoEnvironment(new HashMap<String, String>())).when(publishExecutor).getGoEnvironment();
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
+
+
         assertFalse(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("GO_ARTIFACTS_S3_BUCKET environment variable not present"));
     }
 
     @Test
-    @Ignore
     public void shouldUploadALocalFileToS3() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         AmazonS3Client mockClient = mockClient();
         doReturn(mockClient).when(publishExecutor).getS3Client(any(GoEnvironment.class));
         when(config.getValue(SOURCEDESTINATIONS)).thenReturn("[{\"source\": \"target/*\", \"destination\": \"\"}]");
         doReturn(new String[]{"README.md", "s3publish-0.1.31.jar"}).when(publishExecutor).parseSourcePath(anyString(), anyString());
+        doReturn(new GoEnvironment(new HashMap<String, String>())).when(publishExecutor).getGoEnvironment();
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
+
         assertTrue(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("Published all artifacts to S3"));
 

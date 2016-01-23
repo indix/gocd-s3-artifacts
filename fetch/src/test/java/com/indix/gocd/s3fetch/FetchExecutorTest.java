@@ -4,6 +4,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.indix.gocd.utils.AWSCredentialsFactory;
+import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Maps;
@@ -12,24 +13,16 @@ import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,11 +38,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-//@RunWith(MockitoJUnitRunner.class)
-@RunWith(PowerMockRunner.class)
-@PowerMockRunnerDelegate(MockitoJUnitRunner.class)
-@PrepareForTest({System.class,FetchExecutor.class, FetchConfig.class})
-@PowerMockIgnore({("javax.management.*")})
+@RunWith(MockitoJUnitRunner.class)
 public class FetchExecutorTest {
     private final String destination = "artifacts";
     private final String bucket = "gocd";
@@ -93,13 +82,14 @@ public class FetchExecutorTest {
     }
 
     @Test
-    @Ignore
     public void shouldBeFailureIfFetchConfigNotValid() {
         Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_ACCESS_KEY_ID).build();
-        PowerMockito.mockStatic(System.class);
-        Mockito.when(System.getenv()).thenReturn(new HashMap<String,String>());
+        TaskExecutionContext mockContext = mockContext(mockVariables);
+        FetchConfig fetchConfig = spy(new FetchConfig(config, mockContext, new GoEnvironment(new HashMap<String,String>())));
+        doReturn(fetchConfig).when(fetchExecutor).getFetchConfig(any(TaskConfig.class), any(TaskExecutionContext.class));
 
-        ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
+        ExecutionResult executionResult = fetchExecutor.execute(config, mockContext);
+
         assertFalse(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("[AWS_ACCESS_KEY_ID environment variable not present]"));
     }

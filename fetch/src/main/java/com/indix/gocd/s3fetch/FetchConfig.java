@@ -25,8 +25,13 @@ public class FetchConfig {
 
     private static Logger logger = Logger.getLoggerFor(FetchConfig.class);
 
-    public FetchConfig(TaskConfig config, TaskExecutionContext context) {
-        this.env = new GoEnvironment();
+    public FetchConfig(TaskConfig config, TaskExecutionContext context)
+    {
+        this(config, context, new GoEnvironment());
+    }
+
+    public FetchConfig(TaskConfig config, TaskExecutionContext context, GoEnvironment goEnvironment) {
+        this.env = goEnvironment;
         env.putAll(context.environment().asMap());
         this.awsCredentialsFactory = new AWSCredentialsFactory(this.env.asMap());
 
@@ -60,6 +65,7 @@ public class FetchConfig {
         String stageCounter = counters[1];
         return env.artifactsLocationTemplate(pipeline, stage, job, pipelineCounter, stageCounter);
     }
+
 
     public String getS3Bucket() {
         return env.get(GO_ARTIFACTS_S3_BUCKET);

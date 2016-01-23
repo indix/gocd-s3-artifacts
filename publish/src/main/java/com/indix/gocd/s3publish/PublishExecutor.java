@@ -45,7 +45,7 @@ public class PublishExecutor implements TaskExecutor {
 
     @Override
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
-        final GoEnvironment env = new GoEnvironment();
+        final GoEnvironment env = getGoEnvironment();
         env.putAll(context.environment().asMap());
 
         if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
@@ -95,6 +95,7 @@ public class PublishExecutor implements TaskExecutor {
 
         return ExecutionResult.success("Published all artifacts to S3");
     }
+
 
     private void UploadDirectoryStructureToS3(String source, final String destination, final TaskExecutionContext context, final GoEnvironment env, final S3ArtifactStore store) {
         String[] files = parseSourcePath(source, context.workingDir());
@@ -162,6 +163,10 @@ public class PublishExecutor implements TaskExecutor {
 
     public IZipArchiveManager getZipArchiveManager() {
         return new ZipArchiveManager();
+    }
+
+    public GoEnvironment getGoEnvironment() {
+        return new GoEnvironment();
     }
 
     private AWSCredentialsProvider awsCredentialsProvider(GoEnvironment env) {

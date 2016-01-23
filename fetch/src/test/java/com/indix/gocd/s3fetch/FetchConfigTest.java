@@ -1,6 +1,7 @@
 package com.indix.gocd.s3fetch;
 
 import com.indix.gocd.utils.AWSCredentialsFactory;
+import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.utils.Maps;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
@@ -8,7 +9,6 @@ import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -100,10 +100,13 @@ public class FetchConfigTest {
 
 
     @Test
-    @Ignore
     public void shouldNotBeValidIfS3BucketNotPresent() {
-        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.remove(GO_ARTIFACTS_S3_BUCKET).build()));
+        fetchConfig = new FetchConfig(config,
+                mockContext( mockEnvironmentVariables.remove(GO_ARTIFACTS_S3_BUCKET).build()),
+                new GoEnvironment(new HashMap<String, String>()));
+
         ValidationResult validationResult = fetchConfig.validate();
+
         assertFalse(validationResult.isSuccessful());
         ArrayList<String> messages = new ArrayList<String>();
         messages.add("GO_ARTIFACTS_S3_BUCKET environment variable not present");

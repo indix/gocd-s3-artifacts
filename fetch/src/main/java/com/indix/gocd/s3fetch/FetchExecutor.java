@@ -25,7 +25,7 @@ public class FetchExecutor implements TaskExecutor {
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
         logger.info("Starting to execute fetch");
         try {
-            final FetchConfig fetchConfig = new FetchConfig(config, context);
+            final FetchConfig fetchConfig = getFetchConfig(config, context);
 
             ValidationResult validationResult = fetchConfig.validate();
             if (!validationResult.isSuccessful()) {
@@ -100,6 +100,10 @@ public class FetchExecutor implements TaskExecutor {
 
     public AmazonS3Client s3Client(AWSCredentialsFactory factory) {
         return new AmazonS3Client(factory.getCredentialsProvider());
+    }
+
+    public FetchConfig getFetchConfig(TaskConfig config, TaskExecutionContext context) {
+        return new FetchConfig(config, context);
     }
 
     public IZipArchiveManager getZipArchiveManager() {
