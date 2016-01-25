@@ -84,11 +84,15 @@ public class FetchExecutor implements TaskExecutor {
     private void setupDestinationDirectory(String destination) {
         File destinationDirectory = new File(destination);
         try {
+            /* Commented out 1/25/2016, as this prevents fetching multiple artifacts without creating double-level folder structure
             if(destinationDirectory.exists()) {
                 FileUtils.cleanDirectory(destinationDirectory);
                 FileUtils.deleteDirectory(destinationDirectory);
             }
-            FileUtils.forceMkdir(destinationDirectory);
+            */
+            if(!destinationDirectory.exists()) {
+                FileUtils.forceMkdir(destinationDirectory);
+            }
         } catch (IOException ioe) {
             logger.error(String.format("Error while setting up destination - %s", ioe.getMessage()), ioe);
         }
