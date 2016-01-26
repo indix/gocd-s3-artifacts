@@ -1,5 +1,6 @@
 package com.indix.gocd.s3fetch;
 
+import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.utils.Maps;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
@@ -34,6 +35,8 @@ public class FetchConfigTest {
 
     private FetchConfig fetchConfig;
 
+    private GoEnvironment goEnvironmentForTest;
+
     @Before
     public void setUp() throws Exception {
         when(config.getValue(FetchTask.REPO)).thenReturn(bucket);
@@ -47,46 +50,47 @@ public class FetchConfigTest {
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_PIPELINE_NAME", "TestPublish")
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_STAGE_NAME", "defaultStage")
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_JOB_NAME", "defaultJob");
+        goEnvironmentForTest = new GoEnvironment(new HashMap<String,String>());
     }
 
     @Test
     public void shouldGetAWSSecretAccessKey() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()), goEnvironmentForTest);
         String awsSecretAccessKey = fetchConfig.getAWSSecretAccessKey();
         assertThat(awsSecretAccessKey, is(secretKey));
     }
 
     @Test
     public void shouldGetAWSAccessKeyId() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()), goEnvironmentForTest);
         String awsSecretAccessKey = fetchConfig.getAWSAccessKeyId();
         assertThat(awsSecretAccessKey, is(accessId));
     }
 
     @Test
     public void shouldS3Bucket() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()), goEnvironmentForTest);
         String awsSecretAccessKey = fetchConfig.getS3Bucket();
         assertThat(awsSecretAccessKey, is(bucket));
     }
 
     @Test
     public void shouldGetArtifactLocation() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()), goEnvironmentForTest);
         String location = fetchConfig.getArtifactsLocationTemplate();
         assertThat(location, is("TestPublish/defaultStage/defaultJob/20.1"));
     }
 
     @Test
     public void shouldBeValid() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()), goEnvironmentForTest);
         ValidationResult validationResult = fetchConfig.validate();
         assertTrue(validationResult.isSuccessful());
     }
 
     @Test
     public void shouldNotBeValidIfAWSSecretAccessKeyNotPresent() {
-        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(AWS_SECRET_ACCESS_KEY, "").build()));
+        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(AWS_SECRET_ACCESS_KEY, "").build()), goEnvironmentForTest);
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
         ArrayList<String> messages = new ArrayList<String>();
@@ -96,7 +100,7 @@ public class FetchConfigTest {
 
     @Test
     public void shouldNotBeValidIfAWSAccessKeyIdNotPresent() {
-        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build()));
+        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build()), goEnvironmentForTest);
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
         ArrayList<String> messages = new ArrayList<String>();
@@ -106,7 +110,7 @@ public class FetchConfigTest {
 
     @Test
     public void shouldNotBeValidIfS3BucketNotPresent() {
-        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(GO_ARTIFACTS_S3_BUCKET, "").build()));
+        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(GO_ARTIFACTS_S3_BUCKET, "").build()), goEnvironmentForTest);
         ValidationResult validationResult = fetchConfig.validate();
 
         assertFalse(validationResult.isSuccessful());
@@ -118,7 +122,7 @@ public class FetchConfigTest {
     @Test
     public void shouldNotBeValidIfRepoConfigIsNotValid() {
         when(config.getValue(FetchTask.REPO)).thenReturn("Wrong");
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()), goEnvironmentForTest);
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
         ArrayList<String> messages = new ArrayList<String>();
@@ -129,7 +133,7 @@ public class FetchConfigTest {
     @Test
     public void shouldNotBeValidIfPackageConfigIsNotValid() {
         when(config.getValue(FetchTask.PACKAGE)).thenReturn("Wrong");
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()), goEnvironmentForTest);
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
         ArrayList<String> messages = new ArrayList<String>();
@@ -152,7 +156,7 @@ public class FetchConfigTest {
                 .with("GO_PACKAGE_REPO_WITH_DASH_PACKAGE_WITH_DASH_STAGE_NAME", "defaultStage")
                 .with("GO_PACKAGE_REPO_WITH_DASH_PACKAGE_WITH_DASH_JOB_NAME", "defaultJob");
 
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()), goEnvironmentForTest);
         ValidationResult validationResult = fetchConfig.validate();
         assertTrue(validationResult.isSuccessful());
     }
@@ -173,7 +177,7 @@ public class FetchConfigTest {
                 .with("GO_PACKAGE_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_STAGE_NAME", "defaultStage")
                 .with("GO_PACKAGE_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_JOB_NAME", "defaultJob");
 
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()), goEnvironmentForTest);
         ValidationResult validationResult = fetchConfig.validate();
         assertTrue(validationResult.isSuccessful());
     }
