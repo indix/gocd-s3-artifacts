@@ -46,6 +46,7 @@ public class PublishExecutorTest {
                 .with("GO_TRIGGER_USER", "Krishna");
 
         publishExecutor = spy(new PublishExecutor());
+        doReturn(new GoEnvironment(new HashMap<String,String>())).when(publishExecutor).getGoEnvironment();
     }
 
     @Test
@@ -69,7 +70,6 @@ public class PublishExecutorTest {
     @Test
     public void shouldThrowIfGO_ARTIFACTS_S3_BUCKETNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(GO_ARTIFACTS_S3_BUCKET, "").build();
-        doReturn(new GoEnvironment(new HashMap<String, String>())).when(publishExecutor).getGoEnvironment();
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
 
@@ -247,7 +247,6 @@ public class PublishExecutorTest {
         when(config.getValue(SOURCEDESTINATIONS)).thenReturn(sourceDestinations);
         when(config.getValue(DESTINATION_PREFIX)).thenReturn(destinationPrefix);
         doReturn(files).when(publishExecutor).parseSourcePath(anyString(), anyString());
-        doReturn(new GoEnvironment(new HashMap<String, String>())).when(publishExecutor).getGoEnvironment();
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
 
