@@ -6,7 +6,6 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
 import com.amazonaws.util.json.JSONException;
-import com.indix.gocd.utils.AWSCredentialsFactory;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.utils.Functions;
 import com.indix.gocd.utils.zip.IZipArchiveManager;

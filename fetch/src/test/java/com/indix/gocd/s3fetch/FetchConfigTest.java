@@ -1,6 +1,5 @@
 package com.indix.gocd.s3fetch;
 
-import com.indix.gocd.utils.AWSCredentialsFactory;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.utils.Maps;

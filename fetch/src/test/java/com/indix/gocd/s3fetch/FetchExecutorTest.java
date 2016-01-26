@@ -3,7 +3,6 @@ package com.indix.gocd.s3fetch;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.indix.gocd.utils.AWSCredentialsFactory;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.store.S3ArtifactStore;

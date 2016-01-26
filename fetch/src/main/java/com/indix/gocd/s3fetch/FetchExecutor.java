@@ -1,7 +1,8 @@
 package com.indix.gocd.s3fetch;
 
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.indix.gocd.utils.AWSCredentialsFactory;
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.zip.IZipArchiveManager;
 import com.indix.gocd.utils.zip.ZipArchiveManager;
@@ -32,9 +33,7 @@ public class FetchExecutor implements TaskExecutor {
                 logger.error(String.format("s3 fetch configuration is invalid: %s", validationResult.getMessages().toString()));
                 return ExecutionResult.failure(validationResult.getMessages().toString());
             }
-            final AWSCredentialsFactory factory = new AWSCredentialsFactory(fetchConfig.asMap());
-
-            final S3ArtifactStore store = s3ArtifactStore(fetchConfig, factory);
+            final S3ArtifactStore store = s3ArtifactStore(fetchConfig);
 
             String artifactPathOnS3 = fetchConfig.getArtifactsLocationTemplate();
             context.console().printLine(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
@@ -98,12 +97,18 @@ public class FetchExecutor implements TaskExecutor {
         }
     }
 
-    public S3ArtifactStore s3ArtifactStore(FetchConfig config, AWSCredentialsFactory factory) {
-        return new S3ArtifactStore(s3Client(factory), config.getS3Bucket());
+    public S3ArtifactStore s3ArtifactStore(FetchConfig config) {
+        return new S3ArtifactStore(s3Client(config), config.getS3Bucket());
     }
 
-    public AmazonS3Client s3Client(AWSCredentialsFactory factory) {
-        return new AmazonS3Client(factory.getCredentialsProvider());
+    public AmazonS3Client s3Client(FetchConfig config) {
+        AmazonS3Client client;
+        if (config.hasAWSUseIamRole()) {
+            client = new AmazonS3Client(new InstanceProfileCredentialsProvider());
+        } else {
+            client = new AmazonS3Client(new BasicAWSCredentials(config.getAWSAccessKeyId(), config.getAWSSecretAccessKey()));
+        }
+        return client;
     }
 
     public FetchConfig getFetchConfig(TaskConfig config, TaskExecutionContext context) {
