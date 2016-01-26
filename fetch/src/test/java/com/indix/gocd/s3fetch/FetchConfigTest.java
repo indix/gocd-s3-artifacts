@@ -69,7 +69,7 @@ public class FetchConfigTest {
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
         ArrayList<String> messages = new ArrayList<String>();
-        messages.add("some error");
+        messages.add("AWS_SECRET_ACCESS_KEY environment variable not present");
         assertThat(validationResult.getMessages(), Matchers.<List<String>>is(messages));
     }
 
