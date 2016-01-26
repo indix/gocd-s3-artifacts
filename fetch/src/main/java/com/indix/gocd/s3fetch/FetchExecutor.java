@@ -24,7 +24,7 @@ public class FetchExecutor implements TaskExecutor {
 
     @Override
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
-        logger.info("Starting to execute fetch");
+
         try {
             final FetchConfig fetchConfig = getFetchConfig(config, context);
 
@@ -47,29 +47,41 @@ public class FetchExecutor implements TaskExecutor {
                 logger.error(message, e);
                 return ExecutionResult.failure(message, e);
             }
-            List<File> files = (List<File>) FileUtils.listFiles(new File(destination), new String[]{"zip"}, true);
-            for (File zipFile : files) {
-                if (zipFile.getName().endsWith("artifacts.zip")) {
-                    try {
-                        logger.debug(String.format("Artifact is archive.zip: un-compressing %s into %s",
-                                zipFile.getAbsolutePath(), zipFile.getParent()));
-                        zipArchiveManager.extractArchive(zipFile.getAbsolutePath(), zipFile.getParent());
-                    } catch (IOException e) {
-                        String message = String.format("Error during un-compressing archive: %s", e.getMessage());
-                        logger.error(message);
-                        return ExecutionResult.failure(message, e);
-                    }
-                    CleanUpZip(zipFile);
-                }
-            }
 
-            return ExecutionResult.success("Fetched all artifacts");
+            ExecutionResult zipArchivesExecutionResult = ExtractAndCleanupZipArchivesIfPresent(destination);
+
+            if (!zipArchivesExecutionResult.isSuccessful()) {
+                return zipArchivesExecutionResult;
+            }
+            else {
+                return ExecutionResult.success("Fetched all artifacts");
+            }
         }
         catch (Exception e) {
             String message = String.format("Error during fetch from s3: %s", e.getMessage());
             logger.error(message);
             return ExecutionResult.failure(message, e);
         }
+    }
+
+    private ExecutionResult ExtractAndCleanupZipArchivesIfPresent(String destination)
+    {
+        List<File> files = (List<File>) FileUtils.listFiles(new File(destination), new String[]{"zip"}, true);
+        for (File zipFile : files) {
+            if (zipFile.getName().endsWith("artifacts.zip")) {
+                try {
+                    logger.debug(String.format("Artifact is archive.zip: un-compressing %s into %s",
+                            zipFile.getAbsolutePath(), zipFile.getParent()));
+                    zipArchiveManager.extractArchive(zipFile.getAbsolutePath(), zipFile.getParent());
+                } catch (IOException e) {
+                    String message = String.format("Error during un-compressing archive: %s", e.getMessage());
+                    logger.error(message);
+                    return ExecutionResult.failure(message, e);
+                }
+                CleanUpZip(zipFile);
+            }
+        }
+        return ExecutionResult.success("");
     }
 
     private void CleanUpZip(File zipFile) {
@@ -83,11 +95,9 @@ public class FetchExecutor implements TaskExecutor {
     private void setupDestinationDirectory(String destination) {
         File destinationDirectory = new File(destination);
         try {
-            /* Commented out 1/25/2016, as this prevents fetching multiple artifacts without creating double-level folder structure
-            if(destinationDirectory.exists()) {
-                FileUtils.cleanDirectory(destinationDirectory);
-                FileUtils.deleteDirectory(destinationDirectory);
-            }
+            /*
+            * As of 1/25/2016, do not delete destination directory if exists, as this prevents being able to fetch
+            * multiple artifacts without creating double-level folder structure
             */
             if(!destinationDirectory.exists()) {
                 FileUtils.forceMkdir(destinationDirectory);

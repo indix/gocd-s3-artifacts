@@ -50,6 +50,20 @@ public class FetchConfigTest {
     }
 
     @Test
+    public void shouldGetAWSSecretAccessKey() {
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        String awsSecretAccessKey = fetchConfig.getAWSSecretAccessKey();
+        assertThat(awsSecretAccessKey, is(secretKey));
+    }
+
+    @Test
+    public void shouldGetAWSAccessKeyId() {
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        String awsSecretAccessKey = fetchConfig.getAWSAccessKeyId();
+        assertThat(awsSecretAccessKey, is(accessId));
+    }
+
+    @Test
     public void shouldS3Bucket() {
         fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
         String awsSecretAccessKey = fetchConfig.getS3Bucket();
@@ -61,6 +75,13 @@ public class FetchConfigTest {
         fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
         String location = fetchConfig.getArtifactsLocationTemplate();
         assertThat(location, is("TestPublish/defaultStage/defaultJob/20.1"));
+    }
+
+    @Test
+    public void shouldBeValid() {
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()));
+        ValidationResult validationResult = fetchConfig.validate();
+        assertTrue(validationResult.isSuccessful());
     }
 
     @Test
