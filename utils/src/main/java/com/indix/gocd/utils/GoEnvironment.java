@@ -55,21 +55,21 @@ public class GoEnvironment {
     public String triggeredUser() {
         return get("GO_TRIGGER_USER");
     }
-    
+
     public String replaceVariables(String str) {
-        Matcher m = envPat.matcher(str);
+      Matcher m = envPat.matcher(str);
 
-        StringBuffer sb = new StringBuffer();
-        while (m.find()) {
-            String replacement = get(m.group(1));
-            if(replacement != null) {
-                m.appendReplacement(sb, replacement);
-            }
+      StringBuffer sb = new StringBuffer();
+      while (m.find()) {
+        String replacement = get(m.group(1));
+        if(replacement != null) {
+          m.appendReplacement(sb, replacement);
         }
+      }
 
-        m.appendTail(sb);
+      m.appendTail(sb);
 
-        return sb.toString();
+      return sb.toString();
     }
 
     /**

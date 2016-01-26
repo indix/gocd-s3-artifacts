@@ -52,8 +52,6 @@ public class PublishExecutorTest {
     public void shouldThrowIfAWS_ACCESS_KEY_IDNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build();
 
-        doThrow(new IllegalArgumentException("AWS_ACCESS_KEY_ID environment variable not present"))
-                .when(publishExecutor).s3Client(any(GoEnvironment.class));
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
         assertFalse(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("AWS_ACCESS_KEY_ID environment variable not present"));
@@ -75,7 +73,6 @@ public class PublishExecutorTest {
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
 
-
         assertFalse(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("GO_ARTIFACTS_S3_BUCKET environment variable not present"));
     }
@@ -83,12 +80,6 @@ public class PublishExecutorTest {
     @Test
     public void shouldGetDisplayMessageAfterUpload() {
         AmazonS3Client mockClient = mockClient();
-
-//        doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
-//        when(config.getValue(SOURCEDESTINATIONS)).thenReturn("[{\"source\": \"target/*\", \"destination\": \"\"}]");
-//        doReturn(new String[]{"README.md", "s3publish-0.1.31.jar"}).when(publishExecutor).parseSourcePath(anyString(), anyString());
-//        doReturn(new GoEnvironment(new HashMap<String, String>())).when(publishExecutor).getGoEnvironment();
-
 
         ExecutionResult executionResult = executeMockPublish(
                 mockClient,
