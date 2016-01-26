@@ -1,7 +1,8 @@
 package com.indix.gocd.s3fetch;
 
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.indix.gocd.utils.AWSCredentialsFactory;
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.zip.IZipArchiveManager;
 import com.indix.gocd.utils.zip.ZipArchiveManager;
@@ -23,7 +24,7 @@ public class FetchExecutor implements TaskExecutor {
 
     @Override
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
-        logger.info("Starting to execute fetch");
+
         try {
             final FetchConfig fetchConfig = getFetchConfig(config, context);
 
@@ -32,9 +33,7 @@ public class FetchExecutor implements TaskExecutor {
                 logger.error(String.format("s3 fetch configuration is invalid: %s", validationResult.getMessages().toString()));
                 return ExecutionResult.failure(validationResult.getMessages().toString());
             }
-            final AWSCredentialsFactory factory = new AWSCredentialsFactory(fetchConfig.asMap());
-
-            final S3ArtifactStore store = s3ArtifactStore(fetchConfig, factory);
+            final S3ArtifactStore store = s3ArtifactStore(fetchConfig);
 
             String artifactPathOnS3 = fetchConfig.getArtifactsLocationTemplate();
             context.console().printLine(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
@@ -48,29 +47,41 @@ public class FetchExecutor implements TaskExecutor {
                 logger.error(message, e);
                 return ExecutionResult.failure(message, e);
             }
-            List<File> files = (List<File>) FileUtils.listFiles(new File(destination), new String[]{"zip"}, true);
-            for (File zipFile : files) {
-                if (zipFile.getName().endsWith("artifacts.zip")) {
-                    try {
-                        logger.debug(String.format("Artifact is archive.zip: un-compressing %s into %s",
-                                zipFile.getAbsolutePath(), zipFile.getParent()));
-                        zipArchiveManager.extractArchive(zipFile.getAbsolutePath(), zipFile.getParent());
-                    } catch (IOException e) {
-                        String message = String.format("Error during un-compressing archive: %s", e.getMessage());
-                        logger.error(message);
-                        return ExecutionResult.failure(message, e);
-                    }
-                    CleanUpZip(zipFile);
-                }
-            }
 
-            return ExecutionResult.success("Fetched all artifacts");
+            ExecutionResult zipArchivesExecutionResult = ExtractAndCleanupZipArchivesIfPresent(destination);
+
+            if (!zipArchivesExecutionResult.isSuccessful()) {
+                return zipArchivesExecutionResult;
+            }
+            else {
+                return ExecutionResult.success("Fetched all artifacts");
+            }
         }
         catch (Exception e) {
             String message = String.format("Error during fetch from s3: %s", e.getMessage());
             logger.error(message);
             return ExecutionResult.failure(message, e);
         }
+    }
+
+    private ExecutionResult ExtractAndCleanupZipArchivesIfPresent(String destination)
+    {
+        List<File> files = (List<File>) FileUtils.listFiles(new File(destination), new String[]{"zip"}, true);
+        for (File zipFile : files) {
+            if (zipFile.getName().endsWith("artifacts.zip")) {
+                try {
+                    logger.debug(String.format("Artifact is archive.zip: un-compressing %s into %s",
+                            zipFile.getAbsolutePath(), zipFile.getParent()));
+                    zipArchiveManager.extractArchive(zipFile.getAbsolutePath(), zipFile.getParent());
+                } catch (IOException e) {
+                    String message = String.format("Error during un-compressing archive: %s", e.getMessage());
+                    logger.error(message);
+                    return ExecutionResult.failure(message, e);
+                }
+                CleanUpZip(zipFile);
+            }
+        }
+        return ExecutionResult.success("");
     }
 
     private void CleanUpZip(File zipFile) {
@@ -84,11 +95,9 @@ public class FetchExecutor implements TaskExecutor {
     private void setupDestinationDirectory(String destination) {
         File destinationDirectory = new File(destination);
         try {
-            /* Commented out 1/25/2016, as this prevents fetching multiple artifacts without creating double-level folder structure
-            if(destinationDirectory.exists()) {
-                FileUtils.cleanDirectory(destinationDirectory);
-                FileUtils.deleteDirectory(destinationDirectory);
-            }
+            /*
+            * As of 1/25/2016, do not delete destination directory if exists, as this prevents being able to fetch
+            * multiple artifacts without creating double-level folder structure
             */
             if(!destinationDirectory.exists()) {
                 FileUtils.forceMkdir(destinationDirectory);
@@ -98,12 +107,18 @@ public class FetchExecutor implements TaskExecutor {
         }
     }
 
-    public S3ArtifactStore s3ArtifactStore(FetchConfig config, AWSCredentialsFactory factory) {
-        return new S3ArtifactStore(s3Client(factory), config.getS3Bucket());
+    public S3ArtifactStore s3ArtifactStore(FetchConfig config) {
+        return new S3ArtifactStore(s3Client(config), config.getS3Bucket());
     }
 
-    public AmazonS3Client s3Client(AWSCredentialsFactory factory) {
-        return new AmazonS3Client(factory.getCredentialsProvider());
+    public AmazonS3Client s3Client(FetchConfig config) {
+        AmazonS3Client client;
+        if (config.hasAWSUseIamRole()) {
+            client = new AmazonS3Client(new InstanceProfileCredentialsProvider());
+        } else {
+            client = new AmazonS3Client(new BasicAWSCredentials(config.getAWSAccessKeyId(), config.getAWSSecretAccessKey()));
+        }
+        return client;
     }
 
     public FetchConfig getFetchConfig(TaskConfig config, TaskExecutionContext context) {

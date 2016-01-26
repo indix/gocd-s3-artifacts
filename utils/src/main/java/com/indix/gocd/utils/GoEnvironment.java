@@ -2,6 +2,8 @@ package com.indix.gocd.utils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static com.indix.gocd.utils.Constants.GO_SERVER_DASHBOARD_URL;
@@ -10,6 +12,7 @@ import static com.indix.gocd.utils.Constants.GO_SERVER_DASHBOARD_URL;
  * Wrapper around Go's Environment variables
  */
 public class GoEnvironment {
+    private Pattern envPat = Pattern.compile("\\$\\{(\\w+)\\}");
     private Map<String, String> environment = new HashMap<String, String>();
 
     public GoEnvironment() {
@@ -51,6 +54,22 @@ public class GoEnvironment {
 
     public String triggeredUser() {
         return get("GO_TRIGGER_USER");
+    }
+
+    public String replaceVariables(String str) {
+      Matcher m = envPat.matcher(str);
+
+      StringBuffer sb = new StringBuffer();
+      while (m.find()) {
+        String replacement = get(m.group(1));
+        if(replacement != null) {
+          m.appendReplacement(sb, replacement);
+        }
+      }
+
+      m.appendTail(sb);
+
+      return sb.toString();
     }
 
     /**

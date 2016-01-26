@@ -3,7 +3,6 @@ package com.indix.gocd.s3fetch;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.indix.gocd.utils.AWSCredentialsFactory;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.store.S3ArtifactStore;
@@ -51,9 +50,6 @@ public class FetchExecutorTest {
     private AmazonS3Client s3ClientMock;
 
     @Mock
-    private AWSCredentialsFactory awsCredentialsFactory;
-
-    @Mock
     private IZipArchiveManager zipArchiveManager;
 
     @Rule
@@ -78,7 +74,6 @@ public class FetchExecutorTest {
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_PIPELINE_NAME", "TestPublish")
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_STAGE_NAME", "defaultStage")
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_JOB_NAME", "defaultJob");
-
     }
 
     @Test
@@ -97,7 +92,7 @@ public class FetchExecutorTest {
     @Test
     public void shouldBeFailureIfUnableToFetchArtifacts() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
-        doReturn(s3ClientMock).when(fetchExecutor).s3Client(any(AWSCredentialsFactory.class));
+        doReturn(s3ClientMock).when(fetchExecutor).s3Client(any(FetchConfig.class));
         doThrow(new AmazonClientException("Exception message")).when(s3ClientMock).listObjects(any(ListObjectsRequest.class));
 
         ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
@@ -110,7 +105,7 @@ public class FetchExecutorTest {
     public void shouldBeSuccessResultOnSuccessfulFetch() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         S3ArtifactStore mockStore = mockStore();
-        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class),any(AWSCredentialsFactory.class));
+        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class));
 
         ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
 
@@ -125,7 +120,7 @@ public class FetchExecutorTest {
     public void shouldUnzipArchiveIfFetchReturnsOneFileThatIsArtifactsZip() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         S3ArtifactStore mockStore = mockStore();
-        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class),any(AWSCredentialsFactory.class));
+        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class));
         String rootFolder = tempFolder.getRoot().getAbsolutePath();
 
         doAnswer(new Answer<Void>() {
@@ -155,7 +150,7 @@ public class FetchExecutorTest {
     public void shouldNotUnzipArchiveIfFetchReturnsOneFileThatIsNotArtifactsZip() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         S3ArtifactStore mockStore = mockStore();
-        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class),any(AWSCredentialsFactory.class));
+        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class));
         String rootFolder = tempFolder.getRoot().getAbsolutePath();
 
         doAnswer(new Answer<Void>() {
@@ -184,7 +179,7 @@ public class FetchExecutorTest {
     public void shouldNotUnzipArchivesUnlessTheyAreNamedArtifactsDotZip() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         S3ArtifactStore mockStore = mockStore();
-        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class),any(AWSCredentialsFactory.class));
+        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class));
         String rootFolder = tempFolder.getRoot().getAbsolutePath();
 
         doAnswer(new Answer<Void>() {
@@ -218,7 +213,7 @@ public class FetchExecutorTest {
     public void shouldUnzipAllArchivesNamedArtifactsDotZip() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         S3ArtifactStore mockStore = mockStore();
-        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class),any(AWSCredentialsFactory.class));
+        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class));
         String rootFolder = tempFolder.getRoot().getAbsolutePath();
 
         doAnswer(new Answer<Void>() {

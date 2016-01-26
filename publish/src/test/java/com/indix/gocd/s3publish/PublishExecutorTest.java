@@ -49,50 +49,63 @@ public class PublishExecutorTest {
     }
 
     @Test
-    public void shouldThrowIfS3ClientCannotBeInitialized() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_ACCESS_KEY_ID).build();
+    public void shouldThrowIfAWS_ACCESS_KEY_IDNotPresent() {
+        Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build();
 
-        doThrow(new IllegalArgumentException("AWS_ACCESS_KEY_ID environment variable not present"))
-                .when(publishExecutor).getS3Client(any(GoEnvironment.class));
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
         assertFalse(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("AWS_ACCESS_KEY_ID environment variable not present"));
     }
 
     @Test
+    public void shouldThrowIfAWS_SECRET_ACCESS_KEYNotPresent() {
+        Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_SECRET_ACCESS_KEY, "").build();
+
+        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
+        assertFalse(executionResult.isSuccessful());
+        assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
+    }
+
+    @Test
     public void shouldThrowIfGO_ARTIFACTS_S3_BUCKETNotPresent() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.remove(GO_ARTIFACTS_S3_BUCKET).build();
+        Map<String, String> mockVariables = mockEnvironmentVariables.with(GO_ARTIFACTS_S3_BUCKET, "").build();
         doReturn(new GoEnvironment(new HashMap<String, String>())).when(publishExecutor).getGoEnvironment();
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-
 
         assertFalse(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("GO_ARTIFACTS_S3_BUCKET environment variable not present"));
     }
 
     @Test
-    public void shouldUploadALocalFileToS3() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.build();
+    public void shouldGetDisplayMessageAfterUpload() {
         AmazonS3Client mockClient = mockClient();
-        doReturn(mockClient).when(publishExecutor).getS3Client(any(GoEnvironment.class));
-        when(config.getValue(SOURCEDESTINATIONS)).thenReturn("[{\"source\": \"target/*\", \"destination\": \"\"}]");
-        doReturn(new String[]{"README.md", "s3publish-0.1.31.jar"}).when(publishExecutor).parseSourcePath(anyString(), anyString());
-        doReturn(new GoEnvironment(new HashMap<String, String>())).when(publishExecutor).getGoEnvironment();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
+        ExecutionResult executionResult = executeMockPublish(
+                mockClient,
+                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
+                "",
+                new String[]{"README.md"}
+        );
 
         assertTrue(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("Published all artifacts to S3"));
+    }
 
-        ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
-        verify(mockClient, times(3)).putObject(putObjectRequestArgumentCaptor.capture());
-        List<PutObjectRequest> allPutObjectRequests = putObjectRequestArgumentCaptor.getAllValues();
+    @Test
+    public void shouldUploadALocalFileToS3WithDefaultPrefix() {
+        AmazonS3Client mockClient = mockClient();
 
+        ExecutionResult executionResult = executeMockPublish(
+                mockClient,
+                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
+                "",
+                new String[]{"README.md", "s3publish-0.1.31.jar"}
+        );
 
-        PutObjectRequest filePutRequest = allPutObjectRequests.get(0);
-        assertThat(filePutRequest.getBucketName(), is("testS3Bucket"));
-        assertThat(filePutRequest.getKey(), is("pipeline/stage/job/pipelineCounter.stageCounter/README.md"));
+        assertTrue(executionResult.isSuccessful());
+
+        final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 3);
 
         PutObjectRequest metadataPutRequest = allPutObjectRequests.get(2);
         Map<String, String> expectedUserMetadata = Maps.<String, String>builder()
@@ -101,8 +114,8 @@ public class PublishExecutorTest {
                 .with(COMPLETED, COMPLETED)
                 .build();
         assertThat(metadataPutRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));
+        assertThat(metadataPutRequest.getKey(), is("pipeline/stage/job/pipelineCounter.stageCounter/"));
 
-        assertNull(filePutRequest.getMetadata());
         PutObjectRequest readmePutRequest = allPutObjectRequests.get(0);
         assertThat(readmePutRequest.getBucketName(), is("testS3Bucket"));
         assertThat(readmePutRequest.getKey(), is("pipeline/stage/job/pipelineCounter.stageCounter/README.md"));
@@ -120,7 +133,7 @@ public class PublishExecutorTest {
     public void shouldUploadCompressedArchiveToS3() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(GO_ARTIFACTS_COMPRESS_IN_S3,"True").build();
         AmazonS3Client mockClient = mockClient();
-        doReturn(mockClient).when(publishExecutor).getS3Client(any(GoEnvironment.class));
+        doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
         doReturn(mock(IZipArchiveManager.class)).when(publishExecutor).getZipArchiveManager();
         when(config.getValue(SOURCEDESTINATIONS)).thenReturn("[{\"source\": \"target/*\", \"destination\": \"\"}]");
 
@@ -144,6 +157,109 @@ public class PublishExecutorTest {
                 .with(COMPLETED, COMPLETED)
                 .build();
         assertThat(metadataPutRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));
+    }
+
+    @Test
+    public void shouldUploadALocalFileToS3WithDestinationPrefix() {
+        AmazonS3Client mockClient = mockClient();
+
+        ExecutionResult executionResult = executeMockPublish(
+                mockClient,
+                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
+                "destinationPrefix",
+                new String[]{"README.md", "s3publish-0.1.31.jar"}
+        );
+
+        assertTrue(executionResult.isSuccessful());
+
+        final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
+
+        PutObjectRequest readmePutRequest = allPutObjectRequests.get(0);
+        assertThat(readmePutRequest.getBucketName(), is("testS3Bucket"));
+        assertThat(readmePutRequest.getKey(), is("destinationPrefix/README.md"));
+        assertNull(readmePutRequest.getMetadata());
+
+        PutObjectRequest jarPutRequest = allPutObjectRequests.get(1);
+        assertNull(jarPutRequest.getMetadata());
+        assertThat(jarPutRequest.getBucketName(), is("testS3Bucket"));
+        assertThat(jarPutRequest.getKey(), is("destinationPrefix/s3publish-0.1.31.jar"));
+        assertNull(jarPutRequest.getMetadata());
+    }
+
+    @Test
+    public void shouldUploadALocalFileToS3WithDestinationPrefixUsingEnvVariable() {
+        AmazonS3Client mockClient = mockClient();
+
+        ExecutionResult executionResult = executeMockPublish(
+                mockClient,
+                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
+                "test/${GO_PIPELINE_COUNTER}/",
+                new String[]{"README.md", "s3publish-0.1.31.jar"}
+        );
+
+        assertTrue(executionResult.isSuccessful());
+
+        final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
+
+        PutObjectRequest readmePutRequest = allPutObjectRequests.get(0);
+        assertThat(readmePutRequest.getBucketName(), is("testS3Bucket"));
+        assertThat(readmePutRequest.getKey(), is("test/pipelineCounter/README.md"));
+        assertNull(readmePutRequest.getMetadata());
+
+        PutObjectRequest jarPutRequest = allPutObjectRequests.get(1);
+        assertNull(jarPutRequest.getMetadata());
+        assertThat(jarPutRequest.getBucketName(), is("testS3Bucket"));
+        assertThat(jarPutRequest.getKey(), is("test/pipelineCounter/s3publish-0.1.31.jar"));
+        assertNull(jarPutRequest.getMetadata());
+    }
+
+    @Test
+    public void shouldUploadALocalFileToS3WithSlashDestinationPrefix() {
+        AmazonS3Client mockClient = mockClient();
+
+        ExecutionResult executionResult = executeMockPublish(
+                mockClient,
+                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
+                "/",
+                new String[]{"README.md", "s3publish-0.1.31.jar"}
+        );
+
+        assertTrue(executionResult.isSuccessful());
+
+        final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
+
+        PutObjectRequest readmePutRequest = allPutObjectRequests.get(0);
+        assertThat(readmePutRequest.getBucketName(), is("testS3Bucket"));
+        assertThat(readmePutRequest.getKey(), is("README.md"));
+        assertNull(readmePutRequest.getMetadata());
+
+        PutObjectRequest jarPutRequest = allPutObjectRequests.get(1);
+        assertNull(jarPutRequest.getMetadata());
+        assertThat(jarPutRequest.getBucketName(), is("testS3Bucket"));
+        assertThat(jarPutRequest.getKey(), is("s3publish-0.1.31.jar"));
+        assertNull(jarPutRequest.getMetadata());
+    }
+
+    private ExecutionResult executeMockPublish(final AmazonS3Client mockClient, String sourceDestinations, String destinationPrefix, String[] files) {
+        Map<String, String> mockVariables = mockEnvironmentVariables.build();
+
+        doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
+        when(config.getValue(SOURCEDESTINATIONS)).thenReturn(sourceDestinations);
+        when(config.getValue(DESTINATION_PREFIX)).thenReturn(destinationPrefix);
+        doReturn(files).when(publishExecutor).parseSourcePath(anyString(), anyString());
+        doReturn(new GoEnvironment(new HashMap<String, String>())).when(publishExecutor).getGoEnvironment();
+
+        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
+
+        return executionResult;
+    }
+
+    private List<PutObjectRequest> getPutObjectRequests(AmazonS3Client mockClient, int expectedRequestsCount) {
+        ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+        verify(mockClient, times(expectedRequestsCount)).putObject(putObjectRequestArgumentCaptor.capture());
+        List<PutObjectRequest> allPutObjectRequests = putObjectRequestArgumentCaptor.getAllValues();
+
+        return allPutObjectRequests;
     }
 
     private TaskExecutionContext mockContext(final Map<String, String> environmentMap) {
