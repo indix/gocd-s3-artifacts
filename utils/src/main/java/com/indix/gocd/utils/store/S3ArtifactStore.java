@@ -9,6 +9,7 @@ import com.indix.gocd.models.RevisionStatus;
 import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Functions;
 import com.indix.gocd.utils.utils.Lists;
+import com.thoughtworks.go.plugin.api.logging.Logger;
 
 import java.io.File;
 import java.util.Collections;
@@ -19,6 +20,7 @@ public class S3ArtifactStore {
     private AmazonS3Client client;
     private String bucket;
     private String kmsKey = null;
+    private static Logger logger = Logger.getLoggerFor(S3ArtifactStore.class);
 
     public S3ArtifactStore(AmazonS3Client client, String bucket) {
         this.client = client;
@@ -47,7 +49,6 @@ public class S3ArtifactStore {
     }
 
     public void put(PutObjectRequest putObjectRequest) {
-        putObjectRequest.setStorageClass(StorageClass.ReducedRedundancy);
         client.putObject(putObjectRequest);
     }
 
@@ -156,22 +157,27 @@ public class S3ArtifactStore {
     }
 
     public RevisionStatus getLatest(AmazonS3Client client, Artifact artifact) {
-        ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
-                .withBucketName(bucket)
-                .withPrefix(artifact.prefix())
-                .withDelimiter("/");
+        try {
+            ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+                    .withBucketName(bucket)
+                    .withPrefix(artifact.prefix())
+                    .withDelimiter("/");
 
-        ObjectListing listing = client.listObjects(listObjectsRequest);
-        if(listing != null){
-            Revision recent = latestOf(client, listing);
-            Artifact artifactWithRevision = artifact.withRevision(recent);
-            GetObjectMetadataRequest objectMetadataRequest = new GetObjectMetadataRequest(bucket, artifactWithRevision.prefixWithRevision());
-            ObjectMetadata metadata = client.getObjectMetadata(objectMetadataRequest);
-            Map<String, String> userMetadata = metadata.getUserMetadata();
-            String tracebackUrl = userMetadata.get(ResponseMetadataConstants.TRACEBACK_URL);
-            String user = userMetadata.get(ResponseMetadataConstants.USER);
-            return new RevisionStatus(recent, metadata.getLastModified(), tracebackUrl, user);
+            ObjectListing listing = client.listObjects(listObjectsRequest);
+            if (listing != null) {
+                Revision recent = latestOf(client, listing);
+                Artifact artifactWithRevision = artifact.withRevision(recent);
+                GetObjectMetadataRequest objectMetadataRequest = new GetObjectMetadataRequest(bucket, artifactWithRevision.prefixWithRevision());
+                ObjectMetadata metadata = client.getObjectMetadata(objectMetadataRequest);
+                Map<String, String> userMetadata = metadata.getUserMetadata();
+                String tracebackUrl = userMetadata.get(ResponseMetadataConstants.TRACEBACK_URL);
+                String user = userMetadata.get(ResponseMetadataConstants.USER);
+                return new RevisionStatus(recent, metadata.getLastModified(), tracebackUrl, user);
+            }
+            return null;
+        } catch (RuntimeException e) {
+            logger.error(String.format("Error in getLatest from S3 repository bucket {%s}, prefix {%s}", bucket, artifact.prefix()), e);
+            throw e;
         }
-        return null;
     }
 }
