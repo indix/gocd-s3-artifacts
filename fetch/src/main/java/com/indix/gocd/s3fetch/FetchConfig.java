@@ -16,8 +16,13 @@ public class FetchConfig {
     private final String job;
     private GoEnvironment env;
 
-    public FetchConfig(TaskConfig config, TaskExecutionContext context) {
-        this.env = new GoEnvironment();
+    public FetchConfig(TaskConfig config, TaskExecutionContext context)
+    {
+        this(config, context, new GoEnvironment());
+    }
+
+    public FetchConfig(TaskConfig config, TaskExecutionContext context, GoEnvironment goEnvironment) {
+        this.env = goEnvironment;
         env.putAll(context.environment().asMap());
 
         String repoName = config.getValue(FetchTask.REPO).toUpperCase().replaceAll("-", "_");
