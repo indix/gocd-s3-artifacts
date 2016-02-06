@@ -16,6 +16,7 @@ public class Constants {
     public static final String AWS_USE_IAM_ROLE = "AWS_USE_IAM_ROLE";
     public static final String AWS_STORAGE_CLASS = "AWS_STORAGE_CLASS";
     public static final String STORAGE_CLASS_STANDARD = "standard";
+    public static final String STORAGE_CLASS_STANDARD_IA = "standard-ia";
     public static final String STORAGE_CLASS_RRS = "rrs";
     public static final String STORAGE_CLASS_GLACIER = "glacier";
 

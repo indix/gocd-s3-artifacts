@@ -9,6 +9,7 @@ import com.indix.gocd.models.RevisionStatus;
 import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Functions;
 import com.indix.gocd.utils.utils.Lists;
+import com.indix.gocd.utils.utils.Maps;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -19,6 +20,14 @@ import java.util.Map;
 import static com.indix.gocd.utils.Constants.*;
 
 public class S3ArtifactStore {
+
+    private static Map<String, StorageClass> STORAGE_CLASSES = Maps.<String, StorageClass>builder()
+            .with(STORAGE_CLASS_STANDARD, StorageClass.Standard)
+            .with(STORAGE_CLASS_STANDARD_IA, StorageClass.StandardInfrequentAccess)
+            .with(STORAGE_CLASS_RRS, StorageClass.ReducedRedundancy)
+            .with(STORAGE_CLASS_GLACIER, StorageClass.Glacier)
+            .build();
+
     private AmazonS3Client client;
     private String bucket;
     private StorageClass storageClass = StorageClass.Standard;
@@ -29,18 +38,11 @@ public class S3ArtifactStore {
     }
 
     public void setStorageClass(String storageClass) {
-        switch (StringUtils.lowerCase(storageClass)) {
-            case STORAGE_CLASS_STANDARD:
-                this.storageClass = StorageClass.Standard;
-                break;
-            case STORAGE_CLASS_RRS:
-                this.storageClass = StorageClass.ReducedRedundancy;
-                break;
-            case STORAGE_CLASS_GLACIER:
-                this.storageClass = StorageClass.Glacier;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid storage class specified for S3 - " + storageClass + ". Accepted values are standard, rrs and glacier");
+        String key = StringUtils.lowerCase(storageClass);
+        if (STORAGE_CLASSES.containsKey(key)) {
+            this.storageClass = STORAGE_CLASSES.get(key);
+        } else {
+            throw new IllegalArgumentException("Invalid storage class specified for S3 - " + storageClass + ". Accepted values are standard, standard-ia, rrs and glacier");
         }
     }
 

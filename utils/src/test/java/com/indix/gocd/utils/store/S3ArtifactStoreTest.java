@@ -25,6 +25,16 @@ public class S3ArtifactStoreTest {
     }
 
     @Test
+    public void shouldUseStandardIAStorageClassAsDefault() {
+        S3ArtifactStore store = new S3ArtifactStore(mockClient, "foo-bar");
+        store.setStorageClass("standard-ia");
+        store.put(new PutObjectRequest("foo-bar", "key", new File("/tmp/baz")));
+        verify(mockClient, times(1)).putObject(putCaptor.capture());
+        PutObjectRequest putRequest = putCaptor.getValue();
+        assertThat(putRequest.getStorageClass(), is("STANDARD_IA"));
+    }
+
+    @Test
     public void shouldUseReducedRedundancyStorageClass() {
         S3ArtifactStore store = new S3ArtifactStore(mockClient, "foo-bar");
         store.setStorageClass("rrs");
