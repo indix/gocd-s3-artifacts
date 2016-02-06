@@ -86,7 +86,7 @@ public class S3ArtifactStore {
             for (S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
                 String destinationPath = to + "/" + objectSummary.getKey().replace(prefix + "/", "");
                 long size = objectSummary.getSize();
-                if(size > 0) {
+                if (size > 0) {
                     get(objectSummary.getKey(), destinationPath);
                 }
             }
@@ -104,7 +104,7 @@ public class S3ArtifactStore {
                     return input.getName().equals(bucket);
                 }
             });
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             return false;
         }
     }
@@ -117,7 +117,7 @@ public class S3ArtifactStore {
         try {
             ObjectListing objectListing = client.listObjects(listObjectsRequest);
             return objectListing != null && objectListing.getCommonPrefixes().size() > 0;
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             return false;
         }
     }
@@ -125,6 +125,7 @@ public class S3ArtifactStore {
     private Boolean isComplete(AmazonS3Client client, String prefix) {
         return client.getObjectMetadata(bucket, prefix).getUserMetadata().containsKey(ResponseMetadataConstants.COMPLETED);
     }
+
     private Revision mostRecentRevision(final AmazonS3Client client, ObjectListing listing) {
         List<String> prefixes = Lists.filter(listing.getCommonPrefixes(), new Functions.Predicate<String>() {
             @Override
@@ -137,24 +138,24 @@ public class S3ArtifactStore {
             @Override
             public Revision apply(String prefix) {
                 String[] parts = prefix.split("/");
-                String last = parts[parts.length-1];
+                String last = parts[parts.length - 1];
                 return new Revision(last);
             }
         });
 
-        if(revisions.size() > 0)
+        if (revisions.size() > 0)
             return Collections.max(revisions);
         else
             return Revision.base();
     }
 
     private Revision latestOfInternal(AmazonS3Client client, ObjectListing listing, Revision latestSoFar) {
-        if (! listing.isTruncated()){
+        if (!listing.isTruncated()) {
             return latestSoFar;
-        }else {
+        } else {
             ObjectListing objects = client.listNextBatchOfObjects(listing);
             Revision mostRecent = mostRecentRevision(client, objects);
-            if(latestSoFar.compareTo(mostRecent) > 0)
+            if (latestSoFar.compareTo(mostRecent) > 0)
                 mostRecent = latestSoFar;
             return latestOfInternal(client, objects, mostRecent);
         }
@@ -171,7 +172,7 @@ public class S3ArtifactStore {
                 .withDelimiter("/");
 
         ObjectListing listing = client.listObjects(listObjectsRequest);
-        if(listing != null){
+        if (listing != null) {
             Revision recent = latestOf(client, listing);
             Artifact artifactWithRevision = artifact.withRevision(recent);
             GetObjectMetadataRequest objectMetadataRequest = new GetObjectMetadataRequest(bucket, artifactWithRevision.prefixWithRevision());
