@@ -6,6 +6,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
+import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.util.json.JSONException;
 import com.indix.gocd.utils.GoEnvironment;
 import com.thoughtworks.go.plugin.api.logging.Logger;
@@ -50,6 +51,7 @@ public class PublishExecutor implements TaskExecutor {
 
         final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
         final S3ArtifactStore store = new S3ArtifactStore(s3Client(env), bucket);
+        store.setStorageClass(env.getOrElse(AWS_STORAGE_CLASS, STORAGE_CLASS_STANDARD));
 
         final String destinationPrefix = getDestinationPrefix(config, env);
 

@@ -2,26 +2,46 @@ package com.indix.gocd.utils.store;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.*;
-import com.indix.gocd.models.ResponseMetadataConstants;
 import com.indix.gocd.models.Artifact;
+import com.indix.gocd.models.ResponseMetadataConstants;
 import com.indix.gocd.models.Revision;
 import com.indix.gocd.models.RevisionStatus;
 import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Functions;
 import com.indix.gocd.utils.utils.Lists;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.indix.gocd.utils.Constants.*;
+
 public class S3ArtifactStore {
     private AmazonS3Client client;
     private String bucket;
+    private StorageClass storageClass = StorageClass.Standard;
 
     public S3ArtifactStore(AmazonS3Client client, String bucket) {
         this.client = client;
         this.bucket = bucket;
+    }
+
+    public void setStorageClass(String storageClass) {
+        switch (StringUtils.lowerCase(storageClass)) {
+            case STORAGE_CLASS_STANDARD:
+                this.storageClass = StorageClass.Standard;
+                break;
+            case STORAGE_CLASS_RRS:
+                this.storageClass = StorageClass.ReducedRedundancy;
+                break;
+            case STORAGE_CLASS_GLACIER:
+                this.storageClass = StorageClass.Glacier;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid storage class specified for S3 - " + storageClass + ". Accepted values are standard, rrs and glacier");
+        }
     }
 
     public void put(String from, String to) {
@@ -34,7 +54,7 @@ public class S3ArtifactStore {
     }
 
     public void put(PutObjectRequest putObjectRequest) {
-        putObjectRequest.setStorageClass(StorageClass.ReducedRedundancy);
+        putObjectRequest.setStorageClass(this.storageClass);
         client.putObject(putObjectRequest);
     }
 
