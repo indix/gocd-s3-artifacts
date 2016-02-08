@@ -7,6 +7,12 @@ import com.thoughtworks.go.plugin.api.response.validation.ValidationError;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
+import org.apache.commons.lang3.BooleanUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static com.indix.gocd.utils.Constants.*;
 
 public class FetchConfig {
@@ -16,7 +22,6 @@ public class FetchConfig {
     private final String stage;
     private final String job;
     private GoEnvironment env;
-
     private static Logger logger = Logger.getLoggerFor(FetchConfig.class);
 
     public FetchConfig(TaskConfig config, TaskExecutionContext context)
@@ -41,7 +46,7 @@ public class FetchConfig {
 
     public ValidationResult validate() {
         ValidationResult validationResult = new ValidationResult();
-        if (env.isAbsent(AWS_USE_IAM_ROLE)) {
+        if (!hasAWSUseIamRole()) {
             if (env.isAbsent(AWS_ACCESS_KEY_ID)) validationResult.addError(envNotFound(AWS_ACCESS_KEY_ID));
             if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) validationResult.addError(envNotFound(AWS_SECRET_ACCESS_KEY));
         }
@@ -60,8 +65,21 @@ public class FetchConfig {
         return env.artifactsLocationTemplate(pipeline, stage, job, pipelineCounter, stageCounter);
     }
 
+    private static final List<String> validUseIamRoleValues = new ArrayList<String>(Arrays.asList("true", "false", "yes", "no", "on", "off"));
     public boolean hasAWSUseIamRole() {
-        return env.has(AWS_USE_IAM_ROLE);
+        if (!env.has(AWS_USE_IAM_ROLE)) {
+            return false;
+        }
+
+        String useIamRoleValue = env.get(AWS_USE_IAM_ROLE);
+        Boolean result = BooleanUtils.toBooleanObject(useIamRoleValue);
+        if (result == null) {
+            throw new IllegalArgumentException(getEnvInvalidFormatMessage(AWS_USE_IAM_ROLE,
+                    useIamRoleValue, validUseIamRoleValues.toString()));
+        }
+        else {
+            return result.booleanValue();
+        }
     }
 
     public String getAWSAccessKeyId() {
@@ -78,5 +96,11 @@ public class FetchConfig {
 
     private ValidationError envNotFound(String environmentVariable) {
         return new ValidationError(environmentVariable, String.format("%s environment variable not present", environmentVariable));
+    }
+
+    private String getEnvInvalidFormatMessage(String environmentVariable, String value, String expected){
+        return String.format(
+                "Unexpected value in %s environment variable; was %s, but expected one of the following %s",
+                environmentVariable, value, expected);
     }
 }

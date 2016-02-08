@@ -179,7 +179,7 @@ public class PublishExecutor implements TaskExecutor {
         return new GoEnvironment();
     }
 
-    public AmazonS3Client s3Client(GoEnvironment env){
+    public AmazonS3Client s3Client(GoEnvironment env) {
         AmazonS3Client client = null;
         if (env.has(AWS_USE_IAM_ROLE)) {
             client = new AmazonS3Client(new InstanceProfileCredentialsProvider());

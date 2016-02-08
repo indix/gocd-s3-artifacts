@@ -3,14 +3,12 @@ package com.indix.gocd.utils;
 import static org.hamcrest.CoreMatchers.is;
 
 import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import java.util.Map;
 import com.indix.gocd.utils.utils.Maps;
 import static com.indix.gocd.utils.Constants.GO_SERVER_DASHBOARD_URL;
-import static org.junit.Assert.assertTrue;
 
 
 public class GoEnvironmentTest {
