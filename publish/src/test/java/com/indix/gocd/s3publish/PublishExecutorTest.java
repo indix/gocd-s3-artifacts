@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,7 @@ public class PublishExecutorTest {
                 .with("GO_TRIGGER_USER", "Krishna");
 
         publishExecutor = spy(new PublishExecutor());
+        doReturn(new GoEnvironment(new HashMap<String,String>())).when(publishExecutor).getGoEnvironment();
     }
 
     @Test
