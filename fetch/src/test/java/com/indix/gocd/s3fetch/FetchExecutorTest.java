@@ -78,7 +78,7 @@ public class FetchExecutorTest {
 
     @Test
     public void shouldBeFailureIfFetchConfigNotValid() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_ACCESS_KEY_ID).build();
+        Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build();
         TaskExecutionContext mockContext = mockContext(mockVariables);
         FetchConfig fetchConfig = spy(new FetchConfig(config, mockContext, new GoEnvironment(new HashMap<String,String>())));
         doReturn(fetchConfig).when(fetchExecutor).getFetchConfig(any(TaskConfig.class), any(TaskExecutionContext.class));

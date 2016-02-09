@@ -7,6 +7,7 @@ import com.thoughtworks.go.plugin.api.response.validation.ValidationError;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
+
 import static com.indix.gocd.utils.Constants.*;
 
 public class FetchConfig {
@@ -16,7 +17,6 @@ public class FetchConfig {
     private final String stage;
     private final String job;
     private GoEnvironment env;
-
     private static Logger logger = Logger.getLoggerFor(FetchConfig.class);
 
     public FetchConfig(TaskConfig config, TaskExecutionContext context)
@@ -41,7 +41,7 @@ public class FetchConfig {
 
     public ValidationResult validate() {
         ValidationResult validationResult = new ValidationResult();
-        if (env.isAbsent(AWS_USE_IAM_ROLE)) {
+        if (!env.hasAWSUseIamRole()) {
             if (env.isAbsent(AWS_ACCESS_KEY_ID)) validationResult.addError(envNotFound(AWS_ACCESS_KEY_ID));
             if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) validationResult.addError(envNotFound(AWS_SECRET_ACCESS_KEY));
         }
@@ -61,7 +61,7 @@ public class FetchConfig {
     }
 
     public boolean hasAWSUseIamRole() {
-        return env.has(AWS_USE_IAM_ROLE);
+        return env.hasAWSUseIamRole();
     }
 
     public String getAWSAccessKeyId() {
@@ -79,4 +79,5 @@ public class FetchConfig {
     private ValidationError envNotFound(String environmentVariable) {
         return new ValidationError(environmentVariable, String.format("%s environment variable not present", environmentVariable));
     }
+
 }

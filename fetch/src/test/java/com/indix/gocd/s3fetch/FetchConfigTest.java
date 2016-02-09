@@ -13,13 +13,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +69,35 @@ public class FetchConfigTest {
     }
 
     @Test
+    public void shouldGetHasAWSUseIamRoleFalseIfNotSet() {
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()),goEnvironmentForTest);
+        Boolean result = fetchConfig.hasAWSUseIamRole();
+        assertThat(result, is(Boolean.FALSE));
+    }
+
+    @Test
+    public void shouldGetHasAWSUseIamRoleTrueIfSetToTrue() {
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE,"True")
+                .build()),goEnvironmentForTest);
+
+        Boolean result = fetchConfig.hasAWSUseIamRole();
+
+        assertThat(result, is(Boolean.TRUE));
+    }
+
+    @Test
+    public void shouldGetHasAWSUseIamRoleFalseIfSetToFalse() {
+        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE,"False")
+                .build()),goEnvironmentForTest);
+
+        Boolean result = fetchConfig.hasAWSUseIamRole();
+
+        assertThat(result, is(Boolean.FALSE));
+    }
+
+    @Test
     public void shouldS3Bucket() {
         fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()), goEnvironmentForTest);
         String awsSecretAccessKey = fetchConfig.getS3Bucket();
@@ -90,7 +120,8 @@ public class FetchConfigTest {
 
     @Test
     public void shouldNotBeValidIfAWSSecretAccessKeyNotPresent() {
-        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(AWS_SECRET_ACCESS_KEY, "").build()), goEnvironmentForTest);
+        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(AWS_SECRET_ACCESS_KEY, "").build()),
+                goEnvironmentForTest);
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
         ArrayList<String> messages = new ArrayList<String>();
@@ -100,7 +131,58 @@ public class FetchConfigTest {
 
     @Test
     public void shouldNotBeValidIfAWSAccessKeyIdNotPresent() {
-        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build()), goEnvironmentForTest);
+        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build()),
+                goEnvironmentForTest);
+        ValidationResult validationResult = fetchConfig.validate();
+        assertFalse(validationResult.isSuccessful());
+        ArrayList<String> messages = new ArrayList<String>();
+        messages.add("AWS_ACCESS_KEY_ID environment variable not present");
+        assertThat(validationResult.getMessages(), Matchers.<List<String>>is(messages));
+    }
+
+    @Test
+    public void shouldBeValidIfUsingIamRoleAndAWSKeysArePresent() {
+        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE,"True")
+                .build()),
+                goEnvironmentForTest);
+        ValidationResult validationResult = fetchConfig.validate();
+        assertTrue(validationResult.isSuccessful());
+    }
+
+    @Test
+    public void shouldBeValidIfUsingIamRoleAndAWSKeysNotPresent() {
+        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE,"True")
+                .with(AWS_ACCESS_KEY_ID, "")
+                .with(AWS_SECRET_ACCESS_KEY, "")
+                .build()),
+                goEnvironmentForTest);
+        ValidationResult validationResult = fetchConfig.validate();
+        assertTrue(validationResult.isSuccessful());
+    }
+
+    @Test
+    public void shouldNotBeValidIfNotUsingIamRoleAndAWSSecretAccessKeyNotPresent() {
+        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE,"False")
+                .with(AWS_SECRET_ACCESS_KEY, "")
+                .build()),
+                goEnvironmentForTest);
+        ValidationResult validationResult = fetchConfig.validate();
+        assertFalse(validationResult.isSuccessful());
+        ArrayList<String> messages = new ArrayList<String>();
+        messages.add("AWS_SECRET_ACCESS_KEY environment variable not present");
+        assertThat(validationResult.getMessages(), Matchers.<List<String>>is(messages));
+    }
+
+    @Test
+    public void shouldNotBeValidIfNotUsingIamRoleAndAWSAccessKeyIdNotPresent() {
+        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables
+                .with(AWS_ACCESS_KEY_ID, "")
+                .with(AWS_USE_IAM_ROLE,"False")
+                .build()),
+                goEnvironmentForTest);
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
         ArrayList<String> messages = new ArrayList<String>();
@@ -110,7 +192,8 @@ public class FetchConfigTest {
 
     @Test
     public void shouldNotBeValidIfS3BucketNotPresent() {
-        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(GO_ARTIFACTS_S3_BUCKET, "").build()), goEnvironmentForTest);
+        fetchConfig = new FetchConfig(config, mockContext( mockEnvironmentVariables.with(GO_ARTIFACTS_S3_BUCKET, "").build()),
+                goEnvironmentForTest);
         ValidationResult validationResult = fetchConfig.validate();
 
         assertFalse(validationResult.isSuccessful());

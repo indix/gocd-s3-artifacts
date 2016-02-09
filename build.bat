@@ -21,6 +21,7 @@ exit /b 1
 
 :javagood
 call sbt clean editsource:edit assembly
+IF %ERRORLEVEL% NEQ 0 exit /b 1
 
 md Deploy
 copy .\fetch\target\s3fetch-*.jar .\Deploy
