@@ -41,7 +41,7 @@ public class PublishExecutor implements TaskExecutor {
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
         final GoEnvironment env = getGoEnvironment();
         env.putAll(context.environment().asMap());
-        if (env.isAbsent(AWS_USE_IAM_ROLE)) {
+        if (!env.hasAWSUseIamRole()) {
             if (env.isAbsent(AWS_ACCESS_KEY_ID)) return envNotFound(AWS_ACCESS_KEY_ID);
             if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) return envNotFound(AWS_SECRET_ACCESS_KEY);
         }
@@ -107,7 +107,7 @@ public class PublishExecutor implements TaskExecutor {
 
     public AmazonS3Client s3Client(GoEnvironment env) {
         AmazonS3Client client = null;
-        if (env.has(AWS_USE_IAM_ROLE)) {
+        if (env.hasAWSUseIamRole()) {
             client = new AmazonS3Client(new InstanceProfileCredentialsProvider());
         } else {
             client = new AmazonS3Client(new BasicAWSCredentials(env.get(AWS_ACCESS_KEY_ID), env.get(AWS_SECRET_ACCESS_KEY)));
