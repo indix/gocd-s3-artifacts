@@ -6,10 +6,8 @@ import com.indix.gocd.utils.utils.Maps;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
-import junit.framework.Assert;
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -78,9 +76,9 @@ public class FetchConfigTest {
     }
 
     @Test
-    public void shouldGetHasAWSUseIamRoleTrueIfSetToTrueCaseInsensitive() {
+    public void shouldGetHasAWSUseIamRoleTrueIfSetToTrue() {
         fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE,"tRUe")
+                .with(AWS_USE_IAM_ROLE,"True")
                 .build()),goEnvironmentForTest);
 
         Boolean result = fetchConfig.hasAWSUseIamRole();
@@ -89,77 +87,14 @@ public class FetchConfigTest {
     }
 
     @Test
-    public void shouldGetHasAWSUseIamRoleFalseIfSetToFalseCaseInsensitive() {
+    public void shouldGetHasAWSUseIamRoleFalseIfSetToFalse() {
         fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE,"fAlSe")
+                .with(AWS_USE_IAM_ROLE,"False")
                 .build()),goEnvironmentForTest);
 
         Boolean result = fetchConfig.hasAWSUseIamRole();
 
         assertThat(result, is(Boolean.FALSE));
-    }
-
-    @Test
-    public void shouldGetHasAWSUseIamRoleTrueIfSetToYesCaseInsensitive() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE,"YEs")
-                .build()),goEnvironmentForTest);
-
-        Boolean result = fetchConfig.hasAWSUseIamRole();
-
-        assertThat(result, is(Boolean.TRUE));
-    }
-
-    @Test
-    public void shouldGetHasAWSUseIamRoleFalseIfSetToNoCaseInsensitive() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE,"nO")
-                .build()),goEnvironmentForTest);
-
-        Boolean result = fetchConfig.hasAWSUseIamRole();
-
-        assertThat(result, is(Boolean.FALSE));
-    }
-
-
-    @Test
-    public void shouldGetHasAWSUseIamRoleTrueIfSetToOnCaseInsensitive() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE,"oN")
-                .build()),goEnvironmentForTest);
-
-        Boolean result = fetchConfig.hasAWSUseIamRole();
-
-        assertThat(result, is(Boolean.TRUE));
-    }
-
-    @Test
-    public void shouldGetHasAWSUseIamRoleFalseIfSetToOffCaseInsensitive() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE,"oFf")
-                .build()),goEnvironmentForTest);
-
-        Boolean result = fetchConfig.hasAWSUseIamRole();
-
-        assertThat(result, is(Boolean.FALSE));
-    }
-
-    @Test
-    public void shouldThrowExceptionIfAWSUseIamRoleNotWithinExpectedValues() {
-        fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE,"blue")
-                .build()),goEnvironmentForTest);
-
-        try {
-            fetchConfig.hasAWSUseIamRole();
-            fail("Expected exception");
-        } catch (IllegalArgumentException e) {
-            assertEquals(
-                    "Unexpected value in AWS_USE_IAM_ROLE environment variable; was blue, " +
-                            "but expected one of the following [true, false, yes, no, on, off]",
-                    e.getMessage());
-        }
-
     }
 
     @Test

@@ -1,28 +1,38 @@
 package com.indix.gocd.utils;
 
+import static com.indix.gocd.utils.Constants.AWS_USE_IAM_ROLE;
 import static org.hamcrest.CoreMatchers.is;
 
+import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import java.util.HashMap;
 import java.util.Map;
 import com.indix.gocd.utils.utils.Maps;
 import static com.indix.gocd.utils.Constants.GO_SERVER_DASHBOARD_URL;
+import static org.junit.Assert.fail;
 
 
 public class GoEnvironmentTest {
-    Map<String, String> mockEnvironment = Maps.<String, String>builder()
-            .with(GO_SERVER_DASHBOARD_URL, "http://go.server:8153")
-            .with("GO_SERVER_URL", "https://localhost:8154/go")
-            .with("GO_PIPELINE_NAME", "s3-publish-test")
-            .with("GO_PIPELINE_COUNTER", "20")
-            .with("GO_STAGE_NAME", "build-and-publish")
-            .with("GO_STAGE_COUNTER", "1")
-            .with("GO_JOB_NAME", "publish")
-            .with("GO_TRIGGER_USER", "Krishna")
-            .build();
-    GoEnvironment goEnvironment = new GoEnvironment().putAll(mockEnvironment);
+    private GoEnvironment goEnvironment;
+    Maps.MapBuilder<String, String> mockEnvironmentVariables;
+
+    @Before
+    public void setUp() throws Exception {
+        mockEnvironmentVariables = Maps.<String, String>builder()
+                .with(GO_SERVER_DASHBOARD_URL, "http://go.server:8153")
+                .with("GO_SERVER_URL", "https://localhost:8154/go")
+                .with("GO_PIPELINE_NAME", "s3-publish-test")
+                .with("GO_PIPELINE_COUNTER", "20")
+                .with("GO_STAGE_NAME", "build-and-publish")
+                .with("GO_STAGE_COUNTER", "1")
+                .with("GO_JOB_NAME", "publish")
+                .with("GO_TRIGGER_USER", "Krishna");
+        goEnvironment = new GoEnvironment(new HashMap<String, String>()).putAll(mockEnvironmentVariables.build());
+    }
 
     @Test
     public void shouldGenerateTracebackUrl() {
@@ -41,7 +51,7 @@ public class GoEnvironmentTest {
 
     @Test
     public void shouldReturnAsMap() {
-        for(Map.Entry<String, String> entry : mockEnvironment.entrySet()) {
+        for(Map.Entry<String, String> entry : mockEnvironmentVariables.build().entrySet()) {
             assertEquals(entry.getValue(), goEnvironment.asMap().get(entry.getKey()));
         }
     }
@@ -60,6 +70,91 @@ public class GoEnvironmentTest {
         final String replaced = goEnvironment.replaceVariables(envTestTemplate);
 
         assertThat(replaced, is("COUNT:1 ${DOESNT_EXIST}"));
+    }
+
+    @Test
+    public void shouldGetHasAWSUseIamRoleTrueIfSetToTrueCaseInsensitive() {
+        GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE,"tRUe")
+                .build());
+
+        Boolean result = sut.hasAWSUseIamRole();
+
+        assertThat(result, Matchers.is(Boolean.TRUE));
+    }
+
+    @Test
+    public void shouldGetHasAWSUseIamRoleFalseIfSetToFalseCaseInsensitive() {
+        GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE,"fAlSe")
+                .build());
+
+        Boolean result = sut.hasAWSUseIamRole();
+
+        assertThat(result, Matchers.is(Boolean.FALSE));
+    }
+
+    @Test
+    public void shouldGetHasAWSUseIamRoleTrueIfSetToYesCaseInsensitive() {
+        GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE,"YEs")
+                .build());
+
+        Boolean result = sut.hasAWSUseIamRole();
+
+        assertThat(result, Matchers.is(Boolean.TRUE));
+    }
+
+    @Test
+    public void shouldGetHasAWSUseIamRoleFalseIfSetToNoCaseInsensitive() {
+        GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE,"nO")
+                .build());
+
+        Boolean result = sut.hasAWSUseIamRole();
+
+        assertThat(result, Matchers.is(Boolean.FALSE));
+    }
+
+
+    @Test
+    public void shouldGetHasAWSUseIamRoleTrueIfSetToOnCaseInsensitive() {
+        GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE,"oN")
+                .build());
+
+        Boolean result = sut.hasAWSUseIamRole();
+
+        assertThat(result, Matchers.is(Boolean.TRUE));
+    }
+
+    @Test
+    public void shouldGetHasAWSUseIamRoleFalseIfSetToOffCaseInsensitive() {
+        GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE,"oFf")
+                .build());
+
+        Boolean result = sut.hasAWSUseIamRole();
+
+        assertThat(result, Matchers.is(Boolean.FALSE));
+    }
+
+    @Test
+    public void shouldThrowExceptionIfAWSUseIamRoleNotWithinExpectedValues() {
+        GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE,"blue")
+                .build());
+
+        try {
+            sut.hasAWSUseIamRole();
+            fail("Expected exception");
+        } catch (IllegalArgumentException e) {
+            assertEquals(
+                    "Unexpected value in AWS_USE_IAM_ROLE environment variable; was blue, " +
+                            "but expected one of the following [true, false, yes, no, on, off]",
+                    e.getMessage());
+        }
+
     }
 
 }
