@@ -19,8 +19,7 @@ public class FetchConfig {
     private GoEnvironment env;
     private static Logger logger = Logger.getLoggerFor(FetchConfig.class);
 
-    public FetchConfig(TaskConfig config, TaskExecutionContext context)
-    {
+    public FetchConfig(TaskConfig config, TaskExecutionContext context) {
         this(config, context, new GoEnvironment());
     }
 
