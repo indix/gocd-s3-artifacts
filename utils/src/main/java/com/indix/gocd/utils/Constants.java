@@ -17,5 +17,9 @@ public class Constants {
     public static final String AWS_USE_IAM_ROLE = "AWS_USE_IAM_ROLE";
     public static final String AWS_KMS_KEY_ID = "AWS_KMS_KEY_ID";
     public static final String GO_ARTIFACTS_COMPRESS_IN_S3 = "GO_ARTIFACTS_COMPRESS_IN_S3";
-
+    public static final String AWS_STORAGE_CLASS = "AWS_STORAGE_CLASS";
+    public static final String STORAGE_CLASS_STANDARD = "standard";
+    public static final String STORAGE_CLASS_STANDARD_IA = "standard-ia";
+    public static final String STORAGE_CLASS_RRS = "rrs";
+    public static final String STORAGE_CLASS_GLACIER = "glacier";
 }

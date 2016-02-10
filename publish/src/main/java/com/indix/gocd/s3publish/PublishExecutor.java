@@ -6,6 +6,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
+import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.util.json.JSONException;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.utils.Functions;
@@ -67,6 +68,7 @@ public class PublishExecutor implements TaskExecutor {
         if (env.has(AWS_KMS_KEY_ID))
             kmsKey = env.get(AWS_KMS_KEY_ID);
         final S3ArtifactStore store = new S3ArtifactStore(s3Client, bucket, kmsKey);
+        store.setStorageClass(env.getOrElse(AWS_STORAGE_CLASS, STORAGE_CLASS_STANDARD));
 
         final String destinationPrefix = getDestinationPrefix(config, env);
 
