@@ -67,6 +67,8 @@ public class S3ArtifactStore {
             request = request.withSSEAwsKeyManagementParams(
                     new SSEAwsKeyManagementParams(kmsKey)
             );
+
+        request = request.withCannedAcl(CannedAccessControlList.BucketOwnerFullControl);
         put(request);
     }
 
