@@ -67,11 +67,13 @@ public class S3ArtifactStore {
             request = request.withSSEAwsKeyManagementParams(
                     new SSEAwsKeyManagementParams(kmsKey)
             );
+
         put(request);
     }
 
     public void put(PutObjectRequest putObjectRequest) {
         putObjectRequest.setStorageClass(this.storageClass);
+        putObjectRequest.setCannedAcl(CannedAccessControlList.BucketOwnerFullControl);
         client.putObject(putObjectRequest);
     }
 
