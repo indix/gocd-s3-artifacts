@@ -198,7 +198,8 @@ public class S3ArtifactStore {
                 Map<String, String> userMetadata = metadata.getUserMetadata();
                 String tracebackUrl = userMetadata.get(ResponseMetadataConstants.TRACEBACK_URL);
                 String user = userMetadata.get(ResponseMetadataConstants.USER);
-                return new RevisionStatus(recent, metadata.getLastModified(), tracebackUrl, user);
+                String revisionLabel = userMetadata.getOrDefault(ResponseMetadataConstants.GO_PIPELINE_LABEL, recent.getRevision());
+                return new RevisionStatus(recent, metadata.getLastModified(), tracebackUrl, user, revisionLabel);
             }
             return null;
         } catch (RuntimeException e) {

@@ -19,7 +19,9 @@ public class S3PackageMaterialPoller implements PackageMaterialPoller {
         String s3Bucket = repositoryConfiguration.get(S3PackageMaterialConfiguration.S3_BUCKET).getValue();
         S3ArtifactStore artifactStore = new S3ArtifactStore(s3Client(), s3Bucket);
         RevisionStatus revision = artifactStore.getLatest(s3Client(), artifact(packageConfiguration));
-        return new PackageRevision(revision.revision.getRevision(), revision.lastModified, revision.user, "", revision.tracebackUrl);
+        return new PackageRevision(revision.revision.getRevision(), revision.lastModified, revision.user,
+                String.format("Original revision number: %s", revision.revisionLabel),
+                revision.tracebackUrl);
     }
 
     @Override
