@@ -74,9 +74,9 @@ public class GoEnvironmentTest {
 
 
     @Test
-    public void shouldGetHasAWSUseIamRoleTrueIfSetToTrueCaseInsensitive() {
+    public void shouldGetHasAWSUseIamRoleTrueIfSetToTrue() {
         GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE,"tRUe")
+                .with(AWS_USE_IAM_ROLE,"True")
                 .build());
 
         Boolean result = sut.hasAWSUseIamRole();
@@ -85,9 +85,9 @@ public class GoEnvironmentTest {
     }
 
     @Test
-    public void shouldGetHasAWSUseIamRoleFalseIfSetToFalseCaseInsensitive() {
+    public void shouldGetHasAWSUseIamRoleFalseIfSetToFalse() {
         GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE,"fAlSe")
+                .with(AWS_USE_IAM_ROLE,"False")
                 .build());
 
         Boolean result = sut.hasAWSUseIamRole();
@@ -95,50 +95,6 @@ public class GoEnvironmentTest {
         assertThat(result, Matchers.is(Boolean.FALSE));
     }
 
-    @Test
-    public void shouldGetHasAWSUseIamRoleTrueIfSetToYesCaseInsensitive() {
-        GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE,"YEs")
-                .build());
-
-        Boolean result = sut.hasAWSUseIamRole();
-
-        assertThat(result, Matchers.is(Boolean.TRUE));
-    }
-
-    @Test
-    public void shouldGetHasAWSUseIamRoleFalseIfSetToNoCaseInsensitive() {
-        GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE,"nO")
-                .build());
-
-        Boolean result = sut.hasAWSUseIamRole();
-
-        assertThat(result, Matchers.is(Boolean.FALSE));
-    }
-
-
-    @Test
-    public void shouldGetHasAWSUseIamRoleTrueIfSetToOnCaseInsensitive() {
-        GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE,"oN")
-                .build());
-
-        Boolean result = sut.hasAWSUseIamRole();
-
-        assertThat(result, Matchers.is(Boolean.TRUE));
-    }
-
-    @Test
-    public void shouldGetHasAWSUseIamRoleFalseIfSetToOffCaseInsensitive() {
-        GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE,"oFf")
-                .build());
-
-        Boolean result = sut.hasAWSUseIamRole();
-
-        assertThat(result, Matchers.is(Boolean.FALSE));
-    }
 
     @Test
     public void shouldThrowExceptionIfAWSUseIamRoleNotWithinExpectedValues() {

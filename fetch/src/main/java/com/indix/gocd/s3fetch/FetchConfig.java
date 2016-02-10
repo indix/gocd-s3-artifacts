@@ -16,8 +16,7 @@ public class FetchConfig {
     private final String job;
     private GoEnvironment env;
 
-    public FetchConfig(TaskConfig config, TaskExecutionContext context)
-    {
+    public FetchConfig(TaskConfig config, TaskExecutionContext context) {
         this(config, context, new GoEnvironment());
     }
 
