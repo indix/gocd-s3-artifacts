@@ -43,6 +43,7 @@ public class PublishExecutorTest {
                 .with("GO_PIPELINE_COUNTER", "pipelineCounter")
                 .with("GO_STAGE_COUNTER", "stageCounter")
                 .with("GO_SERVER_URL", "http://localhost:8153/go")
+                .with(GO_PIPELINE_LABEL, "1.2.3")
                 .with("GO_TRIGGER_USER", "Krishna");
 
         publishExecutor = spy(new PublishExecutor());
@@ -156,6 +157,7 @@ public class PublishExecutorTest {
                 .with(METADATA_USER, "Krishna")
                 .with(METADATA_TRACEBACK_URL, "http://go.server:8153/go/tab/build/detail/pipeline/pipelineCounter/stage/stageCounter/job")
                 .with(COMPLETED, COMPLETED)
+                .with(GO_PIPELINE_LABEL, "1.2.3")
                 .build();
         assertThat(metadataPutRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));
         assertThat(metadataPutRequest.getKey(), is("pipeline/stage/job/pipelineCounter.stageCounter/"));
@@ -199,6 +201,7 @@ public class PublishExecutorTest {
                 .with(METADATA_USER, "Krishna")
                 .with(METADATA_TRACEBACK_URL, "http://go.server:8153/go/tab/build/detail/pipeline/pipelineCounter/stage/stageCounter/job")
                 .with(COMPLETED, COMPLETED)
+                .with(GO_PIPELINE_LABEL, "1.2.3")
                 .build();
         assertThat(metadataPutRequest.getMetadata().getUserMetadata(), is(expectedUserMetadata));
     }
