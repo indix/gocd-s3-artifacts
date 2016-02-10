@@ -39,6 +39,11 @@ public class GoEnvironment {
         return environment.get(name);
     }
 
+    public String getOrElse(String name, String defaultValue) {
+        if(has(name)) return get(name);
+        else return defaultValue;
+    }
+
     public boolean has(String name) {
         return environment.containsKey(name) && isNotEmpty(get(name));
     }

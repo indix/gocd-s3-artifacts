@@ -38,7 +38,7 @@ lazy val utils = (project in file("utils")).
     libraryDependencies ++= Seq(
       junit, junitInterface, hamcrest
     ),
-    javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+    javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
 
 lazy val publish = (project in file("publish")).
@@ -51,7 +51,7 @@ lazy val publish = (project in file("publish")).
     libraryDependencies ++= Seq(
       ant, junit, junitInterface, hamcrest
     ),
-    javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+    javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
 
 lazy val material = (project in file("material")).
@@ -64,7 +64,7 @@ lazy val material = (project in file("material")).
     libraryDependencies ++= Seq(
       scalaTest
     ),
-    javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+    javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
 
 lazy val fetch = (project in file("fetch")).
@@ -77,5 +77,5 @@ lazy val fetch = (project in file("fetch")).
     libraryDependencies ++= Seq(
       junit, hamcrest
     ),
-    javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+    javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
