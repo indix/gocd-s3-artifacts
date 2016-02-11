@@ -10,7 +10,7 @@ public class RevisionStatus {
     public String revisionLabel;
 
     public RevisionStatus(Revision revision, Date lastModified, String tracebackUrl, String user) {
-        this(revision, lastModified, tracebackUrl, user, revision.getRevision());
+        this(revision, lastModified, tracebackUrl, user, "");
     }
     public RevisionStatus(Revision revision, Date lastModified, String tracebackUrl, String user, String revisionLabel) {
         this.revision = revision;
