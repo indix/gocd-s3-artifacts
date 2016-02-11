@@ -1,6 +1,7 @@
 package com.indix.gocd.s3material.plugin;
 
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.util.StringUtils;
 import com.indix.gocd.s3material.config.S3PackageMaterialConfiguration;
 import com.indix.gocd.models.Artifact;
 import com.indix.gocd.models.Revision;
@@ -20,7 +21,8 @@ public class S3PackageMaterialPoller implements PackageMaterialPoller {
         S3ArtifactStore artifactStore = new S3ArtifactStore(s3Client(), s3Bucket);
         RevisionStatus revision = artifactStore.getLatest(s3Client(), artifact(packageConfiguration));
         return new PackageRevision(revision.revision.getRevision(), revision.lastModified, revision.user,
-                String.format("Original revision number: %s", revision.revisionLabel),
+                String.format("Original revision number: %s",
+                        StringUtils.isNullOrEmpty(revision.revisionLabel) ? "unavailable" : revision.revisionLabel),
                 revision.tracebackUrl);
     }
 

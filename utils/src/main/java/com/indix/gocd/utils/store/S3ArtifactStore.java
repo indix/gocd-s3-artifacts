@@ -199,8 +199,8 @@ public class S3ArtifactStore {
                 String tracebackUrl = userMetadata.get(ResponseMetadataConstants.TRACEBACK_URL);
                 String user = userMetadata.get(ResponseMetadataConstants.USER);
                 String revisionLabel = userMetadata.containsKey(ResponseMetadataConstants.GO_PIPELINE_LABEL) ?
-                        userMetadata.getOrDefault(ResponseMetadataConstants.GO_PIPELINE_LABEL, recent.getRevision())
-                        : recent.getRevision();
+                        userMetadata.get(ResponseMetadataConstants.GO_PIPELINE_LABEL)
+                        : "";
                 return new RevisionStatus(recent, metadata.getLastModified(), tracebackUrl, user, revisionLabel);
             }
             return null;
