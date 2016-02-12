@@ -95,10 +95,6 @@ public class FetchExecutor implements TaskExecutor {
     private void setupDestinationDirectory(String destination) {
         File destinationDirectory = new File(destination);
         try {
-            /*
-            * As of 1/25/2016, do not delete destination directory if exists, as this prevents being able to fetch
-            * multiple artifacts without creating double-level folder structure
-            */
             if(!destinationDirectory.exists()) {
                 FileUtils.forceMkdir(destinationDirectory);
             }
