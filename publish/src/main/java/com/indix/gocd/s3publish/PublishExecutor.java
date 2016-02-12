@@ -215,6 +215,7 @@ public class PublishExecutor implements TaskExecutor {
         objectMetadata.addUserMetadata(METADATA_USER, user);
         objectMetadata.addUserMetadata(METADATA_TRACEBACK_URL, tracebackUrl);
         objectMetadata.addUserMetadata(COMPLETED, COMPLETED);
+        objectMetadata.addUserMetadata(GO_PIPELINE_LABEL, env.get(GO_PIPELINE_LABEL));
         return objectMetadata;
     }
 
