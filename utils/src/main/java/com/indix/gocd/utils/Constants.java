@@ -22,4 +22,6 @@ public class Constants {
     public static final String STORAGE_CLASS_STANDARD_IA = "standard-ia";
     public static final String STORAGE_CLASS_RRS = "rrs";
     public static final String STORAGE_CLASS_GLACIER = "glacier";
+
+    public static final String GO_PIPELINE_LABEL = "GO_PIPELINE_LABEL";
 }
