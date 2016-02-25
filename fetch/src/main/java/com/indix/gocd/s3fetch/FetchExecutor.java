@@ -48,11 +48,9 @@ public class FetchExecutor implements TaskExecutor {
     private void setupDestinationDirectory(String destination) {
         File destinationDirectory = new File(destination);
         try {
-            if(destinationDirectory.exists()) {
-                FileUtils.cleanDirectory(destinationDirectory);
-                FileUtils.deleteDirectory(destinationDirectory);
+            if(!destinationDirectory.exists()) {
+                FileUtils.forceMkdir(destinationDirectory);
             }
-            FileUtils.forceMkdir(destinationDirectory);
         } catch (IOException ioe) {
             logger.error(String.format("Error while setting up destination - %s", ioe.getMessage()), ioe);
         }
