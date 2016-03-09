@@ -20,7 +20,7 @@ public class FetchExecutor implements TaskExecutor {
 
     @Override
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
-        final FetchConfig fetchConfig = new FetchConfig(config, context);
+        final FetchConfig fetchConfig = getFetchConfig(config, context);
 
         ValidationResult validationResult = fetchConfig.validate();
         if(!validationResult.isSuccessful()) {
@@ -70,4 +70,7 @@ public class FetchExecutor implements TaskExecutor {
         return client;
     }
 
+    public FetchConfig getFetchConfig(TaskConfig config, TaskExecutionContext context) {
+        return new FetchConfig(config, context);
+    }
 }

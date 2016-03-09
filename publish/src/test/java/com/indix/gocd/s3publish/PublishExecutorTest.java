@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,7 @@ public class PublishExecutorTest {
                 .with("GO_TRIGGER_USER", "Krishna");
 
         publishExecutor = spy(new PublishExecutor());
+        doReturn(new GoEnvironment(new HashMap<String,String>())).when(publishExecutor).getGoEnvironment();
     }
 
     @Test
@@ -63,6 +65,50 @@ public class PublishExecutorTest {
         assertFalse(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
     }
+
+    @Test
+    public void shouldNotThrowIfAWSUseIAMRoleIsFalseAndAWS_ACCESS_KEY_IDNotPresent() {
+        Map<String, String> mockVariables = mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE, "False")
+                .with(AWS_ACCESS_KEY_ID, "")
+                .build();
+
+        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
+        assertFalse(executionResult.isSuccessful());
+        assertThat(executionResult.getMessagesForDisplay(), is("AWS_ACCESS_KEY_ID environment variable not present"));
+    }
+
+    @Test
+    public void shouldThrowIfAWSUseIAMRoleIsFalseAndAWS_SECRET_ACCESS_KEYNotPresent() {
+        Map<String, String> mockVariables = mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE, "False")
+                .with(AWS_SECRET_ACCESS_KEY, "")
+                .build();
+
+        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
+        assertFalse(executionResult.isSuccessful());
+        assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
+    }
+
+    @Test
+    public void shouldNotThrowIfAWSUseIAMRoleIsTrueAndAWS_SECRET_ACCESS_KEYNotPresent() {
+        Maps.MapBuilder<String, String> mockVariables = mockEnvironmentVariables
+                .with(AWS_USE_IAM_ROLE, "True")
+                .with(AWS_ACCESS_KEY_ID, "")
+                .with(AWS_SECRET_ACCESS_KEY, "");
+        AmazonS3Client mockClient = mockClient();
+
+        ExecutionResult executionResult = executeMockPublish(
+                mockClient,
+                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
+                "",
+                new String[]{"README.md"},
+                mockVariables
+        );
+
+        assertTrue(executionResult.isSuccessful());
+    }
+
 
     @Test
     public void shouldThrowIfGO_ARTIFACTS_S3_BUCKETNotPresent() {
@@ -207,7 +253,12 @@ public class PublishExecutorTest {
     }
 
     private ExecutionResult executeMockPublish(final AmazonS3Client mockClient, String sourceDestinations, String destinationPrefix, String[] files) {
-        Map<String, String> mockVariables = mockEnvironmentVariables.build();
+        return executeMockPublish(mockClient, sourceDestinations, destinationPrefix, files, mockEnvironmentVariables);
+    }
+
+        private ExecutionResult executeMockPublish(final AmazonS3Client mockClient, String sourceDestinations, String destinationPrefix, String[] files,
+                                               Maps.MapBuilder<String, String> mockVariablesBuilder) {
+        Map<String, String> mockVariables = mockVariablesBuilder.build();
 
         doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
         when(config.getValue(SOURCEDESTINATIONS)).thenReturn(sourceDestinations);

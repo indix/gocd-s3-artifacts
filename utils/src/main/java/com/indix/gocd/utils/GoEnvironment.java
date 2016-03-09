@@ -1,13 +1,15 @@
 package com.indix.gocd.utils;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 import java.lang.StringBuffer;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.indix.gocd.utils.Constants.AWS_USE_IAM_ROLE;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static com.indix.gocd.utils.Constants.GO_SERVER_DASHBOARD_URL;
 
@@ -19,13 +21,19 @@ public class GoEnvironment {
     private Map<String, String> environment = new HashMap<String, String>();
 
     public GoEnvironment() {
-        this.environment.putAll(System.getenv());
+        this(System.getenv());
+    }
+
+    public GoEnvironment(Map<String, String> defaultEnvironment) {
+        this.environment.putAll(defaultEnvironment);
     }
 
     public GoEnvironment putAll(Map<String, String> existing) {
         environment.putAll(existing);
         return this;
     }
+
+    public Map<String,String> asMap() { return environment; }
 
     public String get(String name) {
         return environment.get(name);
@@ -91,4 +99,26 @@ public class GoEnvironment {
         return String.format("%s/%s/%s/%s.%s", pipeline, stageName, jobName, pipelineCounter, stageCounter);
     }
 
+    private static final List<String> validUseIamRoleValues = new ArrayList<String>(Arrays.asList("true", "false", "yes", "no", "on", "off"));
+    public boolean hasAWSUseIamRole() {
+        if (!has(AWS_USE_IAM_ROLE)) {
+            return false;
+        }
+
+        String useIamRoleValue = get(AWS_USE_IAM_ROLE);
+        Boolean result = BooleanUtils.toBooleanObject(useIamRoleValue);
+        if (result == null) {
+            throw new IllegalArgumentException(getEnvInvalidFormatMessage(AWS_USE_IAM_ROLE,
+                    useIamRoleValue, validUseIamRoleValues.toString()));
+        }
+        else {
+            return result.booleanValue();
+        }
+    }
+
+    private String getEnvInvalidFormatMessage(String environmentVariable, String value, String expected){
+        return String.format(
+                "Unexpected value in %s environment variable; was %s, but expected one of the following %s",
+                environmentVariable, value, expected);
+    }
 }

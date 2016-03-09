@@ -17,7 +17,11 @@ public class FetchConfig {
     private GoEnvironment env;
 
     public FetchConfig(TaskConfig config, TaskExecutionContext context) {
-        this.env = new GoEnvironment();
+        this(config, context, new GoEnvironment());
+    }
+
+    public FetchConfig(TaskConfig config, TaskExecutionContext context, GoEnvironment goEnvironment) {
+        this.env = goEnvironment;
         env.putAll(context.environment().asMap());
 
         String repoName = config.getValue(FetchTask.REPO).toUpperCase().replaceAll("-", "_");
@@ -30,7 +34,7 @@ public class FetchConfig {
 
     public ValidationResult validate() {
         ValidationResult validationResult = new ValidationResult();
-        if (env.isAbsent(AWS_USE_IAM_ROLE)) {
+        if (!env.hasAWSUseIamRole()) {
             if (env.isAbsent(AWS_ACCESS_KEY_ID)) validationResult.addError(envNotFound(AWS_ACCESS_KEY_ID));
             if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) validationResult.addError(envNotFound(AWS_SECRET_ACCESS_KEY));
         }
@@ -49,7 +53,7 @@ public class FetchConfig {
     }
 
     public boolean hasAWSUseIamRole() {
-        return env.has(AWS_USE_IAM_ROLE);
+        return env.hasAWSUseIamRole();
     }
 
     public String getAWSAccessKeyId() {
@@ -67,4 +71,5 @@ public class FetchConfig {
     private ValidationError envNotFound(String environmentVariable) {
         return new ValidationError(environmentVariable, String.format("%s environment variable not present", environmentVariable));
     }
+
 }
