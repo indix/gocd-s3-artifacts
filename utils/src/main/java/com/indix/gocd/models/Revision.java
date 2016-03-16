@@ -46,7 +46,4 @@ public class Revision implements Comparable {
         return revision;
     }
 
-    public void setRevision(String revision) {
-        this.revision = revision;
-    }
 }
