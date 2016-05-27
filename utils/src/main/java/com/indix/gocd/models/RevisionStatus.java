@@ -11,7 +11,7 @@ public class RevisionStatus {
 
     public RevisionStatus(Revision revision, Date lastModified, String tracebackUrl, String user) {
         this(revision, lastModified, tracebackUrl, user, "");
-        }
+    }
 
     public RevisionStatus(Revision revision, Date lastModified, String tracebackUrl, String user, String revisionLabel) {
         this.revision = revision;

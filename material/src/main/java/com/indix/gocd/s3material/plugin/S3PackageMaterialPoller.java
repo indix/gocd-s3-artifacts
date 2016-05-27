@@ -26,6 +26,7 @@ public class S3PackageMaterialPoller implements PackageMaterialPoller {
                     revision.tracebackUrl);
     }
 
+
     @Override
     public PackageRevision latestModificationSince(PackageConfiguration packageConfiguration, RepositoryConfiguration repositoryConfiguration, PackageRevision previouslyKnownRevision) {
         // S3 doesn't seem to provide APIs to pull pegged updates

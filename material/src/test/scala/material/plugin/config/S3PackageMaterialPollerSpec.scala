@@ -15,16 +15,16 @@ import org.mockito.Mockito._
 
 class S3PackageMaterialPollerSpec extends WordSpec with MockitoSugar  {
 
-  val sut = spy(new S3PackageMaterialPoller());
-  val repoConfig = new RepositoryConfiguration();
-  repoConfig.add(new PackageMaterialProperty(S3PackageMaterialConfiguration.S3_BUCKET, "S3 Bucket"));
-  val mockS3ArtifactStore = mock[S3ArtifactStore];
-  doReturn(mockS3ArtifactStore).when(sut).s3ArtifactStore("S3 Bucket");
+    val sut = spy(new S3PackageMaterialPoller());
+    val repoConfig = new RepositoryConfiguration();
+    repoConfig.add(new PackageMaterialProperty(S3PackageMaterialConfiguration.S3_BUCKET, "S3 Bucket"));
+    val mockS3ArtifactStore = mock[S3ArtifactStore];
+    doReturn(mockS3ArtifactStore).when(sut).s3ArtifactStore("S3 Bucket");
 
-  val packageConfig = new PackageConfiguration();
-  packageConfig.add(new PackageMaterialProperty(S3PackageMaterialConfiguration.PIPELINE_NAME, "Pipeline"));
-  packageConfig.add(new PackageMaterialProperty(S3PackageMaterialConfiguration.STAGE_NAME, "Stage"));
-  packageConfig.add(new PackageMaterialProperty(S3PackageMaterialConfiguration.JOB_NAME, "Job"));
+    val packageConfig = new PackageConfiguration();
+    packageConfig.add(new PackageMaterialProperty(S3PackageMaterialConfiguration.PIPELINE_NAME, "Pipeline"));
+    packageConfig.add(new PackageMaterialProperty(S3PackageMaterialConfiguration.STAGE_NAME, "Stage"));
+    packageConfig.add(new PackageMaterialProperty(S3PackageMaterialConfiguration.JOB_NAME, "Job"));
 
   "A package material poller, when checking connection to repository" when {
     " the bucket is found " should {
@@ -36,7 +36,7 @@ class S3PackageMaterialPollerSpec extends WordSpec with MockitoSugar  {
       }
     }
 
-    "the bucket is not found" should {
+  "the bucket is not found" should {
       "return failure" in {
         doReturn(false).when(mockS3ArtifactStore).bucketExists();
 
@@ -75,3 +75,4 @@ class S3PackageMaterialPollerSpec extends WordSpec with MockitoSugar  {
     }
   }
 }
+
