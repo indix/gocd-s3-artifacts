@@ -99,7 +99,8 @@ public class ZipArchiveManagerTest {
 
             assertTrue("Zip file has one more entry for file inside subfolder", zipFileEntries.hasMoreElements());
             zipEntry = (ZipEntry)zipFileEntries.nextElement();
-            assertEquals("Last zip entry is called myfileInSubfolder.txt", "sampleDir\\myfileInSubfolder.txt", zipEntry.getName());
+
+            assertTrue("Last zip entry is called myfileInSubfolder.txt", zipEntry.getName().matches("sampleDir[/\\\\]myfileInSubfolder.txt"));
 
             assertFalse("Zip file has no more entries", zipFileEntries.hasMoreElements());
             zipFile.close();
