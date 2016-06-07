@@ -1,11 +1,8 @@
 package com.indix.gocd.utils;
 
 import org.apache.commons.lang3.BooleanUtils;
-
 import java.lang.StringBuffer;
-
 import java.util.*;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

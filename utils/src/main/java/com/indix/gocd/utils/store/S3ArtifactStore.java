@@ -9,6 +9,7 @@ import com.indix.gocd.models.RevisionStatus;
 import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Functions;
 import com.indix.gocd.utils.utils.Lists;
+import com.thoughtworks.go.plugin.api.logging.Logger;
 import com.indix.gocd.utils.utils.Maps;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,11 +31,19 @@ public class S3ArtifactStore {
 
     private AmazonS3Client client;
     private String bucket;
+    private String kmsKey = null;
+    private static Logger logger = Logger.getLoggerFor(S3ArtifactStore.class);
     private StorageClass storageClass = StorageClass.Standard;
 
     public S3ArtifactStore(AmazonS3Client client, String bucket) {
         this.client = client;
         this.bucket = bucket;
+    }
+
+    public S3ArtifactStore(AmazonS3Client client, String bucket, String kmsKey) {
+        this.client = client;
+        this.bucket = bucket;
+        this.kmsKey = kmsKey;
     }
 
     public void setStorageClass(String storageClass) {
@@ -47,16 +56,24 @@ public class S3ArtifactStore {
     }
 
     public void put(String from, String to) {
-        put(new PutObjectRequest(bucket, to, new File(from)));
+        put(from, to, null, kmsKey);
     }
 
-    public void put(String from, String to, ObjectMetadata metadata) {
-        put(new PutObjectRequest(bucket, to, new File(from))
-                .withMetadata(metadata));
+    public void put(String from, String to, ObjectMetadata metadata, String kmsKey) {
+        PutObjectRequest request = new PutObjectRequest(bucket, to, new File(from));
+        if (metadata != null)
+            request = request.withMetadata(metadata);
+        if (kmsKey != null && !kmsKey.isEmpty())
+            request = request.withSSEAwsKeyManagementParams(
+                    new SSEAwsKeyManagementParams(kmsKey)
+            );
+
+        put(request);
     }
 
     public void put(PutObjectRequest putObjectRequest) {
         putObjectRequest.setStorageClass(this.storageClass);
+        putObjectRequest.setCannedAcl(CannedAccessControlList.BucketOwnerFullControl);
         client.putObject(putObjectRequest);
     }
 
@@ -166,25 +183,30 @@ public class S3ArtifactStore {
     }
 
     public RevisionStatus getLatest(AmazonS3Client client, Artifact artifact) {
-        ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
-                .withBucketName(bucket)
-                .withPrefix(artifact.prefix())
-                .withDelimiter("/");
+        try {
+            ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+                    .withBucketName(bucket)
+                    .withPrefix(artifact.prefix())
+                    .withDelimiter("/");
 
-        ObjectListing listing = client.listObjects(listObjectsRequest);
-        if (listing != null) {
-            Revision recent = latestOf(client, listing);
-            Artifact artifactWithRevision = artifact.withRevision(recent);
-            GetObjectMetadataRequest objectMetadataRequest = new GetObjectMetadataRequest(bucket, artifactWithRevision.prefixWithRevision());
-            ObjectMetadata metadata = client.getObjectMetadata(objectMetadataRequest);
-            Map<String, String> userMetadata = metadata.getUserMetadata();
-            String tracebackUrl = userMetadata.get(ResponseMetadataConstants.TRACEBACK_URL);
-            String user = userMetadata.get(ResponseMetadataConstants.USER);
-            String revisionLabel = userMetadata.containsKey(ResponseMetadataConstants.GO_PIPELINE_LABEL) ?
-                    userMetadata.get(ResponseMetadataConstants.GO_PIPELINE_LABEL)
-                    : "";
-            return new RevisionStatus(recent, metadata.getLastModified(), tracebackUrl, user, revisionLabel);
+            ObjectListing listing = client.listObjects(listObjectsRequest);
+            if (listing != null) {
+                Revision recent = latestOf(client, listing);
+                Artifact artifactWithRevision = artifact.withRevision(recent);
+                GetObjectMetadataRequest objectMetadataRequest = new GetObjectMetadataRequest(bucket, artifactWithRevision.prefixWithRevision());
+                ObjectMetadata metadata = client.getObjectMetadata(objectMetadataRequest);
+                Map<String, String> userMetadata = metadata.getUserMetadata();
+                String tracebackUrl = userMetadata.get(ResponseMetadataConstants.TRACEBACK_URL);
+                String user = userMetadata.get(ResponseMetadataConstants.USER);
+                String revisionLabel = userMetadata.containsKey(ResponseMetadataConstants.GO_PIPELINE_LABEL) ?
+                        userMetadata.get(ResponseMetadataConstants.GO_PIPELINE_LABEL)
+                        : "";
+                return new RevisionStatus(recent, metadata.getLastModified(), tracebackUrl, user, revisionLabel);
+            }
+            return null;
+        } catch (RuntimeException e) {
+            logger.error(String.format("Error in getLatest from S3 repository bucket {%s}, prefix {%s}", bucket, artifact.prefix()), e);
+            throw e;
         }
-        return null;
     }
 }
