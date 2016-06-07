@@ -48,7 +48,7 @@ public class FetchExecutor implements TaskExecutor {
                 return ExecutionResult.failure(message, e);
             }
 
-            ExecutionResult zipArchivesExecutionResult = ExtractAndCleanupZipArchivesIfPresent(destination);
+            ExecutionResult zipArchivesExecutionResult = extractAndCleanArchives(destination);
 
             if (!zipArchivesExecutionResult.isSuccessful()) {
                 return zipArchivesExecutionResult;
@@ -64,7 +64,7 @@ public class FetchExecutor implements TaskExecutor {
         }
     }
 
-    private ExecutionResult ExtractAndCleanupZipArchivesIfPresent(String destination)
+    private ExecutionResult extractAndCleanArchives(String destination)
     {
         List<File> files = (List<File>) FileUtils.listFiles(new File(destination), new String[]{"zip"}, true);
         for (File zipFile : files) {
@@ -78,13 +78,13 @@ public class FetchExecutor implements TaskExecutor {
                     logger.error(message);
                     return ExecutionResult.failure(message, e);
                 }
-                CleanUpZip(zipFile);
+                deleteArchive(zipFile);
             }
         }
         return ExecutionResult.success("");
     }
 
-    private void CleanUpZip(File zipFile) {
+    private void deleteArchive(File zipFile) {
         try {
             zipFile.delete();
         } catch (RuntimeException e)
