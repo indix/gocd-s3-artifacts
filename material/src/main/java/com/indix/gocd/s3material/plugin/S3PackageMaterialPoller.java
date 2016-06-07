@@ -1,7 +1,6 @@
 package com.indix.gocd.s3material.plugin;
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.util.StringUtils;
 import com.indix.gocd.s3material.config.S3PackageMaterialConfiguration;
 import com.indix.gocd.models.Artifact;
 import com.indix.gocd.models.Revision;
@@ -13,6 +12,7 @@ import com.thoughtworks.go.plugin.api.material.packagerepository.PackageRevision
 import com.thoughtworks.go.plugin.api.material.packagerepository.RepositoryConfiguration;
 import com.thoughtworks.go.plugin.api.response.Result;
 import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
+import org.apache.commons.lang3.StringUtils;
 
 public class S3PackageMaterialPoller implements PackageMaterialPoller {
     @Override
@@ -22,7 +22,7 @@ public class S3PackageMaterialPoller implements PackageMaterialPoller {
         RevisionStatus revision = artifactStore.getLatest(s3Client(), artifact(packageConfiguration));
         return new PackageRevision(revision.revision.getRevision(), revision.lastModified, revision.user,
                     String.format("Original revision number: %s",
-                    StringUtils.isNullOrEmpty(revision.revisionLabel) ? "unavailable" : revision.revisionLabel),
+                    StringUtils.isBlank(revision.revisionLabel) ? "unavailable" : revision.revisionLabel),
                     revision.tracebackUrl);
     }
 

@@ -1,6 +1,5 @@
 package com.indix.gocd.s3fetch;
-
-import com.amazonaws.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import com.indix.gocd.utils.GoEnvironment;
 import com.thoughtworks.go.plugin.api.logging.Logger;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationError;
@@ -45,7 +44,7 @@ public class FetchConfig {
             if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) validationResult.addError(envNotFound(AWS_SECRET_ACCESS_KEY));
         }
         if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) validationResult.addError(envNotFound(GO_ARTIFACTS_S3_BUCKET));
-        if (StringUtils.isNullOrEmpty(materialLabel)) {
+        if (StringUtils.isBlank(materialLabel)) {
             logger.error(String.format("Cannot find material label %s", this.materialLabelName));
             validationResult.addError(new ValidationError("Please check Repository name or Package name configuration. Also ensure that the appropriate S3 material is configured for the pipeline."));
         }
