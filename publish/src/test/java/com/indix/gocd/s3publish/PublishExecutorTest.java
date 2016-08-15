@@ -4,10 +4,12 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
+import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Maps;
 import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -46,7 +48,7 @@ public class PublishExecutorTest {
                 .with("GO_TRIGGER_USER", "Krishna");
 
         publishExecutor = spy(new PublishExecutor());
-        doReturn(new GoEnvironment(new HashMap<String,String>())).when(publishExecutor).getGoEnvironment();
+        doReturn(new GoEnvironment(new HashMap<String, String>())).when(publishExecutor).getGoEnvironment();
     }
 
     @Test
@@ -98,9 +100,10 @@ public class PublishExecutorTest {
                 .with(AWS_ACCESS_KEY_ID, "")
                 .with(AWS_SECRET_ACCESS_KEY, "");
         AmazonS3Client mockClient = mockClient();
+        S3ArtifactStore mockStore = mockStore(mockClient);
 
         ExecutionResult executionResult = executeMockPublish(
-                mockClient,
+                mockStore,
                 "[{\"source\": \"target/*\", \"destination\": \"\"}]",
                 "",
                 new String[]{"README.md"},
@@ -123,9 +126,10 @@ public class PublishExecutorTest {
     @Test
     public void shouldGetDisplayMessageAfterUpload() {
         AmazonS3Client mockClient = mockClient();
+        S3ArtifactStore mockStore = mockStore(mockClient);
 
         ExecutionResult executionResult = executeMockPublish(
-                mockClient,
+                mockStore,
                 "[{\"source\": \"target/*\", \"destination\": \"\"}]",
                 "",
                 new String[]{"README.md"}
@@ -138,9 +142,11 @@ public class PublishExecutorTest {
     @Test
     public void shouldUploadALocalFileToS3WithDefaultPrefix() {
         AmazonS3Client mockClient = mockClient();
+        S3ArtifactStore mockStore = mockStore(mockClient);
+
 
         ExecutionResult executionResult = executeMockPublish(
-                mockClient,
+                mockStore,
                 "[{\"source\": \"target/*\", \"destination\": \"\"}]",
                 "",
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
@@ -176,9 +182,10 @@ public class PublishExecutorTest {
     @Test
     public void shouldUploadALocalFileToS3WithDestinationPrefix() {
         AmazonS3Client mockClient = mockClient();
+        S3ArtifactStore mockStore = mockStore(mockClient);
 
         ExecutionResult executionResult = executeMockPublish(
-                mockClient,
+                mockStore,
                 "[{\"source\": \"target/*\", \"destination\": \"\"}]",
                 "destinationPrefix",
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
@@ -203,9 +210,10 @@ public class PublishExecutorTest {
     @Test
     public void shouldUploadALocalFileToS3WithDestinationPrefixUsingEnvVariable() {
         AmazonS3Client mockClient = mockClient();
+        S3ArtifactStore mockStore = mockStore(mockClient);
 
         ExecutionResult executionResult = executeMockPublish(
-                mockClient,
+                mockStore,
                 "[{\"source\": \"target/*\", \"destination\": \"\"}]",
                 "test/${GO_PIPELINE_COUNTER}/",
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
@@ -230,9 +238,10 @@ public class PublishExecutorTest {
     @Test
     public void shouldUploadALocalFileToS3WithSlashDestinationPrefix() {
         AmazonS3Client mockClient = mockClient();
+        S3ArtifactStore mockStore = mockStore(mockClient);
 
         ExecutionResult executionResult = executeMockPublish(
-                mockClient,
+                mockStore,
                 "[{\"source\": \"target/*\", \"destination\": \"\"}]",
                 "/",
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
@@ -254,18 +263,18 @@ public class PublishExecutorTest {
         assertNull(jarPutRequest.getMetadata());
     }
 
-    private ExecutionResult executeMockPublish(final AmazonS3Client mockClient, String sourceDestinations, String destinationPrefix, String[] files) {
-        return executeMockPublish(mockClient, sourceDestinations, destinationPrefix, files, mockEnvironmentVariables);
+    private ExecutionResult executeMockPublish(final S3ArtifactStore mockStore, String sourceDestinations, String destinationPrefix, String[] files) {
+        return executeMockPublish(mockStore, sourceDestinations, destinationPrefix, files, mockEnvironmentVariables);
     }
 
-        private ExecutionResult executeMockPublish(final AmazonS3Client mockClient, String sourceDestinations, String destinationPrefix, String[] files,
+    private ExecutionResult executeMockPublish(final S3ArtifactStore mockStore, String sourceDestinations, String destinationPrefix, String[] files,
                                                Maps.MapBuilder<String, String> mockVariablesBuilder) {
         Map<String, String> mockVariables = mockVariablesBuilder.build();
 
-        doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
         when(config.getValue(SOURCEDESTINATIONS)).thenReturn(sourceDestinations);
         when(config.getValue(DESTINATION_PREFIX)).thenReturn(destinationPrefix);
         doReturn(files).when(publishExecutor).parseSourcePath(anyString(), anyString());
+        doReturn(mockStore).when(publishExecutor).getStore(any(GoEnvironment.class), anyString());
 
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
 
@@ -279,11 +288,16 @@ public class PublishExecutorTest {
 
         return allPutObjectRequests;
     }
+
     private TaskExecutionContext mockContext(final Map<String, String> environmentMap) {
         return new MockTaskExecutionContext(environmentMap);
     }
 
     private AmazonS3Client mockClient() {
         return mock(AmazonS3Client.class);
+    }
+
+    private S3ArtifactStore mockStore(AmazonS3Client mockClient) {
+        return new S3ArtifactStore(mockClient, mockEnvironmentVariables.build().get(GO_ARTIFACTS_S3_BUCKET));
     }
 }

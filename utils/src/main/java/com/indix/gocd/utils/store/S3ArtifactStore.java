@@ -1,11 +1,15 @@
 package com.indix.gocd.utils.store;
 
+import com.amazonaws.auth.*;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.*;
 import com.indix.gocd.models.Artifact;
 import com.indix.gocd.models.ResponseMetadataConstants;
 import com.indix.gocd.models.Revision;
 import com.indix.gocd.models.RevisionStatus;
+import com.indix.gocd.utils.creds.AnonAWSCredentialsProvider;
+import com.indix.gocd.utils.creds.BasicAWSCredentialsProvider;
 import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Functions;
 import com.indix.gocd.utils.utils.Lists;
@@ -31,6 +35,17 @@ public class S3ArtifactStore {
     private AmazonS3Client client;
     private String bucket;
     private StorageClass storageClass = StorageClass.Standard;
+
+    public static S3ArtifactStore createStore(String accessKey, String secretKey, String bucket) {
+        AWSCredentialsProviderChain credentials = new AWSCredentialsProviderChain(
+                new EnvironmentVariableCredentialsProvider(),
+                new SystemPropertiesCredentialsProvider(),
+                new ProfileCredentialsProvider(),
+                new InstanceProfileCredentialsProvider(),
+                new BasicAWSCredentialsProvider(accessKey, secretKey),
+                new AnonAWSCredentialsProvider());
+        return new S3ArtifactStore(new AmazonS3Client(credentials), bucket);
+    }
 
     public S3ArtifactStore(AmazonS3Client client, String bucket) {
         this.client = client;
@@ -165,7 +180,7 @@ public class S3ArtifactStore {
         return latestOfInternal(client, listing, mostRecentRevision(client, listing));
     }
 
-    public RevisionStatus getLatest(AmazonS3Client client, Artifact artifact) {
+    public RevisionStatus getLatest(Artifact artifact) {
         ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
                 .withBucketName(bucket)
                 .withPrefix(artifact.prefix())

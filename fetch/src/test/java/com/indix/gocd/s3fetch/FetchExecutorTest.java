@@ -66,10 +66,9 @@ public class FetchExecutorTest {
     @Test
     public void shouldBeFailureIfUnableToFetchArtifacts() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
-        AmazonS3Client mockClient = mockClient();
-        doReturn(mockClient).when(fetchExecutor).s3Client(any(FetchConfig.class));
-        doThrow(new AmazonClientException("Exception message")).when(mockClient).listObjects(any(ListObjectsRequest.class));
-
+        S3ArtifactStore mockStore = mockStore();
+        doThrow(new AmazonClientException("Exception message")).when(mockStore).getPrefix(anyString(), anyString());
+        doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class));
         ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
 
         assertFalse(executionResult.isSuccessful());

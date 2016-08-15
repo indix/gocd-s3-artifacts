@@ -19,7 +19,7 @@ public class S3PackageMaterialPoller implements PackageMaterialPoller {
     public PackageRevision getLatestRevision(PackageConfiguration packageConfiguration, RepositoryConfiguration repositoryConfiguration) {
         String s3Bucket = repositoryConfiguration.get(S3PackageMaterialConfiguration.S3_BUCKET).getValue();
         S3ArtifactStore artifactStore = s3ArtifactStore(s3Bucket);
-        RevisionStatus revision = artifactStore.getLatest(s3Client(), artifact(packageConfiguration));
+        RevisionStatus revision = artifactStore.getLatest(artifact(packageConfiguration));
         return new PackageRevision(revision.revision.getRevision(), revision.lastModified, revision.user,
                     String.format("Original revision number: %s",
                     StringUtils.isNullOrEmpty(revision.revisionLabel) ? "unavailable" : revision.revisionLabel),
@@ -61,18 +61,8 @@ public class S3PackageMaterialPoller implements PackageMaterialPoller {
             return ExecutionResult.failure(String.format("Couldn't find artifact at [%s]", prefix));
     }
 
-    private static AmazonS3Client s3Client() {
-        // The s3 client has a nice way to pick up the creds.
-        // It first checks the env to see if it contains the required key related variables/values
-        // If not, it checks the java system properties to see if it's set there(ideally via -D args)
-        // If not, it falls back to check ~/.aws/credentials file
-        // If not, finally, very insecure way, it tries to fetch from the internal metadata service that each
-        // instance comes with(if its exposed).
-        return new AmazonS3Client();
-    }
-
     public S3ArtifactStore s3ArtifactStore(String s3Bucket) {
-        return new S3ArtifactStore(s3Client(), s3Bucket);
+        return S3ArtifactStore.createStore("", "", s3Bucket);
     }
 
     private Artifact artifact(PackageConfiguration packageConfig) {
