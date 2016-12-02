@@ -10,6 +10,7 @@ val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test
 val hamcrest = "org.hamcrest" % "hamcrest-all" % "1.3" % Test
 val mockito = "org.mockito" % "mockito-all" % "1.9.0" % Test
 val scalaTest = "org.scalatest" %% "scalatest" % "2.2.0" % Test
+val googleGson = "com.google.code.gson" % "gson" % "2.8.0"
 
 val appVersion = sys.env.get("SNAP_PIPELINE_COUNTER") orElse sys.env.get("GO_PIPELINE_LABEL") getOrElse "1.0.0-SNAPSHOT"
 
@@ -49,7 +50,7 @@ lazy val publish = (project in file("publish")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      ant, junit, junitInterface, hamcrest
+      ant, junit, junitInterface, hamcrest, googleGson
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )

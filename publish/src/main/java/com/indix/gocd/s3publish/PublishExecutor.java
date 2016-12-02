@@ -34,6 +34,9 @@ import static com.indix.gocd.utils.utils.Functions.VoidFunction;
 import static com.indix.gocd.utils.utils.Lists.flatMap;
 import static com.indix.gocd.utils.utils.Lists.foreach;
 
+import com.thoughtworks.go.plugin.api.request.GoPluginApiRequest;
+import com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse;
+
 
 public class PublishExecutor implements TaskExecutor {
     private Logger log = Logger.getLoggerFor(PublishTask.class);
