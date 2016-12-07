@@ -6,6 +6,7 @@ import com.amazonaws.util.json.JSONObject;
 import com.google.gson.GsonBuilder;
 import com.indix.gocd.utils.utils.Functions;
 import com.indix.gocd.utils.utils.Tuple2;
+import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory;
 import com.thoughtworks.go.plugin.api.GoApplicationAccessor;
 import com.thoughtworks.go.plugin.api.GoPlugin;
 import com.thoughtworks.go.plugin.api.GoPluginIdentifier;
@@ -35,69 +36,65 @@ import static org.apache.commons.lang3.StringUtils.trim;
 import com.google.gson.Gson;
 
 @Extension
-public class PublishTask implements  GoPlugin {
+public class PublishTask implements GoPlugin {
 
 
-
-    public GoPluginApiResponse config() {
-        TaskConfig taskConfig = new TaskConfig();
-        taskConfig.addProperty(SOURCEDESTINATIONS);
-        taskConfig.addProperty(DESTINATION_PREFIX);
-        return taskConfig;
+    public GoPluginApiResponse handleGetConfigRequest(GoPluginApiRequest request) {
+        Map config = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
+        return DefaultGoPluginApiResponse.success(new Gson().toJson(config));
     }
 
 
-    public GoPluginApiResponse executor() {
+    public GoPluginApiResponse handleTaskExecution(GoPluginApiRequest request) {
         return new PublishExecutor();
     }
 
 
     public GoPluginApiResponse view() {
-        return new TaskView() {
-            @Override
-            public String displayValue() {
-                return "Publish To S3";
-            }
+        int responseCode = DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
+        Map view = new HashMap();
+        view.put("displayValue", "Publish To S3");
+        try {
+            view.put("template", IOUtils.toString(getClass().getResourceAsStream("/views/task.template.html"), "UTF-8"));
+        } catch (IOException e) {
+            responseCode = DefaultGoPluginApiResponse.INTERNAL_ERROR;
+            view.put("exception", "Error happened during rendering" + e.getMessage());
+        }
 
-            @Override
-            public String template() {
-                try {
-                    return IOUtils.toString(getClass().getResourceAsStream("/views/task.template.html"), "UTF-8");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return "Error happened during rendering - " + e.getMessage();
-                }
-            }
-        };
+        return createResponse(responseCode, view);
     }
+
+    private GoPluginApiResponse createResponse(int responseCode, Map message) {
+        final DefaultGoPluginApiResponse response = new DefaultGoPluginApiResponse(responseCode);
+        response.setResponseBody(new GsonBuilder().serializeNulls().create().toJson(message));
+        return response;
+    }
+
 
     @Override
     public GoPluginApiResponse handle(GoPluginApiRequest request) {
         Map config = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
-        List<Tuple2<String, String>> sourceDestinations;
+        Map errors = new HashMap();
+        int responseCode = DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
+        List<Tuple2<String, String>> sourceDestinations = null;
         try {
             sourceDestinations = getSourceDestinations(config.get(SOURCEDESTINATIONS).toString());
         } catch (JSONException e) {
-            List<JSONException> errors = Arrays.asList(e);
-            return DefaultGoPluginApiResponse.error(new Gson().toJson(errors));
+            responseCode = DefaultGoPluginApiResponse.VALIDATION_FAILED;
+            errors.put("Error reading source destinations", e);
+            createResponse(responseCode, errors);
         }
 
-        final HashMap errors = new HashMap();
-
-        foreach(sourceDestinations, new Functions.VoidFunction<Tuple2<String, String>>() {
-            @Override
-            public void execute(Tuple2<String, String> input) {
-                if (StringUtils.isBlank(input._1())) {
-                    errors.put(DefaultGoPluginApiResponse.VALIDATION_FAILED, "Source cannot be empty");
-                }
+        int i = 0 ;
+        while(i < sourceDestinations.size()) {
+            String source = sourceDestinations.get(i)._1();
+            if(StringUtils.isBlank(source)) {
+                responseCode = DefaultGoPluginApiResponse.VALIDATION_FAILED;
+                errors.put("Empty source" , "Source cannot be empty")
             }
-        });
-
-        if (errors.containsKey(DefaultGoPluginApiResponse.VALIDATION_FAILED)) {
-            return DefaultGoPluginApiResponse.badRequest(new Gson().toJson(errors));
-        } else {
-            return DefaultGoPluginApiResponse.success(new Gson().toJson(errors));
         }
+
+        return createResponse(responseCode, errors);
     }
 
     public static List<Tuple2<String, String>> getSourceDestinations(String sourceDestinationsString) throws JSONException {
