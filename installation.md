@@ -1,5 +1,4 @@
-Installation
-===
+# Installation
 
 Installing the plugin(s) is same as any other Go plugins. Please follow the Go documentation on installing plugins.
 

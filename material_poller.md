@@ -1,5 +1,4 @@
-Material Poller
-===
+# Material Poller
 
 This is a package repository plugin that polls S3 for artifacts and triggers the pipeline as appropriate.
 
@@ -14,7 +13,7 @@ Next, choose `s3material` as the `Type` of the package repository. This should b
 
 Use the `Check Connection` button to verify that the credentials are fine and the provided bucket exists. This state is shown in the following screenshot:
 
-![](material_configuration.png)
+![](resources/images/material_configuration.png)
 
 Click on `Save` to add the S3 package repository.
 
@@ -30,7 +29,7 @@ Click on `Check Package` to ensure that we have entered the right pipeline, stag
 
 This state is shown in the following screenshot:
 
-![](material_package_configuration.png)
+![](resources/images/material_package_configuration.png)
 
 Click on `Save Package And Material` button to save the new package and material.
 
@@ -40,7 +39,7 @@ Note that the saved package can be reused in other jobs/pipelines.
 
 Once the material is added, it will poll for new artifacts on S3. If found, a new run of the pipeline will be triggered. The Trackback URL will point to the source of the artifacts, as shown in the following screenshot:
 
-![](material_trackback.png)
+![](resources/images/material_trackback.png)
 
 The material plugin will also set environment variables that identify the source label, S3 bucket, pipeline name, stage name and job name, as shown form the job log output below:
 

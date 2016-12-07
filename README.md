@@ -1,5 +1,4 @@
-GoCD S3 Artifacts
-===
+# GoCD S3 Artifacts
 
 This is a collection of necessary GoCD plugins to enable publishing, polling and fetching artifacts from Amazon S3.
 
