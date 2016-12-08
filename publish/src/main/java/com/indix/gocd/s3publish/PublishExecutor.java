@@ -5,52 +5,65 @@ import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-
-import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.util.json.JSONException;
+import com.google.gson.GsonBuilder;
 import com.indix.gocd.utils.GoEnvironment;
-import com.thoughtworks.go.plugin.api.logging.Logger;
-import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
-import com.thoughtworks.go.plugin.api.task.TaskExecutor;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
-
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Lists;
 import com.indix.gocd.utils.utils.Tuple2;
+import com.thoughtworks.go.plugin.api.logging.Logger;
+import com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse;
+import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.TaskConfigurationChecker;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
 import static com.indix.gocd.utils.utils.Functions.VoidFunction;
 import static com.indix.gocd.utils.utils.Lists.flatMap;
 import static com.indix.gocd.utils.utils.Lists.foreach;
 
-import com.thoughtworks.go.plugin.api.request.GoPluginApiRequest;
-import com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse;
+
+public class PublishExecutor {
+    Logger logger = Logger.getLoggerFor(PublishTask.class);
+
+    public void envNotFound(String envName) {
+        logger.error("env variable not found - " + envName);
+    }
 
 
-public class PublishExecutor implements TaskExecutor {
-    private Logger log = Logger.getLoggerFor(PublishTask.class);
-
-    @Override
-    public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
+    public GoPluginApiResponse execute(Map<String, String> config, final Map context) {
         final GoEnvironment env = getGoEnvironment();
-        env.putAll(context.environment().asMap());
+        String environmentVariables = context.get("environmentVariables").toString();
+        Map envVariables = (Map) new GsonBuilder().create().fromJson(environmentVariables, Object.class);
+
+        env.putAll(envVariables);
         if (!env.hasAWSUseIamRole()) {
-            if (env.isAbsent(AWS_ACCESS_KEY_ID)) return envNotFound(AWS_ACCESS_KEY_ID);
-            if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) return envNotFound(AWS_SECRET_ACCESS_KEY);
+            if (env.isAbsent(AWS_ACCESS_KEY_ID)) {
+                envNotFound(AWS_ACCESS_KEY_ID);
+                return DefaultGoPluginApiResponse.badRequest("env variable not found - " + AWS_ACCESS_KEY_ID);
+            }
+            if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) {
+                envNotFound(AWS_SECRET_ACCESS_KEY);
+                return DefaultGoPluginApiResponse.badRequest("env variable not found - " + AWS_SECRET_ACCESS_KEY);
+            }
         }
-        if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
-        if (env.isAbsent(GO_SERVER_DASHBOARD_URL)) return envNotFound(GO_SERVER_DASHBOARD_URL);
+        if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) {
+            envNotFound(GO_ARTIFACTS_S3_BUCKET);
+            return DefaultGoPluginApiResponse.badRequest("env variable not found - " + GO_ARTIFACTS_S3_BUCKET);
+        }
+        if (env.isAbsent(GO_SERVER_DASHBOARD_URL)) {
+            envNotFound(GO_SERVER_DASHBOARD_URL);
+            return DefaultGoPluginApiResponse.badRequest("env variable not found - " + GO_SERVER_DASHBOARD_URL);
+        }
 
         final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
         final S3ArtifactStore store = new S3ArtifactStore(s3Client(env), bucket);
@@ -59,37 +72,37 @@ public class PublishExecutor implements TaskExecutor {
         final String destinationPrefix = getDestinationPrefix(config, env);
 
         try {
-            List<Tuple2<String, String>> sourceDestinations = PublishTask.getSourceDestinations(config.getValue(SOURCEDESTINATIONS));
+            List<Tuple2<String, String>> sourceDestinations = PublishTask.getSourceDestinations(config.get(SOURCEDESTINATIONS));
             foreach(sourceDestinations, new VoidFunction<Tuple2<String, String>>() {
                 @Override
                 public void execute(Tuple2<String, String> input) {
                     final String source = input._1();
                     final String destination = input._2();
-                    String[] files = parseSourcePath(source, context.workingDir());
+                    String[] files = parseSourcePath(source, context.get("workingDir").toString());
 
                     foreach(files, new VoidFunction<String>() {
                         @Override
                         public void execute(String includedFile) {
-                            File localFileToUpload = new File(String.format("%s/%s", context.workingDir(), includedFile));
+                            File localFileToUpload = new File(String.format("%s/%s", context.get("workingDir").toString(), includedFile));
 
-                            pushToS3(context, destinationPrefix, store, localFileToUpload, destination);
+                            pushToS3(destinationPrefix, store, localFileToUpload, destination);
                         }
                     });
                 }
             });
         } catch (JSONException e) {
-            String message = "Failed while parsing configuration";
-            log.error(message);
-            return ExecutionResult.failure(message, e);
+            Map error = new HashMap();
+            error.put("Failed while parsing configuration", e);
+            return DefaultGoPluginApiResponse.error(new GsonBuilder().create().toJson(error));
         }
 
         // A configured destination prefix is used to deploy files rather than publish artifacts
         // We only want to set metadata when publishing artifacts
-        if(!hasConfigDestinationPrefix(config)) {
+        if (!hasConfigDestinationPrefix(config)) {
             setMetadata(env, bucket, destinationPrefix, store);
         }
 
-        return ExecutionResult.success("Published all artifacts to S3");
+        return DefaultGoPluginApiResponse.success("Published all artifacts to S3");
     }
 
     /*
@@ -120,9 +133,9 @@ public class PublishExecutor implements TaskExecutor {
         return client;
     }
 
-    private void pushToS3(final TaskExecutionContext context, final String destinationPrefix, final S3ArtifactStore store, File localFileToUpload, String destination) {
+    private void pushToS3(final String destinationPrefix, final S3ArtifactStore store, File localFileToUpload, String destination) {
         String templateSoFar = ensureKeySegmentValid(destinationPrefix);
-        if(!StringUtils.isBlank(destination)) {
+        if (!StringUtils.isBlank(destination)) {
             templateSoFar += destination;
         }
         List<FilePathToTemplate> filesToUpload = generateFilesToUpload(templateSoFar, localFileToUpload);
@@ -131,9 +144,9 @@ public class PublishExecutor implements TaskExecutor {
             public void execute(FilePathToTemplate filePathToTemplate) {
                 String localFile = filePathToTemplate._1();
                 String destinationOnS3 = filePathToTemplate._2();
-                context.console().printLine(String.format("Pushing %s to %s", localFile, store.pathString(destinationOnS3)));
+                logger.error(String.format("Pushing %s to %s", localFile, store.pathString(destinationOnS3)));
                 store.put(localFile, destinationOnS3);
-                context.console().printLine(String.format("Pushed %s to %s", localFile, store.pathString(destinationOnS3)));
+                logger.error(String.format("Pushed %s to %s", localFile, store.pathString(destinationOnS3)));
             }
         });
     }
@@ -164,12 +177,6 @@ public class PublishExecutor implements TaskExecutor {
         }
     }
 
-    private ExecutionResult envNotFound(String environmentVariable) {
-        String message = String.format("%s environment variable not present", environmentVariable);
-        log.error(message);
-        return ExecutionResult.failure(message);
-    }
-
     private void setMetadata(GoEnvironment env, String bucket, String destinationPrefix, S3ArtifactStore store) {
         ObjectMetadata metadata = metadata(env);
         metadata.setContentLength(0);
@@ -182,26 +189,26 @@ public class PublishExecutor implements TaskExecutor {
         store.put(putObjectRequest);
     }
 
-    private String getConfigDestinationPrefix(final TaskConfig config) {
-        return config.getValue(DESTINATION_PREFIX);
+    private String getConfigDestinationPrefix(final Map<String, String> config) {
+        return config.get(DESTINATION_PREFIX);
     }
 
-    private boolean hasConfigDestinationPrefix(final TaskConfig config) {
+    private boolean hasConfigDestinationPrefix(final Map<String, String> config) {
         String destinationPrefix = getConfigDestinationPrefix(config);
 
         return !StringUtils.isBlank(destinationPrefix);
     }
 
-    private String getDestinationPrefix(final TaskConfig config, final GoEnvironment env) {
-        if(!hasConfigDestinationPrefix(config)) {
-            return  env.artifactsLocationTemplate();
+    private String getDestinationPrefix(final Map<String, String> config, final GoEnvironment env) {
+        if (!hasConfigDestinationPrefix(config)) {
+            return env.artifactsLocationTemplate();
         }
 
         String destinationPrefix = getConfigDestinationPrefix(config);
 
         destinationPrefix = env.replaceVariables(destinationPrefix);
 
-        if(destinationPrefix.endsWith("/")) {
+        if (destinationPrefix.endsWith("/")) {
             destinationPrefix = destinationPrefix.substring(0, destinationPrefix.length() - 1);
         }
 
@@ -209,11 +216,11 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private String ensureKeySegmentValid(String segment) {
-        if(StringUtils.isBlank(segment)) {
+        if (StringUtils.isBlank(segment)) {
             return segment;
         }
 
-        if(!StringUtils.endsWith(segment, "/")) {
+        if (!StringUtils.endsWith(segment, "/")) {
             segment += "/";
         }
 

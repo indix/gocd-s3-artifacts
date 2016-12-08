@@ -7,15 +7,15 @@ import com.indix.gocd.s3publish.PublishExecutor;
 import com.indix.gocd.utils.Constants;
 import com.indix.gocd.utils.utils.Lists;
 import com.indix.gocd.utils.utils.Maps;
-import com.thoughtworks.go.plugin.api.config.Property;
-import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
+import com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse;
+import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
 import com.thoughtworks.go.plugin.api.task.Console;
 import com.thoughtworks.go.plugin.api.task.EnvironmentVariables;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,14 +46,17 @@ public class ManuallyPublish {
         String destination = args[1];
 
         TaskExecutionContext taskExecutionContext = getTaskExecutionContext(localFileToUpload);
-        TaskConfig taskConfig = new TaskConfig();
+        HashMap taskConfig = new HashMap();
         List<SourceDestination> sourceDestinations = Lists.of(new SourceDestination(localFileToUpload.getName(), destination));
-        taskConfig.add(new Property(Constants.SOURCEDESTINATIONS, sourceDestinations(sourceDestinations), "null"));
+        taskConfig.put(Constants.SOURCEDESTINATIONS, sourceDestinations(sourceDestinations));
+        HashMap taskContext = new HashMap();
+        taskContext.put("environmentVariables", taskExecutionContext.environment());
+        taskContext.put("workingDir", taskExecutionContext.workingDir());
 
-        ExecutionResult executionResult = new PublishExecutor().execute(taskConfig, taskExecutionContext);
+        GoPluginApiResponse executionResult = new PublishExecutor().execute(taskConfig, taskContext);
 
-        if (!executionResult.isSuccessful()) {
-            System.err.println(executionResult.getMessagesForDisplay());
+        if (!(executionResult.responseCode() == DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE)) {
+            System.err.println(executionResult.responseBody());
             System.exit(1);
         }
     }
