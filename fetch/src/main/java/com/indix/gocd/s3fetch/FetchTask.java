@@ -1,73 +1,66 @@
 package com.indix.gocd.s3fetch;
 
-import com.thoughtworks.go.plugin.api.annotation.Extension;
-import com.thoughtworks.go.plugin.api.response.validation.ValidationError;
-import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
-import com.thoughtworks.go.plugin.api.task.Task;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutor;
-import com.thoughtworks.go.plugin.api.task.TaskView;
-import org.apache.commons.io.IOUtils;
+import io.jmnarloch.cd.go.plugin.api.config.AnnotatedEnumConfigurationProvider;
+import io.jmnarloch.cd.go.plugin.api.dispatcher.ApiRequestDispatcher;
+import io.jmnarloch.cd.go.plugin.api.dispatcher.ApiRequestDispatcherBuilder;
+import io.jmnarloch.cd.go.plugin.api.task.AbstractDispatchingTask;
+import io.jmnarloch.cd.go.plugin.api.validation.AbstractTaskValidator;
+import io.jmnarloch.cd.go.plugin.api.validation.ValidationErrors;
+import io.jmnarloch.cd.go.plugin.api.view.AbstractTaskView;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
+import java.util.Map;
 
+public class FetchTask2 extends AbstractDispatchingTask {
+    @Override
+    protected ApiRequestDispatcher buildDispatcher() {
+        return ApiRequestDispatcherBuilder.dispatch()
+                .toConfiguration(new AnnotatedEnumConfigurationProvider<>(ConfigFetch.class))
+                .toValidator(new FetchTaskValidator())
+                .toView(new FetchTaskView("", ""))
+                .toExecutor(new FetchExecutor())
+                .build();
+    }
+}
 
-@Extension
-public class FetchTask implements Task {
+enum ConfigFetch {
+    REPO("Repo"),
+    PACKAGE("Package");
+
+    private final String propertyValue;
+    ConfigFetch(String sth) {
+        propertyValue = sth;
+    }
+
+}
+
+class FetchTaskValidator extends AbstractTaskValidator {
+
     public static final String REPO = "Repo";
     public static final String PACKAGE = "Package";
     public static final String DESTINATION = "Destination";
 
     @Override
-    public TaskConfig config() {
-        TaskConfig taskConfig = new TaskConfig();
-        taskConfig.addProperty(REPO);
-        taskConfig.addProperty(PACKAGE);
-        taskConfig.addProperty(DESTINATION);
-        return taskConfig;
-    }
-
-    @Override
-    public TaskExecutor executor() {
-        return new FetchExecutor();
-    }
-
-    @Override
-    public TaskView view() {
-        return new TaskView() {
-            @Override
-            public String displayValue() {
-                return "Fetch S3 package";
-            }
-
-            @Override
-            public String template() {
-                try {
-                    return IOUtils.toString(getClass().getResourceAsStream("/views/task.template.html"), "UTF-8");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return "Error happened during rendering - " + e.getMessage();
-                }
-            }
-        };
-    }
-
-    @Override
-    public ValidationResult validate(TaskConfig taskConfig) {
-        ValidationResult validationResult = new ValidationResult();
-        if (StringUtils.isBlank(taskConfig.getValue(REPO))) {
-            validationResult.addError(new ValidationError(REPO, "S3 repository must be specified"));
+    public void validate(Map<String, Object> properties, ValidationErrors errors) {
+        if (StringUtils.isBlank((String) properties.get(REPO))) {
+            errors.addError(REPO, "S3 repository must be specified");
         }
 
-        if (StringUtils.isBlank(taskConfig.getValue(PACKAGE))) {
-            validationResult.addError(new ValidationError(PACKAGE, "S3 package must be specified"));
+        if (StringUtils.isBlank((String) properties.get(PACKAGE))) {
+            errors.addError(PACKAGE, "S3 package must be specified");
         }
 
-        if (StringUtils.isBlank(taskConfig.getValue(DESTINATION))) {
-            validationResult.addError(new ValidationError(DESTINATION, "Destination directory must be specified"));
+        if (StringUtils.isBlank((String) properties.get(DESTINATION))) {
+            errors.addError(DESTINATION, "Destination directory must be specified");
         }
-
-        return validationResult;
     }
+
+}
+
+class FetchTaskView extends AbstractTaskView {
+
+    public FetchTaskView(String displayValue, String templatePath) {
+        super(displayValue, templatePath);
+    }
+
 }
