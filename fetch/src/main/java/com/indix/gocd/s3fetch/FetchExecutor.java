@@ -5,11 +5,12 @@ import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.thoughtworks.go.plugin.api.logging.Logger;
-import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
-import com.thoughtworks.go.plugin.api.task.TaskExecutor;
+import com.thoughtworks.go.plugin.api.task.JobConsoleLogger;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionConfiguration;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionContext;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionResult;
+import io.jmnarloch.cd.go.plugin.api.executor.TaskExecutor;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -19,7 +20,7 @@ public class FetchExecutor implements TaskExecutor {
     private static Logger logger = Logger.getLoggerFor(FetchTask.class);
 
     @Override
-    public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
+    public ExecutionResult execute(ExecutionContext context, ExecutionConfiguration config, JobConsoleLogger console) {
         final FetchConfig fetchConfig = getFetchConfig(config, context);
 
         ValidationResult validationResult = fetchConfig.validate();
@@ -30,8 +31,8 @@ public class FetchExecutor implements TaskExecutor {
         final S3ArtifactStore store = s3ArtifactStore(fetchConfig);
 
         String artifactPathOnS3 = fetchConfig.getArtifactsLocationTemplate();
-        context.console().printLine(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
-        String destination = String.format("%s/%s", context.workingDir(), config.getValue(FetchTask.DESTINATION));
+//        context.console().printLine(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
+        String destination = String.format("%s/%s", context.getWorkingDirectory(), config.getProperty(FetchConfigEnum.DESTINATION.name()));
         setupDestinationDirectory(destination);
 
         try {
@@ -70,7 +71,7 @@ public class FetchExecutor implements TaskExecutor {
         return client;
     }
 
-    public FetchConfig getFetchConfig(TaskConfig config, TaskExecutionContext context) {
+    public FetchConfig getFetchConfig(ExecutionConfiguration config, ExecutionContext context) {
         return new FetchConfig(config, context);
     }
 }
