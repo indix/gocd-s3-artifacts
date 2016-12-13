@@ -12,75 +12,36 @@ import com.thoughtworks.go.plugin.api.task.Task;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutor;
 import com.thoughtworks.go.plugin.api.task.TaskView;
+import io.jmnarloch.cd.go.plugin.api.config.AnnotatedEnumConfigurationProvider;
+import io.jmnarloch.cd.go.plugin.api.dispatcher.ApiRequestDispatcher;
+import io.jmnarloch.cd.go.plugin.api.dispatcher.ApiRequestDispatcherBuilder;
+import io.jmnarloch.cd.go.plugin.api.task.AbstractDispatchingTask;
+import io.jmnarloch.cd.go.plugin.api.validation.AbstractTaskValidator;
+import io.jmnarloch.cd.go.plugin.api.validation.ValidationErrors;
+import io.jmnarloch.cd.go.plugin.api.view.AbstractTaskView;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import static com.indix.gocd.utils.Constants.SOURCEDESTINATIONS;
 import static com.indix.gocd.utils.Constants.DESTINATION_PREFIX;
+import static com.indix.gocd.utils.Constants.SOURCEDESTINATIONS;
 import static com.indix.gocd.utils.utils.Lists.foreach;
 import static org.apache.commons.lang3.StringUtils.trim;
 
 @Extension
-public class PublishTask implements Task {
+class PublishTask extends AbstractDispatchingTask {
 
     @Override
-    public TaskConfig config() {
-        TaskConfig taskConfig = new TaskConfig();
-        taskConfig.addProperty(SOURCEDESTINATIONS);
-        taskConfig.addProperty(DESTINATION_PREFIX);
-        return taskConfig;
-    }
-
-    @Override
-    public TaskExecutor executor() {
-        return new PublishExecutor();
-    }
-
-    @Override
-    public TaskView view() {
-        return new TaskView() {
-            @Override
-            public String displayValue() {
-                return "Publish To S3";
-            }
-
-            @Override
-            public String template() {
-                try {
-                    return IOUtils.toString(getClass().getResourceAsStream("/views/task.template.html"), "UTF-8");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return "Error happened during rendering - " + e.getMessage();
-                }
-            }
-        };
-    }
-
-    @Override
-    public ValidationResult validate(TaskConfig taskConfig) {
-        final ValidationResult validationResult = new ValidationResult();
-        List<Tuple2<String, String>> sourceDestinations;
-        try {
-            sourceDestinations = getSourceDestinations(taskConfig.getValue(SOURCEDESTINATIONS));
-        } catch (JSONException e) {
-            validationResult.addError(new ValidationError(SOURCEDESTINATIONS, "Error while parsing configuration"));
-            return validationResult;
-        }
-
-        foreach(sourceDestinations, new Functions.VoidFunction<Tuple2<String, String>>() {
-            @Override
-            public void execute(Tuple2<String, String> input) {
-                if(StringUtils.isBlank(input._1())) {
-                    validationResult.addError(new ValidationError(SOURCEDESTINATIONS, "Source cannot be empty"));
-                }
-            }
-        });
-
-        return validationResult;
+    protected ApiRequestDispatcher buildDispatcher() {
+        return ApiRequestDispatcherBuilder.dispatch()
+                .toValidator(new PublishTaskValidator())
+                .toView(new PublishTaskView("s3publish", "/views/task.template.html"))
+                .toExecutor(new PublishExecutor())
+                .build();
     }
 
     public static List<Tuple2<String, String>> getSourceDestinations(String sourceDestinationsString) throws JSONException {
@@ -95,4 +56,37 @@ public class PublishTask implements Task {
 
         return result;
     }
+
+}
+
+
+class PublishTaskView extends AbstractTaskView {
+
+    public PublishTaskView(String displayValue, String templatePath) {
+        super(displayValue, templatePath);
+    }
+
+}
+
+class PublishTaskValidator extends AbstractTaskValidator {
+
+    @Override
+    public void validate(Map<String, Object> properties, final ValidationErrors errors) {
+
+        List<Tuple2<String, String>> sourceDestinations;
+        try {
+            sourceDestinations = PublishTask.getSourceDestinations(properties.get(SOURCEDESTINATIONS).toString());
+            foreach(sourceDestinations, new Functions.VoidFunction<Tuple2<String, String>>() {
+                @Override
+                public void execute(Tuple2<String, String> input) {
+                    if(StringUtils.isBlank(input._1())) {
+                        errors.addError(SOURCEDESTINATIONS, "Source cannot be empty");
+                    }
+                }
+            });
+        } catch (JSONException e) {
+            errors.addError(SOURCEDESTINATIONS, "Error while parsing configuration");
+        }
+    }
+
 }

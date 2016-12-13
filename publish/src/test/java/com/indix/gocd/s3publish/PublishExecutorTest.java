@@ -5,9 +5,12 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.utils.Maps;
-import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
+import com.thoughtworks.go.plugin.api.task.JobConsoleLogger;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionConfiguration;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionContext;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -26,11 +29,12 @@ import static org.mockito.Mockito.*;
 public class PublishExecutorTest {
     Maps.MapBuilder<String, String> mockEnvironmentVariables;
     private PublishExecutor publishExecutor;
-    private TaskConfig config;
+    private ExecutionConfiguration config;
+    private JobConsoleLogger logger = mockConsoleLogger();
 
     @Before
     public void setUp() throws Exception {
-        config = mock(TaskConfig.class);
+        config = mock(ExecutionConfiguration.class);
         mockEnvironmentVariables = Maps.<String, String>builder()
                 .with(AWS_SECRET_ACCESS_KEY, "secretKey")
                 .with(AWS_ACCESS_KEY_ID, "accessId")
@@ -53,18 +57,18 @@ public class PublishExecutorTest {
     public void shouldThrowIfAWS_ACCESS_KEY_IDNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_ACCESS_KEY_ID environment variable not present"));
+        ExecutionResult executionResult = publishExecutor.execute(mockContext(mockVariables), config, logger);
+        assertFalse(executionResult.isSuccess());
+        assertThat(executionResult.getMessage(), is("AWS_ACCESS_KEY_ID environment variable not present"));
     }
 
     @Test
     public void shouldThrowIfAWS_SECRET_ACCESS_KEYNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_SECRET_ACCESS_KEY, "").build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
+        ExecutionResult executionResult = publishExecutor.execute(mockContext(mockVariables), config, logger);
+        assertFalse(executionResult.isSuccess());
+        assertThat(executionResult.getMessage(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
     }
 
     @Test
@@ -74,9 +78,9 @@ public class PublishExecutorTest {
                 .with(AWS_ACCESS_KEY_ID, "")
                 .build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_ACCESS_KEY_ID environment variable not present"));
+        ExecutionResult executionResult = publishExecutor.execute(mockContext(mockVariables), config, logger);
+        assertFalse(executionResult.isSuccess());
+        assertThat(executionResult.getMessage(), is("AWS_ACCESS_KEY_ID environment variable not present"));
     }
 
     @Test
@@ -86,9 +90,9 @@ public class PublishExecutorTest {
                 .with(AWS_SECRET_ACCESS_KEY, "")
                 .build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
+        ExecutionResult executionResult = publishExecutor.execute(mockContext(mockVariables), config, logger);
+        assertFalse(executionResult.isSuccess());
+        assertThat(executionResult.getMessage(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
     }
 
     @Test
@@ -107,7 +111,7 @@ public class PublishExecutorTest {
                 mockVariables
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertTrue(executionResult.isSuccess());
     }
 
 
@@ -115,9 +119,9 @@ public class PublishExecutorTest {
     public void shouldThrowIfGO_ARTIFACTS_S3_BUCKETNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(GO_ARTIFACTS_S3_BUCKET, "").build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("GO_ARTIFACTS_S3_BUCKET environment variable not present"));
+        ExecutionResult executionResult = publishExecutor.execute(mockContext(mockVariables), config, logger);
+        assertFalse(executionResult.isSuccess());
+        assertThat(executionResult.getMessage(), is("GO_ARTIFACTS_S3_BUCKET environment variable not present"));
     }
 
     @Test
@@ -131,8 +135,8 @@ public class PublishExecutorTest {
                 new String[]{"README.md"}
         );
 
-        assertTrue(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("Published all artifacts to S3"));
+        assertTrue(executionResult.isSuccess());
+        assertThat(executionResult.getMessage(), is("Published all artifacts to S3"));
     }
 
     @Test
@@ -146,7 +150,7 @@ public class PublishExecutorTest {
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertTrue(executionResult.isSuccess());
 
         final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 3);
 
@@ -184,7 +188,7 @@ public class PublishExecutorTest {
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertTrue(executionResult.isSuccess());
 
         final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
 
@@ -211,7 +215,7 @@ public class PublishExecutorTest {
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertTrue(executionResult.isSuccess());
 
         final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
 
@@ -238,7 +242,7 @@ public class PublishExecutorTest {
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertTrue(executionResult.isSuccess());
 
         final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
 
@@ -263,11 +267,11 @@ public class PublishExecutorTest {
         Map<String, String> mockVariables = mockVariablesBuilder.build();
 
         doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
-        when(config.getValue(SOURCEDESTINATIONS)).thenReturn(sourceDestinations);
-        when(config.getValue(DESTINATION_PREFIX)).thenReturn(destinationPrefix);
+        when(config.getProperty(SOURCEDESTINATIONS)).thenReturn(sourceDestinations);
+        when(config.getProperty(DESTINATION_PREFIX)).thenReturn(destinationPrefix);
         doReturn(files).when(publishExecutor).parseSourcePath(anyString(), anyString());
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
+        ExecutionResult executionResult = publishExecutor.execute(mockContext(mockVariables), config, logger);
 
         return executionResult;
     }
@@ -279,11 +283,15 @@ public class PublishExecutorTest {
 
         return allPutObjectRequests;
     }
-    private TaskExecutionContext mockContext(final Map<String, String> environmentMap) {
+    private ExecutionContext mockContext(final Map<String, String> environmentMap) {
         return new MockTaskExecutionContext(environmentMap);
     }
 
     private AmazonS3Client mockClient() {
         return mock(AmazonS3Client.class);
+    }
+
+    private JobConsoleLogger mockConsoleLogger() {
+        return mock(JobConsoleLogger.class);
     }
 }
