@@ -11,7 +11,7 @@ public class FetchTask extends AbstractDispatchingTask {
         return ApiRequestDispatcherBuilder.dispatch()
                 .toConfiguration(new AnnotatedEnumConfigurationProvider<>(FetchConfigEnum.class))
                 .toValidator(new FetchTaskValidator())
-                .toView(new FetchTaskView("", ""))
+                .toView(new FetchTaskView("s3fetch", "/views/task.template.html"))
                 .toExecutor(new FetchExecutor())
                 .build();
     }

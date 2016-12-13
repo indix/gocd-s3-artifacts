@@ -30,7 +30,7 @@ public class FetchExecutorTest {
     Maps.MapBuilder<String, String> mockEnvironmentVariables;
     private FetchExecutor fetchExecutor;
     private ExecutionConfiguration config;
-    private JobConsoleLogger logger;
+    private JobConsoleLogger logger = mockConsoleLogger();
 
     @Before
     public void setUp() throws Exception {
@@ -99,4 +99,8 @@ public class FetchExecutorTest {
     private S3ArtifactStore mockStore() { return mock(S3ArtifactStore.class); }
 
     private AmazonS3Client mockClient() { return mock(AmazonS3Client.class); }
+
+    private JobConsoleLogger mockConsoleLogger() {
+        return mock(JobConsoleLogger.class);
+    }
 }

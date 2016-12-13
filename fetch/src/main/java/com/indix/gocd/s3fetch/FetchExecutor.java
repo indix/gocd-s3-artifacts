@@ -31,7 +31,7 @@ public class FetchExecutor implements TaskExecutor {
         final S3ArtifactStore store = s3ArtifactStore(fetchConfig);
 
         String artifactPathOnS3 = fetchConfig.getArtifactsLocationTemplate();
-//        context.console().printLine(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
+        console.printLine(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
         String destination = String.format("%s/%s", context.getWorkingDirectory(), config.getProperty(FetchConfigEnum.DESTINATION.name()));
         setupDestinationDirectory(destination);
 
