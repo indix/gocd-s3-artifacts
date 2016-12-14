@@ -7,15 +7,15 @@ import com.indix.gocd.s3publish.PublishExecutor;
 import com.indix.gocd.utils.Constants;
 import com.indix.gocd.utils.utils.Lists;
 import com.indix.gocd.utils.utils.Maps;
-import com.thoughtworks.go.plugin.api.config.Property;
-import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.task.Console;
-import com.thoughtworks.go.plugin.api.task.EnvironmentVariables;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
+import com.thoughtworks.go.plugin.api.task.JobConsoleLogger;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionConfiguration;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionContext;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionResult;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,15 +45,16 @@ public class ManuallyPublish {
         final File localFileToUpload = new File(args[0]);
         String destination = args[1];
 
-        TaskExecutionContext taskExecutionContext = getTaskExecutionContext(localFileToUpload);
-        TaskConfig taskConfig = new TaskConfig();
+        ExecutionContext taskExecutionContext = getTaskExecutionContext(localFileToUpload);
         List<SourceDestination> sourceDestinations = Lists.of(new SourceDestination(localFileToUpload.getName(), destination));
-        taskConfig.add(new Property(Constants.SOURCEDESTINATIONS, sourceDestinations(sourceDestinations), "null"));
+        Map<String, Object> config = new HashMap<>();
+        config.put(Constants.SOURCEDESTINATIONS, sourceDestinations(sourceDestinations));
+        ExecutionConfiguration taskConfig = new ExecutionConfiguration(config);
 
-        ExecutionResult executionResult = new PublishExecutor().execute(taskConfig, taskExecutionContext);
+        ExecutionResult executionResult = new PublishExecutor().execute(taskExecutionContext, taskConfig, getConsole());
 
-        if (!executionResult.isSuccessful()) {
-            System.err.println(executionResult.getMessagesForDisplay());
+        if (!executionResult.isSuccess()) {
+            System.err.println(executionResult.getMessage());
             System.exit(1);
         }
     }
@@ -67,27 +68,22 @@ public class ManuallyPublish {
         return s;
     }
 
-    private static TaskExecutionContext getTaskExecutionContext(final File localFileToUpload) {
-        return new TaskExecutionContext() {
+    private static ExecutionContext getTaskExecutionContext(final File localFileToUpload) {
+        return new ExecutionContext(Maps.<String, String>builder().build()) {
             @Override
-            public EnvironmentVariables environment() {
-                return defaultEnvironmentVariables();
+            public Map<String, String> getEnvironmentVariables() {
+                return Maps.<String, String>builder().build();
             }
 
             @Override
-            public Console console() {
-                return defaultConsole();
-            }
-
-            @Override
-            public String workingDir() {
+            public String getWorkingDirectory() {
                 return localFileToUpload.getParentFile().getAbsolutePath();
             }
         };
     }
 
-    private static Console defaultConsole() {
-        return new Console() {
+    private static JobConsoleLogger getConsole() {
+        return new JobConsoleLogger() {
             @Override
             public void printLine(String s) {
             }
@@ -101,25 +97,8 @@ public class ManuallyPublish {
             }
 
             @Override
-            public void printEnvironment(Map<String, String> map, SecureEnvVarSpecifier secureEnvVarSpecifier) {
-            }
-        };
-    }
-
-    private static EnvironmentVariables defaultEnvironmentVariables() {
-        return new EnvironmentVariables() {
-            @Override
-            public Map<String, String> asMap() {
-                return Maps.<String, String>builder().build();
-            }
-
-            @Override
-            public void writeTo(Console console) {
-            }
-
-            @Override
-            public Console.SecureEnvVarSpecifier secureEnvSpecifier() {
-                return defaultSecureEnvSpecifier();
+            public void printEnvironment(Map<String, String> map) {
+                context.console().printEnvironment(map, defaultSecureEnvSpecifier());
             }
         };
     }
