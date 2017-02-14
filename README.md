@@ -1,7 +1,7 @@
 gocd-s3-artifacts
 =================
 
-[![Build Status](https://snap-ci.com/indix/gocd-s3-artifacts/branch/master/build_image)](https://snap-ci.com/indix/gocd-s3-artifacts/branch/master)
+[![Build Status](https://travis-ci.org/indix/gocd-s3-artifacts.svg?branch=master)](https://travis-ci.org/indix/gocd-s3-artifacts)
 
 Set of plugins to publish, poll and fetch artifacts from Amazon S3
 
