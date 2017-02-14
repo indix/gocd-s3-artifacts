@@ -1,4 +1,6 @@
 language: java
 jdk:
   - oraclejdk8
- script: ./build.sh
+script: ./build.sh
+env:
+  - SNAP_PIPELINE_COUNTER=3.0.${TRAVIS_BUILD_NUMBER}
