@@ -12,11 +12,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -47,6 +49,7 @@ public class PublishExecutorTest {
 
         publishExecutor = spy(new PublishExecutor());
         doReturn(new GoEnvironment(new HashMap<String,String>())).when(publishExecutor).getGoEnvironment();
+        doReturn(true).when(publishExecutor).fileExists(any(File.class));
     }
 
     @Test
@@ -89,6 +92,22 @@ public class PublishExecutorTest {
         ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
         assertFalse(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
+    }
+
+    @Test
+    public void shouldThrowIfLocalFileDoesNotExist() {
+        doReturn(false).when(publishExecutor).fileExists(any(File.class));
+        AmazonS3Client mockClient = mockClient();
+
+        ExecutionResult executionResult = executeMockPublish(
+                mockClient,
+                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
+                "",
+                new String[]{"README.md"}
+        );
+
+        assertFalse(executionResult.isSuccessful());
+        assertThat(executionResult.getMessagesForDisplay(), containsString("README.md is missing"));
     }
 
     @Test
@@ -258,7 +277,7 @@ public class PublishExecutorTest {
         return executeMockPublish(mockClient, sourceDestinations, destinationPrefix, files, mockEnvironmentVariables);
     }
 
-        private ExecutionResult executeMockPublish(final AmazonS3Client mockClient, String sourceDestinations, String destinationPrefix, String[] files,
+    private ExecutionResult executeMockPublish(final AmazonS3Client mockClient, String sourceDestinations, String destinationPrefix, String[] files,
                                                Maps.MapBuilder<String, String> mockVariablesBuilder) {
         Map<String, String> mockVariables = mockVariablesBuilder.build();
 

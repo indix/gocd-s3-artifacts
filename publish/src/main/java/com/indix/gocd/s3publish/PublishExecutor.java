@@ -6,7 +6,6 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
-import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.util.json.JSONException;
 import com.indix.gocd.utils.GoEnvironment;
 import com.thoughtworks.go.plugin.api.logging.Logger;
@@ -27,7 +26,6 @@ import com.indix.gocd.utils.utils.Tuple2;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.TaskConfigurationChecker;
 
 import static com.indix.gocd.utils.Constants.*;
 import static com.indix.gocd.utils.utils.Functions.VoidFunction;
@@ -68,6 +66,9 @@ public class PublishExecutor implements TaskExecutor {
                         @Override
                         public void execute(String includedFile) {
                             File localFileToUpload = new File(String.format("%s/%s", context.workingDir(), includedFile));
+                            if (!fileExists(localFileToUpload)) {
+                                throw new RuntimeException(String.format("%s is missing", localFileToUpload.getAbsolutePath()));
+                            }
 
                             pushToS3(context, destinationPrefix, store, localFileToUpload, destination);
                         }
@@ -78,6 +79,9 @@ public class PublishExecutor implements TaskExecutor {
             String message = "Failed while parsing configuration";
             log.error(message);
             return ExecutionResult.failure(message, e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ExecutionResult.failure(e.getMessage(), e);
         }
 
         // A configured destination prefix is used to deploy files rather than publish artifacts
@@ -115,6 +119,13 @@ public class PublishExecutor implements TaskExecutor {
             client = new AmazonS3Client(new BasicAWSCredentials(env.get(AWS_ACCESS_KEY_ID), env.get(AWS_SECRET_ACCESS_KEY)));
         }
         return client;
+    }
+
+    /*
+        Made public for tests
+     */
+    public boolean fileExists(File localFileToUpload) {
+        return localFileToUpload.exists();
     }
 
     private void pushToS3(final TaskExecutionContext context, final String destinationPrefix, final S3ArtifactStore store, File localFileToUpload, String destination) {
