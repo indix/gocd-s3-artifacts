@@ -2,12 +2,11 @@ package com.indix.gocd.s3publish;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.google.gson.GsonBuilder;
 import com.indix.gocd.utils.GoEnvironment;
-import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.utils.Maps;
-import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
+import com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse;
+import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -18,7 +17,8 @@ import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -26,11 +26,17 @@ import static org.mockito.Mockito.*;
 public class PublishExecutorTest {
     Maps.MapBuilder<String, String> mockEnvironmentVariables;
     private PublishExecutor publishExecutor;
-    private TaskConfig config;
+    private Map config = mock(Map.class);
+
+    public Map<String, String> getMockContext(Map<String, String> environmentVariables, String workingDir) {
+        Map<String, String> context = new HashMap();
+        context.put("environmentVariables", new GsonBuilder().create().toJson(environmentVariables));
+        context.put("workingDir", workingDir);
+        return context;
+    }
 
     @Before
     public void setUp() throws Exception {
-        config = mock(TaskConfig.class);
         mockEnvironmentVariables = Maps.<String, String>builder()
                 .with(AWS_SECRET_ACCESS_KEY, "secretKey")
                 .with(AWS_ACCESS_KEY_ID, "accessId")
@@ -46,37 +52,38 @@ public class PublishExecutorTest {
                 .with("GO_TRIGGER_USER", "Krishna");
 
         publishExecutor = spy(new PublishExecutor());
-        doReturn(new GoEnvironment(new HashMap<String,String>())).when(publishExecutor).getGoEnvironment();
+        doReturn(new GoEnvironment(new HashMap<String, String>())).when(publishExecutor).getGoEnvironment();
     }
+
 
     @Test
     public void shouldThrowIfAWS_ACCESS_KEY_IDNotPresent() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build();
+        Map<String, String> envVariables = mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_ACCESS_KEY_ID environment variable not present"));
+        GoPluginApiResponse executionResult = publishExecutor.execute(config, getMockContext(envVariables, ""));
+        assertThat(executionResult.responseCode(), is(DefaultGoPluginApiResponse.BAD_REQUEST));
+        assertThat(executionResult.responseBody(), is("env variable not found - AWS_ACCESS_KEY_ID"));
     }
 
     @Test
     public void shouldThrowIfAWS_SECRET_ACCESS_KEYNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_SECRET_ACCESS_KEY, "").build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
+        GoPluginApiResponse executionResult = publishExecutor.execute(config, getMockContext(mockVariables, ""));
+        assertThat(executionResult.responseCode(), is(DefaultGoPluginApiResponse.BAD_REQUEST));
+        assertThat(executionResult.responseBody(), is("env variable not found - AWS_SECRET_ACCESS_KEY"));
     }
 
     @Test
-    public void shouldNotThrowIfAWSUseIAMRoleIsFalseAndAWS_ACCESS_KEY_IDNotPresent() {
+    public void shouldThrowIfAWSUseIAMRoleIsFalseAndAWS_ACCESS_KEY_IDNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables
                 .with(AWS_USE_IAM_ROLE, "False")
                 .with(AWS_ACCESS_KEY_ID, "")
                 .build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_ACCESS_KEY_ID environment variable not present"));
+        GoPluginApiResponse executionResult = publishExecutor.execute(config, getMockContext(mockVariables, ""));
+        assertThat(executionResult.responseCode(), is(DefaultGoPluginApiResponse.BAD_REQUEST));
+        assertThat(executionResult.responseBody(), is("env variable not found - AWS_ACCESS_KEY_ID"));
     }
 
     @Test
@@ -86,28 +93,29 @@ public class PublishExecutorTest {
                 .with(AWS_SECRET_ACCESS_KEY, "")
                 .build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
+
+        GoPluginApiResponse executionResult = publishExecutor.execute(config, getMockContext(mockVariables, ""));
+        assertThat(executionResult.responseCode(), is(DefaultGoPluginApiResponse.BAD_REQUEST));
+        assertThat(executionResult.responseBody(), is("env variable not found - AWS_SECRET_ACCESS_KEY"));
     }
 
     @Test
     public void shouldNotThrowIfAWSUseIAMRoleIsTrueAndAWS_SECRET_ACCESS_KEYNotPresent() {
-        Maps.MapBuilder<String, String> mockVariables = mockEnvironmentVariables
+        Map<String, String> mockVariables = mockEnvironmentVariables
                 .with(AWS_USE_IAM_ROLE, "True")
                 .with(AWS_ACCESS_KEY_ID, "")
-                .with(AWS_SECRET_ACCESS_KEY, "");
+                .with(AWS_SECRET_ACCESS_KEY, "").build();
         AmazonS3Client mockClient = mockClient();
 
-        ExecutionResult executionResult = executeMockPublish(
+        GoPluginApiResponse executionResult = executeMockPublish(
                 mockClient,
                 "[{\"source\": \"target/*\", \"destination\": \"\"}]",
                 "",
                 new String[]{"README.md"},
-                mockVariables
+                getMockContext(mockVariables, "")
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertThat(executionResult.responseCode(), is(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE));
     }
 
 
@@ -115,38 +123,42 @@ public class PublishExecutorTest {
     public void shouldThrowIfGO_ARTIFACTS_S3_BUCKETNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(GO_ARTIFACTS_S3_BUCKET, "").build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("GO_ARTIFACTS_S3_BUCKET environment variable not present"));
+        GoPluginApiResponse executionResult = publishExecutor.execute(config, getMockContext(mockVariables, ""));
+        assertThat(executionResult.responseCode(), is(DefaultGoPluginApiResponse.BAD_REQUEST));
+        assertThat(executionResult.responseBody(), is("env variable not found - GO_ARTIFACTS_S3_BUCKET"));
     }
 
     @Test
     public void shouldGetDisplayMessageAfterUpload() {
         AmazonS3Client mockClient = mockClient();
+        Map<String, String> mockVariables = mockEnvironmentVariables.build();
 
-        ExecutionResult executionResult = executeMockPublish(
+        GoPluginApiResponse executionResult = executeMockPublish(
                 mockClient,
                 "[{\"source\": \"target/*\", \"destination\": \"\"}]",
                 "",
-                new String[]{"README.md"}
+                new String[]{"README.md"},
+                getMockContext(mockVariables, "")
         );
 
-        assertTrue(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("Published all artifacts to S3"));
+        assertThat(executionResult.responseCode(), is(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE));
+        assertThat(executionResult.responseBody(), is("Published all artifacts to S3"));
     }
 
     @Test
     public void shouldUploadALocalFileToS3WithDefaultPrefix() {
         AmazonS3Client mockClient = mockClient();
+        Map<String, String> mockVariables = mockEnvironmentVariables.build();
 
-        ExecutionResult executionResult = executeMockPublish(
+        GoPluginApiResponse executionResult = executeMockPublish(
                 mockClient,
                 "[{\"source\": \"target/*\", \"destination\": \"\"}]",
                 "",
-                new String[]{"README.md", "s3publish-0.1.31.jar"}
+                new String[]{"README.md", "s3publish-0.1.31.jar"},
+                getMockContext(mockVariables, "")
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertThat(executionResult.responseCode(), is(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE));
 
         final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 3);
 
@@ -177,14 +189,14 @@ public class PublishExecutorTest {
     public void shouldUploadALocalFileToS3WithDestinationPrefix() {
         AmazonS3Client mockClient = mockClient();
 
-        ExecutionResult executionResult = executeMockPublish(
+        GoPluginApiResponse executionResult = executeMockPublish(
                 mockClient,
                 "[{\"source\": \"target/*\", \"destination\": \"\"}]",
                 "destinationPrefix",
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertThat(executionResult.responseCode(), is(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE));
 
         final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
 
@@ -203,15 +215,17 @@ public class PublishExecutorTest {
     @Test
     public void shouldUploadALocalFileToS3WithDestinationPrefixUsingEnvVariable() {
         AmazonS3Client mockClient = mockClient();
+        Map<String, String> mockVariables = mockEnvironmentVariables.build();
 
-        ExecutionResult executionResult = executeMockPublish(
+        GoPluginApiResponse executionResult = executeMockPublish(
                 mockClient,
                 "[{\"source\": \"target/*\", \"destination\": \"\"}]",
                 "test/${GO_PIPELINE_COUNTER}/",
-                new String[]{"README.md", "s3publish-0.1.31.jar"}
+                new String[]{"README.md", "s3publish-0.1.31.jar"},
+                getMockContext(mockVariables, "")
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertThat(executionResult.responseCode(), is(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE));
 
         final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
 
@@ -231,14 +245,15 @@ public class PublishExecutorTest {
     public void shouldUploadALocalFileToS3WithSlashDestinationPrefix() {
         AmazonS3Client mockClient = mockClient();
 
-        ExecutionResult executionResult = executeMockPublish(
+        GoPluginApiResponse executionResult = executeMockPublish(
                 mockClient,
                 "[{\"source\": \"target/*\", \"destination\": \"\"}]",
                 "/",
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertThat(executionResult.responseCode(), is(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE));
+        System.out.println(executionResult.responseBody());
 
         final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
 
@@ -254,22 +269,19 @@ public class PublishExecutorTest {
         assertNull(jarPutRequest.getMetadata());
     }
 
-    private ExecutionResult executeMockPublish(final AmazonS3Client mockClient, String sourceDestinations, String destinationPrefix, String[] files) {
-        return executeMockPublish(mockClient, sourceDestinations, destinationPrefix, files, mockEnvironmentVariables);
+    private GoPluginApiResponse executeMockPublish(final AmazonS3Client mockClient, String sourceDestinations, String destinationPrefix, String[] files) {
+        return executeMockPublish(mockClient, sourceDestinations, destinationPrefix, files, getMockContext(mockEnvironmentVariables.build(), ""));
     }
 
-        private ExecutionResult executeMockPublish(final AmazonS3Client mockClient, String sourceDestinations, String destinationPrefix, String[] files,
-                                               Maps.MapBuilder<String, String> mockVariablesBuilder) {
-        Map<String, String> mockVariables = mockVariablesBuilder.build();
+    private GoPluginApiResponse executeMockPublish(final AmazonS3Client mockClient, String sourceDestinations, String destinationPrefix, String[] files,
+                                                   Map<String, String> mockVariablesBuilder) {
 
         doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
-        when(config.getValue(SOURCEDESTINATIONS)).thenReturn(sourceDestinations);
-        when(config.getValue(DESTINATION_PREFIX)).thenReturn(destinationPrefix);
+        when(config.get(SOURCEDESTINATIONS)).thenReturn(sourceDestinations);
+        when(config.get(DESTINATION_PREFIX)).thenReturn(destinationPrefix);
         doReturn(files).when(publishExecutor).parseSourcePath(anyString(), anyString());
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-
-        return executionResult;
+        return publishExecutor.execute(config, mockVariablesBuilder);
     }
 
     private List<PutObjectRequest> getPutObjectRequests(AmazonS3Client mockClient, int expectedRequestsCount) {
@@ -278,9 +290,6 @@ public class PublishExecutorTest {
         List<PutObjectRequest> allPutObjectRequests = putObjectRequestArgumentCaptor.getAllValues();
 
         return allPutObjectRequests;
-    }
-    private TaskExecutionContext mockContext(final Map<String, String> environmentMap) {
-        return new MockTaskExecutionContext(environmentMap);
     }
 
     private AmazonS3Client mockClient() {

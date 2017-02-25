@@ -3,96 +3,142 @@ package com.indix.gocd.s3publish;
 import com.amazonaws.util.json.JSONArray;
 import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
-import com.indix.gocd.utils.utils.Functions;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.indix.gocd.utils.utils.Tuple2;
+import com.thoughtworks.go.plugin.api.GoApplicationAccessor;
+import com.thoughtworks.go.plugin.api.GoPlugin;
+import com.thoughtworks.go.plugin.api.GoPluginIdentifier;
 import com.thoughtworks.go.plugin.api.annotation.Extension;
-import com.thoughtworks.go.plugin.api.response.validation.ValidationError;
-import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
-import com.thoughtworks.go.plugin.api.task.Task;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutor;
-import com.thoughtworks.go.plugin.api.task.TaskView;
+import com.thoughtworks.go.plugin.api.exceptions.UnhandledRequestTypeException;
+import com.thoughtworks.go.plugin.api.request.GoPluginApiRequest;
+import com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse;
+import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import static com.indix.gocd.utils.Constants.SOURCEDESTINATIONS;
 import static com.indix.gocd.utils.Constants.DESTINATION_PREFIX;
-import static com.indix.gocd.utils.utils.Lists.foreach;
+import static com.indix.gocd.utils.Constants.SOURCEDESTINATIONS;
 import static org.apache.commons.lang3.StringUtils.trim;
 
 @Extension
-public class PublishTask implements Task {
+public class PublishTask implements GoPlugin {
 
-    @Override
-    public TaskConfig config() {
-        TaskConfig taskConfig = new TaskConfig();
-        taskConfig.addProperty(SOURCEDESTINATIONS);
-        taskConfig.addProperty(DESTINATION_PREFIX);
-        return taskConfig;
+
+    public GoPluginApiResponse handleGetConfigRequest(GoPluginApiRequest request) {
+        Map configuration = new HashMap();
+        Map config = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
+        configuration.put(SOURCEDESTINATIONS,config.get(SOURCEDESTINATIONS));
+        configuration.put(DESTINATION_PREFIX,config.get(DESTINATION_PREFIX));
+        return DefaultGoPluginApiResponse.success(new Gson().toJson(configuration));
     }
 
-    @Override
-    public TaskExecutor executor() {
-        return new PublishExecutor();
+
+    public GoPluginApiResponse handleTaskExecution(GoPluginApiRequest request) {
+        PublishExecutor executor =  new PublishExecutor();
+        Map executionRequest = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
+        Map config = (Map) executionRequest.get("config");
+        Map context = (Map) executionRequest.get("context");
+
+        return executor.execute(config , context);
     }
 
-    @Override
-    public TaskView view() {
-        return new TaskView() {
-            @Override
-            public String displayValue() {
-                return "Publish To S3";
-            }
 
-            @Override
-            public String template() {
-                try {
-                    return IOUtils.toString(getClass().getResourceAsStream("/views/task.template.html"), "UTF-8");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return "Error happened during rendering - " + e.getMessage();
-                }
-            }
-        };
-    }
-
-    @Override
-    public ValidationResult validate(TaskConfig taskConfig) {
-        final ValidationResult validationResult = new ValidationResult();
-        List<Tuple2<String, String>> sourceDestinations;
+    public GoPluginApiResponse view() {
+        int responseCode = DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
+        Map view = new HashMap();
+        view.put("displayValue", "Publish To S3");
         try {
-            sourceDestinations = getSourceDestinations(taskConfig.getValue(SOURCEDESTINATIONS));
-        } catch (JSONException e) {
-            validationResult.addError(new ValidationError(SOURCEDESTINATIONS, "Error while parsing configuration"));
-            return validationResult;
+            view.put("template", IOUtils.toString(getClass().getResourceAsStream("/views/task.template.html"), "UTF-8"));
+        } catch (IOException e) {
+            responseCode = DefaultGoPluginApiResponse.INTERNAL_ERROR;
+            view.put("exception", "Error happened during rendering" + e.getMessage());
         }
 
-        foreach(sourceDestinations, new Functions.VoidFunction<Tuple2<String, String>>() {
-            @Override
-            public void execute(Tuple2<String, String> input) {
-                if(StringUtils.isBlank(input._1())) {
-                    validationResult.addError(new ValidationError(SOURCEDESTINATIONS, "Source cannot be empty"));
-                }
-            }
-        });
+        return createResponse(responseCode, view);
+    }
 
-        return validationResult;
+    private GoPluginApiResponse createResponse(int responseCode, Map message) {
+        final DefaultGoPluginApiResponse response = new DefaultGoPluginApiResponse(responseCode);
+        response.setResponseBody(new GsonBuilder().serializeNulls().create().toJson(message));
+        return response;
+    }
+
+
+    @Override
+    public GoPluginApiResponse handle (GoPluginApiRequest request) throws UnhandledRequestTypeException {
+        if("configuration".equals(request.requestName())) {
+            return handleGetConfigRequest(request);
+        }
+        else if("validate".equals(request.requestName())) {
+            return handleValidation(request);
+        }
+        else if("view".equals(request.requestName())) {
+            return view();
+        }
+        else if("execute".equals(request.requestName())) {
+            return handleTaskExecution(request);
+        }
+
+        throw new UnhandledRequestTypeException(request.requestName());
+    }
+
+    public GoPluginApiResponse getContext (GoPluginApiRequest request) {
+        Map config = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
+        return DefaultGoPluginApiResponse.success(new Gson().toJson(config));
+    }
+
+    public GoPluginApiResponse handleValidation(GoPluginApiRequest request) {
+        Map config = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
+        Map errors = new HashMap();
+        int responseCode = DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
+        List<Tuple2<String, String>> sourceDestinations = null;
+        try {
+            sourceDestinations = getSourceDestinations(config.get(SOURCEDESTINATIONS).toString());
+        } catch (JSONException e) {
+            responseCode = DefaultGoPluginApiResponse.VALIDATION_FAILED;
+            errors.put("Error reading source destinations", e);
+            createResponse(responseCode, errors);
+        }
+
+        int i = 0 ;
+        while(i < sourceDestinations.size()) {
+            String source = sourceDestinations.get(i)._1();
+            if(StringUtils.isBlank(source)) {
+                responseCode = DefaultGoPluginApiResponse.VALIDATION_FAILED;
+                errors.put("Empty source" , "Source cannot be empty");
+            }
+        }
+
+        return createResponse(responseCode, errors);
     }
 
     public static List<Tuple2<String, String>> getSourceDestinations(String sourceDestinationsString) throws JSONException {
         JSONArray sourceDestinations = new JSONArray(sourceDestinationsString);
         List<Tuple2<String, String>> result = new ArrayList<Tuple2<String, String>>();
-        for(int i =0; i < sourceDestinations.length(); i++) {
-            JSONObject sourceDestination = (JSONObject)sourceDestinations.get(i);
+        for (int i = 0; i < sourceDestinations.length(); i++) {
+            JSONObject sourceDestination = (JSONObject) sourceDestinations.get(i);
             String source = trim(sourceDestination.getString("source"));
             String destination = trim(sourceDestination.getString("destination"));
             result.add(new Tuple2<String, String>(source, destination));
         }
-
         return result;
+    }
+
+
+    @Override
+    public void initializeGoApplicationAccessor(GoApplicationAccessor goApplicationAccessor) {
+
+    }
+
+    @Override
+    public GoPluginIdentifier pluginIdentifier() {
+        return null;
     }
 }
