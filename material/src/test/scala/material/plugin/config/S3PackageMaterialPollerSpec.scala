@@ -52,7 +52,7 @@ class S3PackageMaterialPollerSpec extends WordSpec with MockitoSugar  {
     "getting latest revision" should {
       "include original revision label if it exists" in {
 
-        when(mockS3ArtifactStore.getLatest(Matchers.any[AmazonS3Client], Matchers.any[Artifact])).thenReturn(
+        when(mockS3ArtifactStore.getLatest(Matchers.any[Artifact])).thenReturn(
           new RevisionStatus(new Revision("2.1"),new Date(), "url", "user", "3.1")
         );
 
@@ -63,7 +63,7 @@ class S3PackageMaterialPollerSpec extends WordSpec with MockitoSugar  {
 
       "say the original revision label is unavailable if it doesn't exist" in {
 
-        when(mockS3ArtifactStore.getLatest(Matchers.any[AmazonS3Client], Matchers.any[Artifact])).thenReturn(
+        when(mockS3ArtifactStore.getLatest(Matchers.any[Artifact])).thenReturn(
           new RevisionStatus(new Revision("2.1"),new Date(), "url", "user")
         );
 

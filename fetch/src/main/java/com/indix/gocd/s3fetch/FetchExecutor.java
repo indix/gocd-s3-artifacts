@@ -1,5 +1,6 @@
 package com.indix.gocd.s3fetch;
 
+import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -57,17 +58,7 @@ public class FetchExecutor implements TaskExecutor {
     }
 
     public S3ArtifactStore s3ArtifactStore(FetchConfig config) {
-        return new S3ArtifactStore(s3Client(config), config.getS3Bucket());
-    }
-
-    public AmazonS3Client s3Client(FetchConfig config) {
-        AmazonS3Client client = null;
-        if (config.hasAWSUseIamRole()) {
-            client = new AmazonS3Client(new InstanceProfileCredentialsProvider());
-        } else {
-            client = new AmazonS3Client(new BasicAWSCredentials(config.getAWSAccessKeyId(), config.getAWSSecretAccessKey()));
-        }
-        return client;
+        return S3ArtifactStore.createStore(config.getAWSAccessKeyId(), config.getAWSSecretAccessKey(), config.getS3Bucket());
     }
 
     public FetchConfig getFetchConfig(TaskConfig config, TaskExecutionContext context) {

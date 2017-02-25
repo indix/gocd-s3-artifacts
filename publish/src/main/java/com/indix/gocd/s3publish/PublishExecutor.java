@@ -1,33 +1,26 @@
 package com.indix.gocd.s3publish;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-
-import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.util.json.JSONException;
 import com.indix.gocd.utils.GoEnvironment;
+import com.indix.gocd.utils.store.S3ArtifactStore;
+import com.indix.gocd.utils.utils.Function;
+import com.indix.gocd.utils.utils.Lists;
+import com.indix.gocd.utils.utils.Tuple2;
 import com.thoughtworks.go.plugin.api.logging.Logger;
 import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import com.thoughtworks.go.plugin.api.task.TaskExecutor;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tools.ant.DirectoryScanner;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
-
-import com.indix.gocd.utils.store.S3ArtifactStore;
-import com.indix.gocd.utils.utils.Function;
-import com.indix.gocd.utils.utils.Lists;
-import com.indix.gocd.utils.utils.Tuple2;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.TaskConfigurationChecker;
 
 import static com.indix.gocd.utils.Constants.*;
 import static com.indix.gocd.utils.utils.Functions.VoidFunction;
@@ -50,7 +43,7 @@ public class PublishExecutor implements TaskExecutor {
         if (env.isAbsent(GO_SERVER_DASHBOARD_URL)) return envNotFound(GO_SERVER_DASHBOARD_URL);
 
         final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
-        final S3ArtifactStore store = new S3ArtifactStore(s3Client(env), bucket);
+        final S3ArtifactStore store = getStore(env, bucket);
         store.setStorageClass(env.getOrElse(AWS_STORAGE_CLASS, STORAGE_CLASS_STANDARD));
 
         final String destinationPrefix = getDestinationPrefix(config, env);
@@ -82,7 +75,7 @@ public class PublishExecutor implements TaskExecutor {
 
         // A configured destination prefix is used to deploy files rather than publish artifacts
         // We only want to set metadata when publishing artifacts
-        if(!hasConfigDestinationPrefix(config)) {
+        if (!hasConfigDestinationPrefix(config)) {
             setMetadata(env, bucket, destinationPrefix, store);
         }
 
@@ -90,8 +83,15 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     /*
-        Made public only for tests
-     */
+        Made public for tests else mockito fails
+    */
+    public S3ArtifactStore getStore(GoEnvironment env, String bucket) {
+        return S3ArtifactStore.createStore(env.get(AWS_ACCESS_KEY_ID), env.get(AWS_SECRET_ACCESS_KEY), bucket);
+    }
+
+    /*
+        Made public for tests else mockito fails
+    */
     public String[] parseSourcePath(String source, String workingDir) {
         DirectoryScanner directoryScanner = new DirectoryScanner();
         directoryScanner.setBasedir(workingDir);
@@ -101,25 +101,15 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     /*
-        Made public only for tests
+        Made public for tests else mockito fails
      */
     public GoEnvironment getGoEnvironment() {
         return new GoEnvironment();
     }
 
-    public AmazonS3Client s3Client(GoEnvironment env) {
-        AmazonS3Client client = null;
-        if (env.hasAWSUseIamRole()) {
-            client = new AmazonS3Client(new InstanceProfileCredentialsProvider());
-        } else {
-            client = new AmazonS3Client(new BasicAWSCredentials(env.get(AWS_ACCESS_KEY_ID), env.get(AWS_SECRET_ACCESS_KEY)));
-        }
-        return client;
-    }
-
     private void pushToS3(final TaskExecutionContext context, final String destinationPrefix, final S3ArtifactStore store, File localFileToUpload, String destination) {
         String templateSoFar = ensureKeySegmentValid(destinationPrefix);
-        if(!StringUtils.isBlank(destination)) {
+        if (!StringUtils.isBlank(destination)) {
             templateSoFar += destination;
         }
         List<FilePathToTemplate> filesToUpload = generateFilesToUpload(templateSoFar, localFileToUpload);
@@ -190,15 +180,15 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private String getDestinationPrefix(final TaskConfig config, final GoEnvironment env) {
-        if(!hasConfigDestinationPrefix(config)) {
-            return  env.artifactsLocationTemplate();
+        if (!hasConfigDestinationPrefix(config)) {
+            return env.artifactsLocationTemplate();
         }
 
         String destinationPrefix = getConfigDestinationPrefix(config);
 
         destinationPrefix = env.replaceVariables(destinationPrefix);
 
-        if(destinationPrefix.endsWith("/")) {
+        if (destinationPrefix.endsWith("/")) {
             destinationPrefix = destinationPrefix.substring(0, destinationPrefix.length() - 1);
         }
 
@@ -206,11 +196,11 @@ public class PublishExecutor implements TaskExecutor {
     }
 
     private String ensureKeySegmentValid(String segment) {
-        if(StringUtils.isBlank(segment)) {
+        if (StringUtils.isBlank(segment)) {
             return segment;
         }
 
-        if(!StringUtils.endsWith(segment, "/")) {
+        if (!StringUtils.endsWith(segment, "/")) {
             segment += "/";
         }
 
