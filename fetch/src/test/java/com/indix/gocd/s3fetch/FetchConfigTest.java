@@ -6,6 +6,8 @@ import com.indix.gocd.utils.utils.Maps;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
 import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionConfiguration;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionContext;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,7 +26,7 @@ import static org.mockito.Mockito.when;
 public class FetchConfigTest {
     private final String bucket = "gocd";
     Maps.MapBuilder<String, String> mockEnvironmentVariables;
-    private TaskConfig config;
+    private ExecutionConfiguration config;
     private FetchConfig fetchConfig;
     private GoEnvironment goEnvironmentForTest;
     private final String secretKey = "secretKey";
@@ -32,9 +34,9 @@ public class FetchConfigTest {
 
     @Before
     public void setUp() throws Exception {
-        config = mock(TaskConfig.class);
-        when(config.getValue(FetchTask.REPO)).thenReturn(bucket);
-        when(config.getValue(FetchTask.PACKAGE)).thenReturn("TestPublishS3Artifacts");
+        config = mock(ExecutionConfiguration.class);
+        when(config.getProperty(FetchConfigEnum.REPO.name())).thenReturn(bucket);
+        when(config.getProperty(FetchConfigEnum.PACKAGE.name())).thenReturn("TestPublishS3Artifacts");
         mockEnvironmentVariables = Maps.<String, String>builder()
                 .with(AWS_SECRET_ACCESS_KEY, secretKey)
                 .with(AWS_ACCESS_KEY_ID, accessId)
@@ -197,7 +199,7 @@ public class FetchConfigTest {
 
     @Test
     public void shouldNotBeValidIfRepoConfigIsNotValid() {
-        when(config.getValue(FetchTask.REPO)).thenReturn("Wrong");
+        when(config.getProperty(FetchConfigEnum.REPO.name())).thenReturn("Wrong");
         fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()),goEnvironmentForTest);
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
@@ -208,7 +210,7 @@ public class FetchConfigTest {
 
     @Test
     public void shouldNotBeValidIfPackageConfigIsNotValid() {
-        when(config.getValue(FetchTask.PACKAGE)).thenReturn("Wrong");
+        when(config.getProperty(FetchConfigEnum.PACKAGE.name())).thenReturn("Wrong");
         fetchConfig = new FetchConfig(config, mockContext(mockEnvironmentVariables.build()),goEnvironmentForTest);
         ValidationResult validationResult = fetchConfig.validate();
         assertFalse(validationResult.isSuccessful());
@@ -219,9 +221,9 @@ public class FetchConfigTest {
 
     @Test
     public void shouldAllowFetchTaskVariablesWithDashesInTheName() throws Exception {
-        config = mock(TaskConfig.class);
-        when(config.getValue(FetchTask.REPO)).thenReturn("repo-with-dash");
-        when(config.getValue(FetchTask.PACKAGE)).thenReturn("package-with-dash");
+        config = mock(ExecutionConfiguration.class);
+        when(config.getProperty(FetchConfigEnum.REPO.name())).thenReturn("repo-with-dash");
+        when(config.getProperty(FetchConfigEnum.PACKAGE.name())).thenReturn("package-with-dash");
         mockEnvironmentVariables = Maps.<String, String>builder()
                 .with(AWS_SECRET_ACCESS_KEY, secretKey)
                 .with(AWS_ACCESS_KEY_ID, accessId)
@@ -239,9 +241,9 @@ public class FetchConfigTest {
 
     @Test
     public void shouldAllowFetchTaskVariablesWithPeriodsInTheName() throws Exception {
-        config = mock(TaskConfig.class);
-        when(config.getValue(FetchTask.REPO)).thenReturn("repo-with.period");
-        when(config.getValue(FetchTask.PACKAGE)).thenReturn("package-with.period");
+        config = mock(ExecutionConfiguration.class);
+        when(config.getProperty(FetchConfigEnum.REPO.name())).thenReturn("repo-with.period");
+        when(config.getProperty(FetchConfigEnum.PACKAGE.name())).thenReturn("package-with.period");
         mockEnvironmentVariables = Maps.<String, String>builder()
             .with(AWS_SECRET_ACCESS_KEY, secretKey)
             .with(AWS_ACCESS_KEY_ID, accessId)
@@ -260,9 +262,9 @@ public class FetchConfigTest {
 
     @Test
     public void shouldAllowFetchTaskVariablesWithSpecialCharactersInTheName() throws Exception {
-        config = mock(TaskConfig.class);
-        when(config.getValue(FetchTask.REPO)).thenReturn("repo-with`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?");
-        when(config.getValue(FetchTask.PACKAGE)).thenReturn("package-with`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?");
+        config = mock(ExecutionConfiguration.class);
+        when(config.getProperty(FetchConfigEnum.REPO.name())).thenReturn("repo-with`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?");
+        when(config.getProperty(FetchConfigEnum.PACKAGE.name())).thenReturn("package-with`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?");
         mockEnvironmentVariables = Maps.<String, String>builder()
                 .with(AWS_SECRET_ACCESS_KEY, secretKey)
                 .with(AWS_ACCESS_KEY_ID, accessId)
@@ -278,7 +280,7 @@ public class FetchConfigTest {
         assertTrue(validationResult.isSuccessful());
     }
 
-    private TaskExecutionContext mockContext(final Map<String, String> environmentMap) {
+    private ExecutionContext mockContext(final Map<String, String> environmentMap) {
         return new MockTaskExecutionContext(environmentMap);
     }
 }

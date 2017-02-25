@@ -4,6 +4,7 @@ val commonsIo = "commons-io" % "commons-io" % "1.3.2"
 val awsS3 = "com.amazonaws" % "aws-java-sdk-s3" % "1.10.26"
 val nscalaTime = "com.github.nscala-time" %% "nscala-time" % "2.4.0"
 val goPluginLibrary = "cd.go.plugin" % "go-plugin-api" % "14.4.0" % Provided
+val goTaskApiPlugin = "io.jmnarloch" % "gocd-task-plugin-api" % "1.0.1-SNAPSHOT"
 
 val junit = "junit" % "junit" % "4.10" % Test
 val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test
@@ -21,8 +22,9 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.10.4",
   unmanagedBase := file(".") / "lib",
   libraryDependencies ++= Seq(
-    apacheCommons, commonsIo, awsS3, goPluginLibrary, mockito
+    apacheCommons, commonsIo, awsS3, goPluginLibrary, mockito, goTaskApiPlugin
   ),
+  resolvers ++= Seq(Opts.resolver.sonatypeSnapshots),
   variables in EditSource += ("version", appVersion),
   targetDirectory in EditSource <<= baseDirectory(_ / "target" / "transformed"),
   sources in EditSource <++= baseDirectory.map(d => (d / "template" / "plugin.xml").get),

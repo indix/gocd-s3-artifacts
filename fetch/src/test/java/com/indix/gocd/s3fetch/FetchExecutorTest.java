@@ -7,9 +7,10 @@ import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Maps;
-import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
+import com.thoughtworks.go.plugin.api.task.JobConsoleLogger;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionConfiguration;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionContext;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionResult;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,14 +29,15 @@ public class FetchExecutorTest {
     private final String bucket = "gocd";
     Maps.MapBuilder<String, String> mockEnvironmentVariables;
     private FetchExecutor fetchExecutor;
-    private TaskConfig config;
+    private ExecutionConfiguration config;
+    private JobConsoleLogger logger = mockConsoleLogger();
 
     @Before
     public void setUp() throws Exception {
-        config = mock(TaskConfig.class);
-        when(config.getValue(FetchTask.REPO)).thenReturn(bucket);
-        when(config.getValue(FetchTask.PACKAGE)).thenReturn("TestPublishS3Artifacts");
-        when(config.getValue(FetchTask.DESTINATION)).thenReturn(destination);
+        config = mock(ExecutionConfiguration.class);
+        when(config.getProperty(FetchConfigEnum.REPO.name())).thenReturn(bucket);
+        when(config.getProperty(FetchConfigEnum.PACKAGE.name())).thenReturn("TestPublishS3Artifacts");
+        when(config.getProperty(FetchConfigEnum.DESTINATION.name())).thenReturn(destination);
         mockEnvironmentVariables = Maps.<String, String>builder()
                 .with(AWS_SECRET_ACCESS_KEY, "secretKey")
                 .with(AWS_ACCESS_KEY_ID, "accessId")
@@ -53,14 +55,14 @@ public class FetchExecutorTest {
     @Test
     public void shouldBeFailureIfFetchConfigNotValid() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build();
-        TaskExecutionContext mockContext = mockContext(mockVariables);
+        ExecutionContext mockContext = mockContext(mockVariables);
         FetchConfig fetchConfig = spy(new FetchConfig(config, mockContext, new GoEnvironment(new HashMap<String,String>())));
-        doReturn(fetchConfig).when(fetchExecutor).getFetchConfig(any(TaskConfig.class), any(TaskExecutionContext.class));
+        doReturn(fetchConfig).when(fetchExecutor).getFetchConfig(any(ExecutionConfiguration.class), any(ExecutionContext.class));
 
-        ExecutionResult executionResult = fetchExecutor.execute(config, mockContext);
+        ExecutionResult executionResult = fetchExecutor.execute(mockContext(mockVariables), config, logger);
 
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("[AWS_ACCESS_KEY_ID environment variable not present]"));
+        assertFalse(executionResult.isSuccess());
+        assertThat(executionResult.getMessage(), is("[AWS_ACCESS_KEY_ID environment variable not present]"));
     }
 
     @Test
@@ -70,10 +72,10 @@ public class FetchExecutorTest {
         doReturn(mockClient).when(fetchExecutor).s3Client(any(FetchConfig.class));
         doThrow(new AmazonClientException("Exception message")).when(mockClient).listObjects(any(ListObjectsRequest.class));
 
-        ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
+        ExecutionResult executionResult = fetchExecutor.execute(mockContext(mockVariables), config, logger);
 
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("Failure while downloading artifacts - Exception message"));
+        assertFalse(executionResult.isSuccess());
+        assertThat(executionResult.getMessage(), is("Failure while downloading artifacts - Exception message"));
     }
 
     @Test
@@ -82,19 +84,23 @@ public class FetchExecutorTest {
         S3ArtifactStore mockStore = mockStore();
         doReturn(mockStore).when(fetchExecutor).s3ArtifactStore(any(FetchConfig.class));
 
-        ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
+        ExecutionResult executionResult = fetchExecutor.execute(mockContext(mockVariables), config, logger);
 
-        assertTrue(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("Fetched all artifacts"));
+        assertTrue(executionResult.isSuccess());
+        assertThat(executionResult.getMessage(), is("Fetched all artifacts"));
         verify(mockStore, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", "./artifacts");
 
     }
 
-    private TaskExecutionContext mockContext(final Map<String, String> environmentMap) {
+    private ExecutionContext mockContext(final Map<String, String> environmentMap) {
         return new MockTaskExecutionContext(environmentMap);
     }
 
     private S3ArtifactStore mockStore() { return mock(S3ArtifactStore.class); }
 
     private AmazonS3Client mockClient() { return mock(AmazonS3Client.class); }
+
+    private JobConsoleLogger mockConsoleLogger() {
+        return mock(JobConsoleLogger.class);
+    }
 }

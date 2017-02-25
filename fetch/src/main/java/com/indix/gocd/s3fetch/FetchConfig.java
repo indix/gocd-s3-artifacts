@@ -1,11 +1,11 @@
 package com.indix.gocd.s3fetch;
 
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionConfiguration;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionContext;
 import org.apache.commons.lang3.StringUtils;
 import com.indix.gocd.utils.GoEnvironment;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationError;
 import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import com.thoughtworks.go.plugin.api.logging.Logger;
 import static com.indix.gocd.utils.Constants.*;
 
@@ -17,16 +17,16 @@ public class FetchConfig {
     private GoEnvironment env;
     private static Logger logger = Logger.getLoggerFor(FetchConfig.class);
 
-    public FetchConfig(TaskConfig config, TaskExecutionContext context) {
+    public FetchConfig(ExecutionConfiguration config, ExecutionContext context) {
         this(config, context, new GoEnvironment());
     }
 
-    public FetchConfig(TaskConfig config, TaskExecutionContext context, GoEnvironment goEnvironment) {
+    public FetchConfig(ExecutionConfiguration config, ExecutionContext context, GoEnvironment goEnvironment) {
         this.env = goEnvironment;
-        env.putAll(context.environment().asMap());
+        env.putAll(context.getEnvironmentVariables());
 
-        String repoName = escapeEnvironmentVariable(config.getValue(FetchTask.REPO));
-        String packageName = escapeEnvironmentVariable(config.getValue(FetchTask.PACKAGE));
+        String repoName = escapeEnvironmentVariable(config.getProperty(FetchConfigEnum.REPO.name()));
+        String packageName = escapeEnvironmentVariable(config.getProperty(FetchConfigEnum.PACKAGE.name()));
         logger.debug(String.format("s3 fetch config uses repoName=%s and packageName=%s", repoName, packageName));
         this.materialLabel = env.get(String.format("GO_PACKAGE_%s_%s_LABEL", repoName, packageName));
         this.pipeline = env.get(String.format("GO_PACKAGE_%s_%s_PIPELINE_NAME", repoName, packageName));

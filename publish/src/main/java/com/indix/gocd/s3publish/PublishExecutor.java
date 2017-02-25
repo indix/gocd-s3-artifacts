@@ -5,29 +5,26 @@ import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-
-import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.util.json.JSONException;
 import com.indix.gocd.utils.GoEnvironment;
+import com.indix.gocd.utils.store.S3ArtifactStore;
+import com.indix.gocd.utils.utils.Function;
+import com.indix.gocd.utils.utils.Lists;
+import com.indix.gocd.utils.utils.Tuple2;
 import com.thoughtworks.go.plugin.api.logging.Logger;
-import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
-import com.thoughtworks.go.plugin.api.task.TaskExecutor;
+import com.thoughtworks.go.plugin.api.task.JobConsoleLogger;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionConfiguration;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionContext;
+import io.jmnarloch.cd.go.plugin.api.executor.ExecutionResult;
+import io.jmnarloch.cd.go.plugin.api.executor.TaskExecutor;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tools.ant.DirectoryScanner;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
-
-import com.indix.gocd.utils.store.S3ArtifactStore;
-import com.indix.gocd.utils.utils.Function;
-import com.indix.gocd.utils.utils.Lists;
-import com.indix.gocd.utils.utils.Tuple2;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.TaskConfigurationChecker;
 
 import static com.indix.gocd.utils.Constants.*;
 import static com.indix.gocd.utils.utils.Functions.VoidFunction;
@@ -39,9 +36,9 @@ public class PublishExecutor implements TaskExecutor {
     private Logger log = Logger.getLoggerFor(PublishTask.class);
 
     @Override
-    public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
+    public ExecutionResult execute(final ExecutionContext context, ExecutionConfiguration config, final JobConsoleLogger console) {
         final GoEnvironment env = getGoEnvironment();
-        env.putAll(context.environment().asMap());
+        env.putAll(context.getEnvironmentVariables());
         if (!env.hasAWSUseIamRole()) {
             if (env.isAbsent(AWS_ACCESS_KEY_ID)) return envNotFound(AWS_ACCESS_KEY_ID);
             if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) return envNotFound(AWS_SECRET_ACCESS_KEY);
@@ -56,20 +53,20 @@ public class PublishExecutor implements TaskExecutor {
         final String destinationPrefix = getDestinationPrefix(config, env);
 
         try {
-            List<Tuple2<String, String>> sourceDestinations = PublishTask.getSourceDestinations(config.getValue(SOURCEDESTINATIONS));
+            List<Tuple2<String, String>> sourceDestinations = PublishTask.getSourceDestinations(config.getProperty(SOURCEDESTINATIONS));
             foreach(sourceDestinations, new VoidFunction<Tuple2<String, String>>() {
                 @Override
                 public void execute(Tuple2<String, String> input) {
                     final String source = input._1();
                     final String destination = input._2();
-                    String[] files = parseSourcePath(source, context.workingDir());
+                    String[] files = parseSourcePath(source, context.getWorkingDirectory());
 
                     foreach(files, new VoidFunction<String>() {
                         @Override
                         public void execute(String includedFile) {
-                            File localFileToUpload = new File(String.format("%s/%s", context.workingDir(), includedFile));
+                            File localFileToUpload = new File(String.format("%s/%s", context.getWorkingDirectory(), includedFile));
 
-                            pushToS3(context, destinationPrefix, store, localFileToUpload, destination);
+                            pushToS3(console, destinationPrefix, store, localFileToUpload, destination);
                         }
                     });
                 }
@@ -117,7 +114,7 @@ public class PublishExecutor implements TaskExecutor {
         return client;
     }
 
-    private void pushToS3(final TaskExecutionContext context, final String destinationPrefix, final S3ArtifactStore store, File localFileToUpload, String destination) {
+    private void pushToS3(final JobConsoleLogger console, final String destinationPrefix, final S3ArtifactStore store, File localFileToUpload, String destination) {
         String templateSoFar = ensureKeySegmentValid(destinationPrefix);
         if(!StringUtils.isBlank(destination)) {
             templateSoFar += destination;
@@ -128,9 +125,9 @@ public class PublishExecutor implements TaskExecutor {
             public void execute(FilePathToTemplate filePathToTemplate) {
                 String localFile = filePathToTemplate._1();
                 String destinationOnS3 = filePathToTemplate._2();
-                context.console().printLine(String.format("Pushing %s to %s", localFile, store.pathString(destinationOnS3)));
+                console.printLine(String.format("Pushing %s to %s", localFile, store.pathString(destinationOnS3)));
                 store.put(localFile, destinationOnS3);
-                context.console().printLine(String.format("Pushed %s to %s", localFile, store.pathString(destinationOnS3)));
+                console.printLine(String.format("Pushed %s to %s", localFile, store.pathString(destinationOnS3)));
             }
         });
     }
@@ -179,17 +176,17 @@ public class PublishExecutor implements TaskExecutor {
         store.put(putObjectRequest);
     }
 
-    private String getConfigDestinationPrefix(final TaskConfig config) {
-        return config.getValue(DESTINATION_PREFIX);
+    private String getConfigDestinationPrefix(final ExecutionConfiguration config) {
+        return config.getProperty(DESTINATION_PREFIX);
     }
 
-    private boolean hasConfigDestinationPrefix(final TaskConfig config) {
+    private boolean hasConfigDestinationPrefix(final ExecutionConfiguration config) {
         String destinationPrefix = getConfigDestinationPrefix(config);
 
         return !StringUtils.isBlank(destinationPrefix);
     }
 
-    private String getDestinationPrefix(final TaskConfig config, final GoEnvironment env) {
+    private String getDestinationPrefix(final ExecutionConfiguration config, final GoEnvironment env) {
         if(!hasConfigDestinationPrefix(config)) {
             return  env.artifactsLocationTemplate();
         }
