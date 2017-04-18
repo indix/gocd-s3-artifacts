@@ -18,10 +18,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.indix.gocd.utils.Constants.DESTINATION_PREFIX;
 import static com.indix.gocd.utils.Constants.SOURCEDESTINATIONS;
@@ -46,7 +43,7 @@ public class PublishTask implements GoPlugin {
         Map config = (Map) executionRequest.get("config");
         Map context = (Map) executionRequest.get("context");
 
-        return executor.execute(config , context);
+        return executor.execute(request);
     }
 
 
@@ -89,11 +86,6 @@ public class PublishTask implements GoPlugin {
         throw new UnhandledRequestTypeException(request.requestName());
     }
 
-    public GoPluginApiResponse getContext (GoPluginApiRequest request) {
-        Map config = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
-        return DefaultGoPluginApiResponse.success(new Gson().toJson(config));
-    }
-
     public GoPluginApiResponse handleValidation(GoPluginApiRequest request) {
         Map config = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
         Map errors = new HashMap();
@@ -132,13 +124,14 @@ public class PublishTask implements GoPlugin {
     }
 
 
-    @Override
-    public void initializeGoApplicationAccessor(GoApplicationAccessor goApplicationAccessor) {
+    private GoApplicationAccessor accessor;
 
+    // this method is executed once at startup
+    public void initializeGoApplicationAccessor(GoApplicationAccessor accessor) {
+        this.accessor = accessor;
     }
 
-    @Override
     public GoPluginIdentifier pluginIdentifier() {
-        return null;
+        return new GoPluginIdentifier("task", Arrays.asList("1.0"));
     }
 }

@@ -3,10 +3,13 @@ package com.indix.gocd.s3publish.utils;
 import com.amazonaws.util.json.JSONArray;
 import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
+import com.google.gson.GsonBuilder;
 import com.indix.gocd.s3publish.PublishExecutor;
 import com.indix.gocd.utils.Constants;
 import com.indix.gocd.utils.utils.Lists;
 import com.indix.gocd.utils.utils.Maps;
+import com.thoughtworks.go.plugin.api.request.DefaultGoPluginApiRequest;
+import com.thoughtworks.go.plugin.api.request.GoPluginApiRequest;
 import com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse;
 import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
 import com.thoughtworks.go.plugin.api.task.Console;
@@ -53,7 +56,17 @@ public class ManuallyPublish {
         taskContext.put("environmentVariables", taskExecutionContext.environment());
         taskContext.put("workingDir", taskExecutionContext.workingDir());
 
-        GoPluginApiResponse executionResult = new PublishExecutor().execute(taskConfig, taskContext);
+
+        HashMap requestBody = new HashMap();
+        requestBody.put("config", taskConfig);
+        requestBody.put("context", taskContext);
+        DefaultGoPluginApiRequest request = new DefaultGoPluginApiRequest("","","") ;
+
+        String requestJSON = new GsonBuilder().create().toJson(requestBody);
+        request.setRequestBody(requestJSON);
+
+
+        GoPluginApiResponse executionResult = new PublishExecutor().execute(request);
 
         if (!(executionResult.responseCode() == DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE)) {
             System.err.println(executionResult.responseBody());

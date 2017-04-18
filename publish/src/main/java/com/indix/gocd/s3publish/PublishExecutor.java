@@ -13,6 +13,7 @@ import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Lists;
 import com.indix.gocd.utils.utils.Tuple2;
 import com.thoughtworks.go.plugin.api.logging.Logger;
+import com.thoughtworks.go.plugin.api.request.GoPluginApiRequest;
 import com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse;
 import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
 import org.apache.commons.lang3.ArrayUtils;
@@ -40,8 +41,11 @@ public class PublishExecutor {
     }
 
 
-    public GoPluginApiResponse execute(Map<String, String> config, final Map context) {
+    public DefaultGoPluginApiResponse execute(GoPluginApiRequest request) {
         final GoEnvironment env = getGoEnvironment();
+        Map executionRequest = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
+        Map<String, String> config = (Map) executionRequest.get("config");
+        final Map context = (Map) executionRequest.get("context");
         String environmentVariables = context.get("environmentVariables").toString();
         Map envVariables = (Map) new GsonBuilder().create().fromJson(environmentVariables, Object.class);
 
