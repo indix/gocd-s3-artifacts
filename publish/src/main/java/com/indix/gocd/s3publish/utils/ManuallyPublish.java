@@ -3,8 +3,11 @@ package com.indix.gocd.s3publish.utils;
 import com.amazonaws.util.json.JSONArray;
 import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
+import com.indix.gocd.s3publish.Config;
 import com.indix.gocd.s3publish.PublishExecutor;
 import com.indix.gocd.utils.Constants;
+import com.indix.gocd.utils.Context;
+import com.indix.gocd.utils.Result;
 import com.indix.gocd.utils.utils.Lists;
 import com.indix.gocd.utils.utils.Maps;
 import com.thoughtworks.go.plugin.api.config.Property;
@@ -18,6 +21,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+
+import static com.indix.gocd.utils.Constants.SOURCEDESTINATIONS;
 
 /*
 Utility to manually publish an artifact (if required) without being in Go.
@@ -45,15 +50,16 @@ public class ManuallyPublish {
         final File localFileToUpload = new File(args[0]);
         String destination = args[1];
 
-        TaskExecutionContext taskExecutionContext = getTaskExecutionContext(localFileToUpload);
-        TaskConfig taskConfig = new TaskConfig();
+        Context context = getTaskExecutionContext(localFileToUpload);
         List<SourceDestination> sourceDestinations = Lists.of(new SourceDestination(localFileToUpload.getName(), destination));
-        taskConfig.add(new Property(Constants.SOURCEDESTINATIONS, sourceDestinations(sourceDestinations), "null"));
+        Map configMap = Maps.<String, String>builder()
+                .with(SOURCEDESTINATIONS, sourceDestinations(sourceDestinations))
+                .build();
+        Config config = new Config(configMap);
+        Result result = new PublishExecutor().execute(config, context);
 
-        ExecutionResult executionResult = new PublishExecutor().execute(taskConfig, taskExecutionContext);
-
-        if (!executionResult.isSuccessful()) {
-            System.err.println(executionResult.getMessagesForDisplay());
+        if (!result.isSuccessful()) {
+            System.err.println(result.message());
             System.exit(1);
         }
     }
@@ -67,70 +73,28 @@ public class ManuallyPublish {
         return s;
     }
 
-    private static TaskExecutionContext getTaskExecutionContext(final File localFileToUpload) {
-        return new TaskExecutionContext() {
+    private static Context getTaskExecutionContext(final File localFileToUpload) {
+        return new Context(Maps.<String, String>builder().build()) {
             @Override
-            public EnvironmentVariables environment() {
-                return defaultEnvironmentVariables();
+            public void printMessage(String message) {
             }
 
             @Override
-            public Console console() {
-                return defaultConsole();
+            public void printEnvironment() {
             }
 
             @Override
-            public String workingDir() {
+            public Map getEnvironmentVariables() {
+                return super.getEnvironmentVariables();
+            }
+
+            @Override
+            public String getWorkingDir() {
                 return localFileToUpload.getParentFile().getAbsolutePath();
             }
         };
+
     }
 
-    private static Console defaultConsole() {
-        return new Console() {
-            @Override
-            public void printLine(String s) {
-            }
-
-            @Override
-            public void readErrorOf(InputStream inputStream) {
-            }
-
-            @Override
-            public void readOutputOf(InputStream inputStream) {
-            }
-
-            @Override
-            public void printEnvironment(Map<String, String> map, SecureEnvVarSpecifier secureEnvVarSpecifier) {
-            }
-        };
-    }
-
-    private static EnvironmentVariables defaultEnvironmentVariables() {
-        return new EnvironmentVariables() {
-            @Override
-            public Map<String, String> asMap() {
-                return Maps.<String, String>builder().build();
-            }
-
-            @Override
-            public void writeTo(Console console) {
-            }
-
-            @Override
-            public Console.SecureEnvVarSpecifier secureEnvSpecifier() {
-                return defaultSecureEnvSpecifier();
-            }
-        };
-    }
-
-    private static Console.SecureEnvVarSpecifier defaultSecureEnvSpecifier() {
-        return new Console.SecureEnvVarSpecifier() {
-            @Override
-            public boolean isSecure(String s) {
-                return false;
-            }
-        };
-    }
 }
 
