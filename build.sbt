@@ -3,7 +3,8 @@ val apacheCommons = "org.apache.commons" % "commons-lang3" % "3.1"
 val commonsIo = "commons-io" % "commons-io" % "1.3.2"
 val awsS3 = "com.amazonaws" % "aws-java-sdk-s3" % "1.10.26"
 val nscalaTime = "com.github.nscala-time" %% "nscala-time" % "2.4.0"
-val goPluginLibrary = "cd.go.plugin" % "go-plugin-api" % "14.4.0" % Provided
+val gson = "com.google.code.gson" % "gson" % "2.2.3"
+val goPluginLibrary = "cd.go.plugin" % "go-plugin-api" % "15.1.0" % Provided
 
 val junit = "junit" % "junit" % "4.10" % Test
 val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test
@@ -13,7 +14,10 @@ val scalaTest = "org.scalatest" %% "scalatest" % "2.2.0" % Test
 
 val appVersion = sys.env.get("TRAVIS_TAG") orElse sys.env.get("BUILD_LABEL") getOrElse "1.0.0-SNAPSHOT"
 
-lazy val root = project in file(".") aggregate(utils, publish, material, fetch)
+lazy val root = Project(
+  id = "gocd-s3-artifacts",
+  base = file(".")
+) aggregate(utils, publish, material, fetch)
 
 lazy val commonSettings = Seq(
   organization := "com.indix",
@@ -49,7 +53,7 @@ lazy val publish = (project in file("publish")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      ant, junit, junitInterface, hamcrest
+      gson, ant, junit, junitInterface, hamcrest
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
