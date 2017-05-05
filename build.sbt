@@ -66,7 +66,7 @@ lazy val material = (project in file("material")).
     crossPaths := false,
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
     libraryDependencies ++= Seq(
-      scalaTest
+      gson, scalaTest
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )

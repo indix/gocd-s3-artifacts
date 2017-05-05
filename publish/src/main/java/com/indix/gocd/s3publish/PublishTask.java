@@ -3,7 +3,7 @@ package com.indix.gocd.s3publish;
 import com.amazonaws.util.json.JSONException;
 import com.google.gson.GsonBuilder;
 import com.indix.gocd.utils.Context;
-import com.indix.gocd.utils.Result;
+import com.indix.gocd.utils.TaskExecutionResult;
 import com.indix.gocd.utils.utils.Functions;
 import com.indix.gocd.utils.utils.Tuple2;
 import com.thoughtworks.go.plugin.api.GoApplicationAccessor;
@@ -69,7 +69,7 @@ public class PublishTask implements GoPlugin {
         Map config = (Map) executionRequest.get("config");
         Map context = (Map) executionRequest.get("context");
 
-        Result result = executor.execute(new Config(config), new Context(context));
+        TaskExecutionResult result = executor.execute(new Config(config), new Context(context));
         return createResponse(result.responseCode(), result.toMap());
     }
 

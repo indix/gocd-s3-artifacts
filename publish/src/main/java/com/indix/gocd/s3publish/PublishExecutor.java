@@ -9,9 +9,8 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.util.json.JSONException;
 import com.indix.gocd.utils.Context;
 import com.indix.gocd.utils.GoEnvironment;
-import com.indix.gocd.utils.Result;
+import com.indix.gocd.utils.TaskExecutionResult;
 import com.thoughtworks.go.plugin.api.logging.Logger;
-import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -35,7 +34,7 @@ import static com.indix.gocd.utils.utils.Lists.foreach;
 public class PublishExecutor {
     private Logger log = Logger.getLoggerFor(PublishTask.class);
 
-    public Result execute(Config config, final Context context) {
+    public TaskExecutionResult execute(Config config, final Context context) {
         final GoEnvironment env = getGoEnvironment();
         env.putAll(context.getEnvironmentVariables());
         if (!env.hasAWSUseIamRole()) {
@@ -76,10 +75,10 @@ public class PublishExecutor {
         } catch (JSONException e) {
             String message = "Failed while parsing configuration";
             log.error(message);
-            return new Result(false, message, e);
+            return new TaskExecutionResult(false, message, e);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return new Result(false, e.getMessage(), e);
+            return new TaskExecutionResult(false, e.getMessage(), e);
         }
 
         // A configured destination prefix is used to deploy files rather than publish artifacts
@@ -88,7 +87,7 @@ public class PublishExecutor {
             setMetadata(env, bucket, destinationPrefix, store);
         }
 
-        return new Result(true,"Published all artifacts to S3");
+        return new TaskExecutionResult(true,"Published all artifacts to S3");
     }
 
     /*
@@ -170,10 +169,10 @@ public class PublishExecutor {
         }
     }
 
-    private Result envNotFound(String environmentVariable) {
+    private TaskExecutionResult envNotFound(String environmentVariable) {
         String message = String.format("%s environment variable not present", environmentVariable);
         log.error(message);
-        return new Result(false, message);
+        return new TaskExecutionResult(false, message);
     }
 
     private void setMetadata(GoEnvironment env, String bucket, String destinationPrefix, S3ArtifactStore store) {

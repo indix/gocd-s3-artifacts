@@ -5,20 +5,12 @@ import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
 import com.indix.gocd.s3publish.Config;
 import com.indix.gocd.s3publish.PublishExecutor;
-import com.indix.gocd.utils.Constants;
 import com.indix.gocd.utils.Context;
-import com.indix.gocd.utils.Result;
+import com.indix.gocd.utils.TaskExecutionResult;
 import com.indix.gocd.utils.utils.Lists;
 import com.indix.gocd.utils.utils.Maps;
-import com.thoughtworks.go.plugin.api.config.Property;
-import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
-import com.thoughtworks.go.plugin.api.task.Console;
-import com.thoughtworks.go.plugin.api.task.EnvironmentVariables;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +48,7 @@ public class ManuallyPublish {
                 .with(SOURCEDESTINATIONS, sourceDestinations(sourceDestinations))
                 .build();
         Config config = new Config(configMap);
-        Result result = new PublishExecutor().execute(config, context);
+        TaskExecutionResult result = new PublishExecutor().execute(config, context);
 
         if (!result.isSuccessful()) {
             System.err.println(result.message());
