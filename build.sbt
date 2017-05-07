@@ -79,7 +79,7 @@ lazy val fetch = (project in file("fetch")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      junit, hamcrest
+      gson, junit, hamcrest
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )

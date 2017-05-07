@@ -32,7 +32,7 @@ import static com.indix.gocd.utils.utils.Lists.foreach;
 
 
 public class PublishExecutor {
-    private Logger log = Logger.getLoggerFor(PublishTask.class);
+    private Logger logger = Logger.getLoggerFor(PublishTask.class);
 
     public TaskExecutionResult execute(Config config, final Context context) {
         final GoEnvironment env = getGoEnvironment();
@@ -74,10 +74,10 @@ public class PublishExecutor {
             });
         } catch (JSONException e) {
             String message = "Failed while parsing configuration";
-            log.error(message);
+            logger.error(message);
             return new TaskExecutionResult(false, message, e);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
             return new TaskExecutionResult(false, e.getMessage(), e);
         }
 
@@ -171,7 +171,7 @@ public class PublishExecutor {
 
     private TaskExecutionResult envNotFound(String environmentVariable) {
         String message = String.format("%s environment variable not present", environmentVariable);
-        log.error(message);
+        logger.error(message);
         return new TaskExecutionResult(false, message);
     }
 

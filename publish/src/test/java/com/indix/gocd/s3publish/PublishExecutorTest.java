@@ -2,12 +2,12 @@ package com.indix.gocd.s3publish;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.indix.gocd.utils.Constants;
+import com.indix.gocd.utils.Context;
 import com.indix.gocd.utils.GoEnvironment;
-import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
+import com.indix.gocd.utils.TaskExecutionResult;
+import com.indix.gocd.utils.mocks.MockContext;
 import com.indix.gocd.utils.utils.Maps;
-import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -28,11 +28,10 @@ import static org.mockito.Mockito.*;
 public class PublishExecutorTest {
     Maps.MapBuilder<String, String> mockEnvironmentVariables;
     private PublishExecutor publishExecutor;
-    private TaskConfig config;
+    private Config config;
 
     @Before
     public void setUp() throws Exception {
-        config = mock(TaskConfig.class);
         mockEnvironmentVariables = Maps.<String, String>builder()
                 .with(AWS_SECRET_ACCESS_KEY, "secretKey")
                 .with(AWS_ACCESS_KEY_ID, "accessId")
@@ -56,18 +55,18 @@ public class PublishExecutorTest {
     public void shouldThrowIfAWS_ACCESS_KEY_IDNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_ACCESS_KEY_ID environment variable not present"));
+        TaskExecutionResult result = publishExecutor.execute(config, mockContext(mockVariables));
+        assertFalse(result.isSuccessful());
+        assertThat(result.message(), is("AWS_ACCESS_KEY_ID environment variable not present"));
     }
 
     @Test
     public void shouldThrowIfAWS_SECRET_ACCESS_KEYNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_SECRET_ACCESS_KEY, "").build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
+        TaskExecutionResult result = publishExecutor.execute(config, mockContext(mockVariables));
+        assertFalse(result.isSuccessful());
+        assertThat(result.message(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
     }
 
     @Test
@@ -77,9 +76,9 @@ public class PublishExecutorTest {
                 .with(AWS_ACCESS_KEY_ID, "")
                 .build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_ACCESS_KEY_ID environment variable not present"));
+        TaskExecutionResult result = publishExecutor.execute(config, mockContext(mockVariables));
+        assertFalse(result.isSuccessful());
+        assertThat(result.message(), is("AWS_ACCESS_KEY_ID environment variable not present"));
     }
 
     @Test
@@ -89,9 +88,9 @@ public class PublishExecutorTest {
                 .with(AWS_SECRET_ACCESS_KEY, "")
                 .build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
+        TaskExecutionResult result = publishExecutor.execute(config, mockContext(mockVariables));
+        assertFalse(result.isSuccessful());
+        assertThat(result.message(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
     }
 
     @Test
@@ -99,15 +98,19 @@ public class PublishExecutorTest {
         doReturn(false).when(publishExecutor).fileExists(any(File.class));
         AmazonS3Client mockClient = mockClient();
 
-        ExecutionResult executionResult = executeMockPublish(
+        Config config = new Config(Maps.builder()
+                .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
+                .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "").build())
+                .build());
+
+        TaskExecutionResult result = executeMockPublish(
                 mockClient,
-                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
-                "",
+                config,
                 new String[]{"README.md"}
         );
 
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), containsString("README.md is missing"));
+        assertFalse(result.isSuccessful());
+        assertThat(result.message(), containsString("README.md is missing"));
     }
 
     @Test
@@ -118,15 +121,19 @@ public class PublishExecutorTest {
                 .with(AWS_SECRET_ACCESS_KEY, "");
         AmazonS3Client mockClient = mockClient();
 
-        ExecutionResult executionResult = executeMockPublish(
+        Config config = new Config(Maps.builder()
+                .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
+                .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "").build())
+                .build());
+
+        TaskExecutionResult result = executeMockPublish(
                 mockClient,
-                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
-                "",
+                config,
                 new String[]{"README.md"},
                 mockVariables
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertTrue(result.isSuccessful());
     }
 
 
@@ -134,38 +141,46 @@ public class PublishExecutorTest {
     public void shouldThrowIfGO_ARTIFACTS_S3_BUCKETNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(GO_ARTIFACTS_S3_BUCKET, "").build();
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("GO_ARTIFACTS_S3_BUCKET environment variable not present"));
+        TaskExecutionResult result = publishExecutor.execute(config, mockContext(mockVariables));
+        assertFalse(result.isSuccessful());
+        assertThat(result.message(), is("GO_ARTIFACTS_S3_BUCKET environment variable not present"));
     }
 
     @Test
     public void shouldGetDisplayMessageAfterUpload() {
         AmazonS3Client mockClient = mockClient();
 
-        ExecutionResult executionResult = executeMockPublish(
+        Config config = new Config(Maps.builder()
+                .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
+                .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "").build())
+                .build());
+
+        TaskExecutionResult result = executeMockPublish(
                 mockClient,
-                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
-                "",
+                config,
                 new String[]{"README.md"}
         );
 
-        assertTrue(executionResult.isSuccessful());
-        assertThat(executionResult.getMessagesForDisplay(), is("Published all artifacts to S3"));
+        assertTrue(result.isSuccessful());
+        assertThat(result.message(), is("Published all artifacts to S3"));
     }
 
     @Test
     public void shouldUploadALocalFileToS3WithDefaultPrefix() {
         AmazonS3Client mockClient = mockClient();
 
-        ExecutionResult executionResult = executeMockPublish(
+        Config config = new Config(Maps.builder()
+                .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
+                .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "").build())
+                .build());
+
+        TaskExecutionResult result = executeMockPublish(
                 mockClient,
-                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
-                "",
+                config,
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertTrue(result.isSuccessful());
 
         final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 3);
 
@@ -196,14 +211,18 @@ public class PublishExecutorTest {
     public void shouldUploadALocalFileToS3WithDestinationPrefix() {
         AmazonS3Client mockClient = mockClient();
 
-        ExecutionResult executionResult = executeMockPublish(
+        Config config = new Config(Maps.builder()
+                .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
+                .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "destinationPrefix").build())
+                .build());
+
+        TaskExecutionResult result = executeMockPublish(
                 mockClient,
-                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
-                "destinationPrefix",
+                config,
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertTrue(result.isSuccessful());
 
         final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
 
@@ -223,14 +242,18 @@ public class PublishExecutorTest {
     public void shouldUploadALocalFileToS3WithDestinationPrefixUsingEnvVariable() {
         AmazonS3Client mockClient = mockClient();
 
-        ExecutionResult executionResult = executeMockPublish(
+        Config config = new Config(Maps.builder()
+                .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
+                .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "test/${GO_PIPELINE_COUNTER}/").build())
+                .build());
+
+        TaskExecutionResult result = executeMockPublish(
                 mockClient,
-                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
-                "test/${GO_PIPELINE_COUNTER}/",
+                config,
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertTrue(result.isSuccessful());
 
         final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
 
@@ -250,14 +273,18 @@ public class PublishExecutorTest {
     public void shouldUploadALocalFileToS3WithSlashDestinationPrefix() {
         AmazonS3Client mockClient = mockClient();
 
-        ExecutionResult executionResult = executeMockPublish(
+        Config config = new Config(Maps.builder()
+                .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
+                .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "/").build())
+                .build());
+
+        TaskExecutionResult result = executeMockPublish(
                 mockClient,
-                "[{\"source\": \"target/*\", \"destination\": \"\"}]",
-                "/",
+                config,
                 new String[]{"README.md", "s3publish-0.1.31.jar"}
         );
 
-        assertTrue(executionResult.isSuccessful());
+        assertTrue(result.isSuccessful());
 
         final List<PutObjectRequest> allPutObjectRequests = getPutObjectRequests(mockClient, 2);
 
@@ -273,22 +300,18 @@ public class PublishExecutorTest {
         assertNull(jarPutRequest.getMetadata());
     }
 
-    private ExecutionResult executeMockPublish(final AmazonS3Client mockClient, String sourceDestinations, String destinationPrefix, String[] files) {
-        return executeMockPublish(mockClient, sourceDestinations, destinationPrefix, files, mockEnvironmentVariables);
+    private TaskExecutionResult executeMockPublish(final AmazonS3Client mockClient, Config config, String[] files) {
+        return executeMockPublish(mockClient, config, files, mockEnvironmentVariables);
     }
 
-    private ExecutionResult executeMockPublish(final AmazonS3Client mockClient, String sourceDestinations, String destinationPrefix, String[] files,
-                                               Maps.MapBuilder<String, String> mockVariablesBuilder) {
+    private TaskExecutionResult executeMockPublish(final AmazonS3Client mockClient, Config config, String[] files,
+                                                   Maps.MapBuilder<String, String> mockVariablesBuilder) {
         Map<String, String> mockVariables = mockVariablesBuilder.build();
 
         doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
-        when(config.getValue(SOURCEDESTINATIONS)).thenReturn(sourceDestinations);
-        when(config.getValue(DESTINATION_PREFIX)).thenReturn(destinationPrefix);
         doReturn(files).when(publishExecutor).parseSourcePath(anyString(), anyString());
 
-        ExecutionResult executionResult = publishExecutor.execute(config, mockContext(mockVariables));
-
-        return executionResult;
+        return publishExecutor.execute(config, mockContext(mockVariables));
     }
 
     private List<PutObjectRequest> getPutObjectRequests(AmazonS3Client mockClient, int expectedRequestsCount) {
@@ -298,8 +321,12 @@ public class PublishExecutorTest {
 
         return allPutObjectRequests;
     }
-    private TaskExecutionContext mockContext(final Map<String, String> environmentMap) {
-        return new MockTaskExecutionContext(environmentMap);
+    private Context mockContext(final Map<String, String> environmentMap) {
+        Map<String, Object> contextMap = Maps.<String, Object>builder()
+                .with("environmentVariables", environmentMap)
+                .with("workingDirectory", "here")
+                .build();
+        return new MockContext(contextMap);
     }
 
     private AmazonS3Client mockClient() {

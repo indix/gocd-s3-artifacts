@@ -2,9 +2,7 @@ package com.indix.gocd.utils;
 
 import com.thoughtworks.go.plugin.api.response.DefaultGoApiResponse;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class TaskExecutionResult {
@@ -31,7 +29,7 @@ public class TaskExecutionResult {
     }
 
     public int responseCode() {
-        return success ? DefaultGoApiResponse.SUCCESS_RESPONSE_CODE : DefaultGoApiResponse.INTERNAL_ERROR;
+        return DefaultGoApiResponse.SUCCESS_RESPONSE_CODE;
     }
 
     public boolean isSuccessful() {

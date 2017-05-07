@@ -1,73 +1,106 @@
 package com.indix.gocd.s3fetch;
 
+import com.google.gson.GsonBuilder;
+import com.indix.gocd.utils.Constants;
+import com.indix.gocd.utils.Context;
+import com.indix.gocd.utils.TaskExecutionResult;
+import com.thoughtworks.go.plugin.api.GoApplicationAccessor;
+import com.thoughtworks.go.plugin.api.GoPlugin;
+import com.thoughtworks.go.plugin.api.GoPluginIdentifier;
 import com.thoughtworks.go.plugin.api.annotation.Extension;
-import com.thoughtworks.go.plugin.api.response.validation.ValidationError;
-import com.thoughtworks.go.plugin.api.response.validation.ValidationResult;
-import com.thoughtworks.go.plugin.api.task.Task;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutor;
-import com.thoughtworks.go.plugin.api.task.TaskView;
+import com.thoughtworks.go.plugin.api.exceptions.UnhandledRequestTypeException;
+import com.thoughtworks.go.plugin.api.logging.Logger;
+import com.thoughtworks.go.plugin.api.request.GoPluginApiRequest;
+import com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse;
+import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
-
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Extension
-public class FetchTask implements Task {
-    public static final String REPO = "Repo";
-    public static final String PACKAGE = "Package";
-    public static final String DESTINATION = "Destination";
+public class FetchTask implements GoPlugin {
+
+    Logger logger = Logger.getLoggerFor(FetchTask.class);
 
     @Override
-    public TaskConfig config() {
-        TaskConfig taskConfig = new TaskConfig();
-        taskConfig.addProperty(REPO);
-        taskConfig.addProperty(PACKAGE);
-        taskConfig.addProperty(DESTINATION);
-        return taskConfig;
+    public void initializeGoApplicationAccessor(GoApplicationAccessor goApplicationAccessor) {
+
     }
 
     @Override
-    public TaskExecutor executor() {
-        return new FetchExecutor();
+    public GoPluginApiResponse handle(GoPluginApiRequest request) throws UnhandledRequestTypeException {
+        if ("configuration".equals(request.requestName())) {
+            return handleGetConfigRequest();
+        } else if ("validate".equals(request.requestName())) {
+            return handleValidation();
+        } else if ("execute".equals(request.requestName())) {
+            return handleTaskExecution(request);
+        } else if ("view".equals(request.requestName())) {
+            return handleTaskView();
+        }
+        throw new UnhandledRequestTypeException(request.requestName());
+    }
+
+    private GoPluginApiResponse handleTaskExecution(GoPluginApiRequest request) {
+        FetchExecutor executor = new FetchExecutor();
+        Map executionRequest = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
+        Map config = (Map) executionRequest.get("config");
+        Map context = (Map) executionRequest.get("context");
+
+        TaskExecutionResult result = executor.execute(new Config(config), new Context(context));
+        return createResponse(result.responseCode(), result.toMap());
+    }
+
+    private GoPluginApiResponse handleTaskView() {
+        int responseCode = DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
+        Map view = new HashMap();
+        view.put("displayValue", "Fetch S3 package");
+        try {
+            view.put("template", IOUtils.toString(getClass().getResourceAsStream("/views/task.template.html"), "UTF-8"));
+        } catch (Exception e) {
+            responseCode = DefaultGoPluginApiResponse.INTERNAL_ERROR;
+            String errorMessage = "Failed to find template: " + e.getMessage();
+            view.put("exception", errorMessage);
+            logger.error(errorMessage, e);
+        }
+        return createResponse(responseCode, view);
+    }
+
+    private GoPluginApiResponse handleValidation() {
+        final HashMap validationResult = new HashMap();
+        return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE, validationResult);
+    }
+
+    private GoPluginApiResponse handleGetConfigRequest() {
+        HashMap config = new HashMap();
+        HashMap repo = new HashMap();
+        repo.put("default-value", "");
+        repo.put("required", true);
+        config.put(Constants.REPO, repo);
+
+        HashMap pkg = new HashMap();
+        pkg.put("default-value", "");
+        pkg.put("required", true);
+        config.put(Constants.PACKAGE, pkg);
+
+        HashMap destination = new HashMap();
+        destination.put("default-value", "");
+        destination.put("required", true);
+        config.put(Constants.DESTINATION, destination);
+
+        return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE, config);
     }
 
     @Override
-    public TaskView view() {
-        return new TaskView() {
-            @Override
-            public String displayValue() {
-                return "Fetch S3 package";
-            }
-
-            @Override
-            public String template() {
-                try {
-                    return IOUtils.toString(getClass().getResourceAsStream("/views/task.template.html"), "UTF-8");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return "Error happened during rendering - " + e.getMessage();
-                }
-            }
-        };
+    public GoPluginIdentifier pluginIdentifier() {
+        return new GoPluginIdentifier("task", Arrays.asList("1.0"));
     }
 
-    @Override
-    public ValidationResult validate(TaskConfig taskConfig) {
-        ValidationResult validationResult = new ValidationResult();
-        if (StringUtils.isBlank(taskConfig.getValue(REPO))) {
-            validationResult.addError(new ValidationError(REPO, "S3 repository must be specified"));
-        }
-
-        if (StringUtils.isBlank(taskConfig.getValue(PACKAGE))) {
-            validationResult.addError(new ValidationError(PACKAGE, "S3 package must be specified"));
-        }
-
-        if (StringUtils.isBlank(taskConfig.getValue(DESTINATION))) {
-            validationResult.addError(new ValidationError(DESTINATION, "Destination directory must be specified"));
-        }
-
-        return validationResult;
+    private GoPluginApiResponse createResponse(int responseCode, Map body) {
+        final DefaultGoPluginApiResponse response = new DefaultGoPluginApiResponse(responseCode);
+        response.setResponseBody(new GsonBuilder().serializeNulls().create().toJson(body));
+        return response;
     }
 }

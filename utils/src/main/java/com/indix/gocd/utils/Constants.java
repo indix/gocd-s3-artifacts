@@ -21,4 +21,8 @@ public class Constants {
     public static final String STORAGE_CLASS_GLACIER = "glacier";
 
     public static final String GO_PIPELINE_LABEL = "GO_PIPELINE_LABEL";
+
+    public static final String REPO = "Repo";
+    public static final String PACKAGE = "Package";
+    public static final String DESTINATION = "Destination";
 }
