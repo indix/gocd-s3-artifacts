@@ -29,15 +29,14 @@ public class FetchExecutor {
         if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
         if (env.isAbsent(GO_SERVER_DASHBOARD_URL)) return envNotFound(GO_SERVER_DASHBOARD_URL);
 
-        final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
-        final S3ArtifactStore store = getS3ArtifactStore(env, bucket);
-
-        String artifactPathOnS3 = getArtifactsLocationTemplate(config, env);
-        context.printMessage(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
-        String destination = String.format("%s/%s", context.getWorkingDir(), config.getDestination());
-        setupDestinationDirectory(destination);
-
         try {
+            final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
+            final S3ArtifactStore store = getS3ArtifactStore(env, bucket);
+
+            String artifactPathOnS3 = getArtifactsLocationTemplate(config, env);
+            context.printMessage(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
+            String destination = String.format("%s/%s", context.getWorkingDir(), config.getDestination());
+            setupDestinationDirectory(destination);
             store.getPrefix(artifactPathOnS3, destination);
             return new TaskExecutionResult(true, "Fetched all artifacts");
         } catch (Exception e) {
@@ -79,6 +78,10 @@ public class FetchExecutor {
         logger.debug(String.format("S3 fetch config uses repoName=%s and packageName=%s", repoName, packageName));
 
         String materialLabel = env.get(String.format("GO_PACKAGE_%s_%s_LABEL", repoName, packageName));
+        if(materialLabel == null) {
+            throw new RuntimeException("Please check Repository name or Package name configuration. Also, ensure that the appropriate S3 material is configured for the pipeline.");
+        }
+
         String[] counters = materialLabel.split("\\.");
         String pipelineCounter = counters[0];
         String stageCounter = counters[1];

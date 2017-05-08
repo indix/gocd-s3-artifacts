@@ -57,12 +57,26 @@ public class FetchExecutorTest {
     }
 
     @Test
-    public void shouldBeFailureIfFetchConfigNotValid() {
+    public void shouldBeFailureIfEnvVarNotFound() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build();
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
 
         assertFalse(result.isSuccessful());
         assertThat(result.message(), is("AWS_ACCESS_KEY_ID environment variable not present"));
+    }
+
+    @Test
+    public void shouldBeFailureIfFetchConfigNotValid() {
+        Map<String, String> mockVariables = mockEnvironmentVariables.build();
+        config = new Config(Maps.builder()
+                .with(Constants.REPO, Maps.builder().with("value", "Wrong").build())
+                .with(Constants.PACKAGE, Maps.builder().with("value", "TESTPUBLISHS3ARTIFACTS").build())
+                .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
+                .build());
+        TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
+
+        assertFalse(result.isSuccessful());
+        assertThat(result.message(), is("Failure while downloading artifacts - Please check Repository name or Package name configuration. Also, ensure that the appropriate S3 material is configured for the pipeline."));
     }
 
     @Test
@@ -92,6 +106,84 @@ public class FetchExecutorTest {
         assertThat(result.message(), is("Fetched all artifacts"));
         verify(mockStore, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", "here/artifacts");
 
+    }
+
+    @Test
+    public void shouldBeAbleToHandleTaskConfigEntriesWithDashesInTheName() {
+        Map<String, String> mockVariables = mockEnvironmentVariables
+                .with("GO_PACKAGE_REPO_WITH_DASH_PACKAGE_WITH_DASH_LABEL", "20.1")
+                .with("GO_REPO_REPO_WITH_DASH_PACKAGE_WITH_DASH_S3_BUCKET", bucket)
+                .with("GO_PACKAGE_REPO_WITH_DASH_PACKAGE_WITH_DASH_PIPELINE_NAME", "TestPublish")
+                .with("GO_PACKAGE_REPO_WITH_DASH_PACKAGE_WITH_DASH_STAGE_NAME", "defaultStage")
+                .with("GO_PACKAGE_REPO_WITH_DASH_PACKAGE_WITH_DASH_JOB_NAME", "defaultJob")
+                .build();
+        AmazonS3Client mockClient = mockClient();
+        doReturn(mockClient).when(fetchExecutor).s3Client(any(GoEnvironment.class));
+        S3ArtifactStore mockStore = mockStore();
+
+        doReturn(mockStore).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), any(String.class));
+        config = new Config(Maps.builder()
+                .with(Constants.REPO, Maps.builder().with("value", "repo-with-dash").build())
+                .with(Constants.PACKAGE, Maps.builder().with("value", "package-with-dash").build())
+                .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
+                .build());
+        TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
+
+        assertTrue(result.isSuccessful());
+        assertThat(result.message(), is("Fetched all artifacts"));
+        verify(mockStore, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", "here/artifacts");
+    }
+
+    @Test
+    public void shouldBeAbleToHandleTaskConfigEntriesWithPeriodsInTheName() {
+        Map<String, String> mockVariables = mockEnvironmentVariables
+                .with("GO_PACKAGE_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_LABEL", "20.1")
+                .with("GO_REPO_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_S3_BUCKET", bucket)
+                .with("GO_PACKAGE_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_PIPELINE_NAME", "TestPublish")
+                .with("GO_PACKAGE_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_STAGE_NAME", "defaultStage")
+                .with("GO_PACKAGE_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_JOB_NAME", "defaultJob")
+                .build();
+        AmazonS3Client mockClient = mockClient();
+        doReturn(mockClient).when(fetchExecutor).s3Client(any(GoEnvironment.class));
+        S3ArtifactStore mockStore = mockStore();
+
+        doReturn(mockStore).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), any(String.class));
+        config = new Config(Maps.builder()
+                .with(Constants.REPO, Maps.builder().with("value", "repo-with.period").build())
+                .with(Constants.PACKAGE, Maps.builder().with("value", "package-with.period").build())
+                .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
+                .build());
+        TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
+
+        assertTrue(result.isSuccessful());
+        assertThat(result.message(), is("Fetched all artifacts"));
+        verify(mockStore, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", "here/artifacts");
+    }
+
+    @Test
+    public void shouldBeAbleToHandleTaskConfigEntriesWithSpecialCharacters() {
+        Map<String, String> mockVariables = mockEnvironmentVariables
+                .with("GO_PACKAGE_REPO_WITH________________________________PACKAGE_WITH________________________________LABEL", "20.1")
+                .with("GO_REPO_REPO_WITH________________________________PACKAGE_WITH________________________________S3_BUCKET", bucket)
+                .with("GO_PACKAGE_REPO_WITH________________________________PACKAGE_WITH________________________________PIPELINE_NAME", "TestPublish")
+                .with("GO_PACKAGE_REPO_WITH________________________________PACKAGE_WITH________________________________STAGE_NAME", "defaultStage")
+                .with("GO_PACKAGE_REPO_WITH________________________________PACKAGE_WITH________________________________JOB_NAME", "defaultJob")
+                .build();
+        AmazonS3Client mockClient = mockClient();
+        doReturn(mockClient).when(fetchExecutor).s3Client(any(GoEnvironment.class));
+        S3ArtifactStore mockStore = mockStore();
+
+        doReturn(mockStore).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), any(String.class));
+        config = new Config(Maps.builder()
+                .with(Constants.REPO, Maps.builder().with("value", "repo-with`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?").build())
+                .with(Constants.PACKAGE, Maps.builder().with("value", "package-with`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?").build())
+                .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
+                .build());
+        TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
+
+        assertTrue(result.isSuccessful());
+        assertThat(result.message(), is("Fetched all artifacts"));
+        verify(mockStore, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", "here/artifacts");
     }
 
     private Context mockContext(final Map<String, String> environmentMap) {

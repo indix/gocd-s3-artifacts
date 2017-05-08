@@ -29,22 +29,6 @@ public class Context {
         return environmentVariables;
     }
 
-    public String getPipelineLabel() {
-        return environmentVariables.get("GO_PIPELINE_LABEL").toString();
-    }
-
-    public String getPipelineName() {
-        return environmentVariables.get("GO_PIPELINE_NAME").toString();
-    }
-
-    public String getStageName() {
-        return environmentVariables.get("GO_STAGE_NAME").toString();
-    }
-
-    public String getJobName() {
-        return environmentVariables.get("GO_JOB_NAME").toString();
-    }
-
     public String getWorkingDir() {
         return workingDir;
     }
