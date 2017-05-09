@@ -4,6 +4,18 @@ jdk:
 script: "./build.sh"
 env:
 - BUILD_LABEL=3.0.${TRAVIS_BUILD_NUMBER}
+before_deploy: "./deploy.sh"
+deploy:
+  provider: releases
+  api_key:
+    secure: C+vg/B+z+fqEtWh80ovIRruknQgG1sL/OaM5E4xhy589uGi6MDHrAZS9YuZ5ViQFjfCGGo+XzS8Up86yYPMTr1F+kRTViO/pGZst1yA8xO5o7Ep1Xd+q2mItpAhGMPJU0q41G9gIg0epF0OyIuYeXcAXo5h0LsNBS6PAQQEfpJQ=
+  file:
+  - "./fetch/target/s3fetch-assembly-${TRAVIS_TAG}.jar"
+  - "./publish/target/s3publish-assembly-${TRAVIS_TAG}.jar"
+  - "./material/target/s3material-assembly-${TRAVIS_TAG}.jar"
+  skip_cleanup: true
+  on:
+    tags: true
 notifications:
   slack:
     rooms:
