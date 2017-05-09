@@ -14,20 +14,17 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.indix.gocd.utils.Constants.*;
-import static com.indix.gocd.utils.Constants.GO_SERVER_DASHBOARD_URL;
 
 public class FetchExecutor {
     private static Logger logger = Logger.getLoggerFor(FetchTask.class);
 
     public TaskExecutionResult execute(Config config, final Context context) {
-        final GoEnvironment env = getGoEnvironment();
-        env.putAll(context.getEnvironmentVariables());
+        final GoEnvironment env = new GoEnvironment(context.getEnvironmentVariables());
         if (!env.hasAWSUseIamRole()) {
             if (env.isAbsent(AWS_ACCESS_KEY_ID)) return envNotFound(AWS_ACCESS_KEY_ID);
             if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) return envNotFound(AWS_SECRET_ACCESS_KEY);
         }
         if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
-        if (env.isAbsent(GO_SERVER_DASHBOARD_URL)) return envNotFound(GO_SERVER_DASHBOARD_URL);
 
         try {
             final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
@@ -89,10 +86,6 @@ public class FetchExecutor {
         String stage = env.get(String.format("GO_PACKAGE_%s_%s_STAGE_NAME", repoName, packageName));
         String job = env.get(String.format("GO_PACKAGE_%s_%s_JOB_NAME", repoName, packageName));
         return env.artifactsLocationTemplate(pipeline, stage, job, pipelineCounter, stageCounter);
-    }
-
-    public GoEnvironment getGoEnvironment() {
-        return new GoEnvironment();
     }
 
     private TaskExecutionResult envNotFound(String environmentVariable) {

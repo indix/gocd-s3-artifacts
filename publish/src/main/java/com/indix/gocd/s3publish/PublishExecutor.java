@@ -35,8 +35,7 @@ public class PublishExecutor {
     private Logger logger = Logger.getLoggerFor(PublishTask.class);
 
     public TaskExecutionResult execute(Config config, final Context context) {
-        final GoEnvironment env = getGoEnvironment();
-        env.putAll(context.getEnvironmentVariables());
+        final GoEnvironment env = new GoEnvironment(context.getEnvironmentVariables());
         if (!env.hasAWSUseIamRole()) {
             if (env.isAbsent(AWS_ACCESS_KEY_ID)) return envNotFound(AWS_ACCESS_KEY_ID);
             if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) return envNotFound(AWS_SECRET_ACCESS_KEY);
@@ -99,13 +98,6 @@ public class PublishExecutor {
         directoryScanner.setIncludes(new String[]{source});
         directoryScanner.scan();
         return ArrayUtils.addAll(directoryScanner.getIncludedFiles(), directoryScanner.getIncludedDirectories());
-    }
-
-    /*
-        Made public only for tests
-     */
-    public GoEnvironment getGoEnvironment() {
-        return new GoEnvironment();
     }
 
     public AmazonS3Client s3Client(GoEnvironment env) {

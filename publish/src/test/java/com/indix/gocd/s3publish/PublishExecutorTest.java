@@ -47,7 +47,6 @@ public class PublishExecutorTest {
                 .with("GO_TRIGGER_USER", "Krishna");
 
         publishExecutor = spy(new PublishExecutor());
-        doReturn(new GoEnvironment(new HashMap<String,String>())).when(publishExecutor).getGoEnvironment();
         doReturn(true).when(publishExecutor).fileExists(any(File.class));
     }
 

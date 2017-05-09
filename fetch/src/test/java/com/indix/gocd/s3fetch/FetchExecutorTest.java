@@ -53,7 +53,6 @@ public class FetchExecutorTest {
                 .build());
 
         fetchExecutor = spy(new FetchExecutor());
-        doReturn(new GoEnvironment(new HashMap<String,String>())).when(fetchExecutor).getGoEnvironment();
     }
 
     @Test
