@@ -18,13 +18,14 @@ import static com.indix.gocd.utils.Constants.GO_SERVER_DASHBOARD_URL;
  */
 public class GoEnvironment {
     private Pattern envPat = Pattern.compile("\\$\\{(\\w+)\\}");
-    private Map<String, String> environment = new HashMap<String, String>();
+    private Map<String, String> environment = new HashMap<>();
 
     public GoEnvironment() {
-        this(System.getenv());
+        this.environment.putAll(System.getenv());
     }
 
     public GoEnvironment(Map<String, String> defaultEnvironment) {
+        this();
         this.environment.putAll(defaultEnvironment);
     }
 

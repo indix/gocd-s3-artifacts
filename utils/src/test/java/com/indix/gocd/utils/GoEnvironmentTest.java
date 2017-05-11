@@ -71,8 +71,7 @@ public class GoEnvironmentTest {
 
         assertThat(replaced, is("COUNT:1 ${DOESNT_EXIST}"));
     }
-
-
+    
     @Test
     public void shouldGetHasAWSUseIamRoleTrueIfSetToTrue() {
         GoEnvironment sut = new GoEnvironment(mockEnvironmentVariables
