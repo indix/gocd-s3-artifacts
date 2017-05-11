@@ -1,10 +1,8 @@
 package com.indix.gocd.s3publish;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.S3ClientOptions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.google.gson.JsonSyntaxException;
@@ -44,7 +42,7 @@ public class PublishExecutor {
         if (env.isAbsent(GO_SERVER_DASHBOARD_URL)) return envNotFound(GO_SERVER_DASHBOARD_URL);
 
         final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
-        final S3ArtifactStore store = new S3ArtifactStore(s3Client(env), bucket);
+        final S3ArtifactStore store = getS3ArtifactStore(env, bucket);
         store.setStorageClass(env.getOrElse(AWS_STORAGE_CLASS, STORAGE_CLASS_STANDARD));
 
         final String destinationPrefix = getDestinationPrefix(config, env);
@@ -87,10 +85,11 @@ public class PublishExecutor {
         return new TaskExecutionResult(true,"Published all artifacts to S3");
     }
 
-    /*
-        Made public only for tests
-     */
-    public String[] parseSourcePath(String source, String workingDir) {
+    protected S3ArtifactStore getS3ArtifactStore(GoEnvironment env, String bucket) {
+        return new S3ArtifactStore(env, bucket);
+    }
+
+    protected String[] parseSourcePath(String source, String workingDir) {
         DirectoryScanner directoryScanner = new DirectoryScanner();
         directoryScanner.setBasedir(workingDir);
         directoryScanner.setIncludes(new String[]{source});
@@ -98,20 +97,7 @@ public class PublishExecutor {
         return ArrayUtils.addAll(directoryScanner.getIncludedFiles(), directoryScanner.getIncludedDirectories());
     }
 
-    public AmazonS3Client s3Client(GoEnvironment env) {
-        AmazonS3Client client = null;
-        if (env.hasAWSUseIamRole()) {
-            client = new AmazonS3Client(new InstanceProfileCredentialsProvider());
-        } else {
-            client = new AmazonS3Client(new BasicAWSCredentials(env.get(AWS_ACCESS_KEY_ID), env.get(AWS_SECRET_ACCESS_KEY)));
-        }
-        return client;
-    }
-
-    /*
-        Made public for tests
-     */
-    public boolean fileExists(File localFileToUpload) {
+    protected boolean fileExists(File localFileToUpload) {
         return localFileToUpload.exists();
     }
 

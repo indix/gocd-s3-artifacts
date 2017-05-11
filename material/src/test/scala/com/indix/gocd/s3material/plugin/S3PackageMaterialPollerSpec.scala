@@ -41,7 +41,7 @@ class S3PackageMaterialPollerSpec extends FlatSpec with MockitoSugar with org.sc
 
   it should "return null result if no new revision since previous revision" in {
     val status = new RevisionStatus(new Revision("1.1"), new Date(), "", "", "")
-    doReturn(status).when(mockS3ArtifactStore).getLatest(Matchers.any[AmazonS3Client], Matchers.any[Artifact])
+    doReturn(status).when(mockS3ArtifactStore).getLatest(Matchers.any[Artifact])
     val result = sut.handle(getRequest(S3PackageMaterialPoller.REQUEST_LATEST_REVISION_SINCE, """
                   |{
                   |    "repository-configuration": {
@@ -73,7 +73,7 @@ class S3PackageMaterialPollerSpec extends FlatSpec with MockitoSugar with org.sc
 
   it should "get more latest revision since previous revision" in {
     val status = new RevisionStatus(new Revision("1.2"), new Date(), "", "", "")
-    doReturn(status).when(mockS3ArtifactStore).getLatest(Matchers.any[AmazonS3Client], Matchers.any[Artifact])
+    doReturn(status).when(mockS3ArtifactStore).getLatest(Matchers.any[Artifact])
     val result = sut.handle(getRequest(S3PackageMaterialPoller.REQUEST_LATEST_REVISION_SINCE, """
                   |{
                   |    "repository-configuration": {
@@ -105,7 +105,7 @@ class S3PackageMaterialPollerSpec extends FlatSpec with MockitoSugar with org.sc
 
   it should "get latest revision" in {
     val status = new RevisionStatus(new Revision("1.1"), new Date(), "", "", "")
-    doReturn(status).when(mockS3ArtifactStore).getLatest(Matchers.any[AmazonS3Client], Matchers.any[Artifact])
+    doReturn(status).when(mockS3ArtifactStore).getLatest(Matchers.any[Artifact])
     val result = sut.handle(getRequest(S3PackageMaterialPoller.REQUEST_LATEST_REVISION, """
                   |{
                   |    "repository-configuration": {

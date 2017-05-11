@@ -7,6 +7,7 @@ import com.indix.gocd.utils.Context;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.TaskExecutionResult;
 import com.indix.gocd.utils.mocks.MockContext;
+import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Maps;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,13 +30,16 @@ public class PublishExecutorTest {
     Maps.MapBuilder<String, String> mockEnvironmentVariables;
     private PublishExecutor publishExecutor;
     private Config config;
+    private S3ArtifactStore store;
+    private String testS3Bucket = "testS3Bucket";
+
 
     @Before
     public void setUp() throws Exception {
         mockEnvironmentVariables = Maps.<String, String>builder()
                 .with(AWS_SECRET_ACCESS_KEY, "secretKey")
                 .with(AWS_ACCESS_KEY_ID, "accessId")
-                .with(GO_ARTIFACTS_S3_BUCKET, "testS3Bucket")
+                .with(GO_ARTIFACTS_S3_BUCKET, testS3Bucket)
                 .with(GO_SERVER_DASHBOARD_URL, "http://go.server:8153")
                 .with("GO_PIPELINE_NAME", "pipeline")
                 .with("GO_STAGE_NAME", "stage")
@@ -298,7 +302,6 @@ public class PublishExecutorTest {
         assertThat(jarPutRequest.getKey(), is("s3publish-0.1.31.jar"));
         assertNull(jarPutRequest.getMetadata());
     }
-
     private TaskExecutionResult executeMockPublish(final AmazonS3Client mockClient, Config config, String[] files) {
         return executeMockPublish(mockClient, config, files, mockEnvironmentVariables);
     }
@@ -307,7 +310,9 @@ public class PublishExecutorTest {
                                                    Maps.MapBuilder<String, String> mockVariablesBuilder) {
         Map<String, String> mockVariables = mockVariablesBuilder.build();
 
-        doReturn(mockClient).when(publishExecutor).s3Client(any(GoEnvironment.class));
+        store = new S3ArtifactStore(mockClient, testS3Bucket);
+
+        doReturn(store).when(publishExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(testS3Bucket));
         doReturn(files).when(publishExecutor).parseSourcePath(anyString(), anyString());
 
         return publishExecutor.execute(config, mockContext(mockVariables));

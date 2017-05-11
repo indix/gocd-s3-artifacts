@@ -1,11 +1,15 @@
 package com.indix.gocd.utils.store;
 
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
 import com.indix.gocd.models.Artifact;
 import com.indix.gocd.models.ResponseMetadataConstants;
 import com.indix.gocd.models.Revision;
 import com.indix.gocd.models.RevisionStatus;
+import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Functions;
 import com.indix.gocd.utils.utils.Lists;
@@ -28,13 +32,21 @@ public class S3ArtifactStore {
             .with(STORAGE_CLASS_GLACIER, StorageClass.Glacier)
             .build();
 
-    private AmazonS3Client client;
+    private AmazonS3 client;
     private String bucket;
     private StorageClass storageClass = StorageClass.Standard;
 
-    public S3ArtifactStore(AmazonS3Client client, String bucket) {
+    public S3ArtifactStore(AmazonS3 client, String bucket) {
         this.client = client;
         this.bucket = bucket;
+    }
+
+    public S3ArtifactStore(GoEnvironment env, String bucket) {
+        this(getS3client(env), bucket);
+    }
+
+    public S3ArtifactStore(String bucket) {
+        this(getS3client(new GoEnvironment()), bucket);
     }
 
     public void setStorageClass(String storageClass) {
@@ -122,15 +134,15 @@ public class S3ArtifactStore {
         }
     }
 
-    private Boolean isComplete(AmazonS3Client client, String prefix) {
+    private Boolean isComplete(String prefix) {
         return client.getObjectMetadata(bucket, prefix).getUserMetadata().containsKey(ResponseMetadataConstants.COMPLETED);
     }
 
-    private Revision mostRecentRevision(final AmazonS3Client client, ObjectListing listing) {
+    private Revision mostRecentRevision(ObjectListing listing) {
         List<String> prefixes = Lists.filter(listing.getCommonPrefixes(), new Functions.Predicate<String>() {
             @Override
             public Boolean execute(String input) {
-                return isComplete(client, input);
+                return isComplete(input);
             }
         });
 
@@ -149,23 +161,23 @@ public class S3ArtifactStore {
             return Revision.base();
     }
 
-    private Revision latestOfInternal(AmazonS3Client client, ObjectListing listing, Revision latestSoFar) {
+    private Revision latestOfInternal(ObjectListing listing, Revision latestSoFar) {
         if (!listing.isTruncated()) {
             return latestSoFar;
         } else {
             ObjectListing objects = client.listNextBatchOfObjects(listing);
-            Revision mostRecent = mostRecentRevision(client, objects);
+            Revision mostRecent = mostRecentRevision(objects);
             if (latestSoFar.compareTo(mostRecent) > 0)
                 mostRecent = latestSoFar;
-            return latestOfInternal(client, objects, mostRecent);
+            return latestOfInternal(objects, mostRecent);
         }
     }
 
-    private Revision latestOf(AmazonS3Client client, ObjectListing listing) {
-        return latestOfInternal(client, listing, mostRecentRevision(client, listing));
+    private Revision latestOf(ObjectListing listing) {
+        return latestOfInternal(listing, mostRecentRevision(listing));
     }
 
-    public RevisionStatus getLatest(AmazonS3Client client, Artifact artifact) {
+    public RevisionStatus getLatest(Artifact artifact) {
         ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
                 .withBucketName(bucket)
                 .withPrefix(artifact.prefix())
@@ -173,7 +185,7 @@ public class S3ArtifactStore {
 
         ObjectListing listing = client.listObjects(listObjectsRequest);
         if (listing != null) {
-            Revision recent = latestOf(client, listing);
+            Revision recent = latestOf(listing);
             Artifact artifactWithRevision = artifact.withRevision(recent);
             GetObjectMetadataRequest objectMetadataRequest = new GetObjectMetadataRequest(bucket, artifactWithRevision.prefixWithRevision());
             ObjectMetadata metadata = client.getObjectMetadata(objectMetadataRequest);
@@ -186,5 +198,14 @@ public class S3ArtifactStore {
             return new RevisionStatus(recent, metadata.getLastModified(), tracebackUrl, user, revisionLabel);
         }
         return null;
+    }
+
+    public static AmazonS3 getS3client(GoEnvironment env) {
+        AmazonS3ClientBuilder amazonS3ClientBuilder = AmazonS3ClientBuilder.standard();
+        if (env.hasAWSUseIamRole()) {
+            amazonS3ClientBuilder.withCredentials(new InstanceProfileCredentialsProvider(false));
+        }
+
+        return amazonS3ClientBuilder.build();
     }
 }
