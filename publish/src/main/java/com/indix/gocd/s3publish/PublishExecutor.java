@@ -1,29 +1,29 @@
 package com.indix.gocd.s3publish;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-
-import com.amazonaws.util.json.JSONException;
+import com.google.gson.JsonSyntaxException;
 import com.indix.gocd.utils.Context;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.TaskExecutionResult;
+import com.indix.gocd.utils.store.S3ArtifactStore;
+import com.indix.gocd.utils.utils.Function;
+import com.indix.gocd.utils.utils.Lists;
+import com.indix.gocd.utils.utils.Tuple2;
 import com.thoughtworks.go.plugin.api.logging.Logger;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tools.ant.DirectoryScanner;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
-
-import com.indix.gocd.utils.store.S3ArtifactStore;
-import com.indix.gocd.utils.utils.Function;
-import com.indix.gocd.utils.utils.Lists;
-import com.indix.gocd.utils.utils.Tuple2;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.tools.ant.DirectoryScanner;
 
 import static com.indix.gocd.utils.Constants.*;
 import static com.indix.gocd.utils.utils.Functions.VoidFunction;
@@ -50,13 +50,11 @@ public class PublishExecutor {
         final String destinationPrefix = getDestinationPrefix(config, env);
 
         try {
-            List<Tuple2<String, String>> sourceDestinations = config.sourceDestinations();
-            foreach(sourceDestinations, new VoidFunction<Tuple2<String, String>>() {
+            List<SourceDestination> sourceDestinations = config.sourceDestinations();
+            foreach(sourceDestinations, new VoidFunction<SourceDestination>() {
                 @Override
-                public void execute(Tuple2<String, String> input) {
-                    final String source = input._1();
-                    final String destination = input._2();
-                    String[] files = parseSourcePath(source, context.getWorkingDir());
+                public void execute(final SourceDestination input) {
+                    String[] files = parseSourcePath(input.source, context.getWorkingDir());
 
                     foreach(files, new VoidFunction<String>() {
                         @Override
@@ -66,12 +64,12 @@ public class PublishExecutor {
                                 throw new RuntimeException(String.format("%s is missing", localFileToUpload.getAbsolutePath()));
                             }
 
-                            pushToS3(context, destinationPrefix, store, localFileToUpload, destination);
+                            pushToS3(context, destinationPrefix, store, localFileToUpload, input.destination);
                         }
                     });
                 }
             });
-        } catch (JSONException e) {
+        } catch (JsonSyntaxException e) {
             String message = "Failed while parsing configuration";
             logger.error(message);
             return new TaskExecutionResult(false, message, e);

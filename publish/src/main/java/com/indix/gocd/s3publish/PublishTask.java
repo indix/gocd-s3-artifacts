@@ -1,11 +1,10 @@
 package com.indix.gocd.s3publish;
 
-import com.amazonaws.util.json.JSONException;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.indix.gocd.utils.Context;
 import com.indix.gocd.utils.TaskExecutionResult;
 import com.indix.gocd.utils.utils.Functions;
-import com.indix.gocd.utils.utils.Tuple2;
 import com.thoughtworks.go.plugin.api.GoApplicationAccessor;
 import com.thoughtworks.go.plugin.api.GoPlugin;
 import com.thoughtworks.go.plugin.api.GoPluginIdentifier;
@@ -18,7 +17,10 @@ import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.DESTINATION_PREFIX;
 import static com.indix.gocd.utils.Constants.SOURCEDESTINATIONS;
@@ -80,23 +82,23 @@ public class PublishTask implements GoPlugin {
         final Config config = new Config(configMap);
 
         try {
-            List<Tuple2<String, String>> sourceDestinations = config.sourceDestinations();
+            List<SourceDestination> sourceDestinations = config.sourceDestinations();
             if(sourceDestinations.isEmpty()) {
                 HashMap errorMap = new HashMap();
                 errorMap.put(SOURCEDESTINATIONS, "At least one source must be specified");
                 validationResult.put("errors", errorMap);
             }
-            foreach(sourceDestinations, new Functions.VoidFunction<Tuple2<String, String>>() {
+            foreach(sourceDestinations, new Functions.VoidFunction<SourceDestination>() {
                 @Override
-                public void execute(Tuple2<String, String> input) {
-                    if(StringUtils.isBlank(input._1())) {
+                public void execute(SourceDestination input) {
+                    if(StringUtils.isBlank(input.source)) {
                         HashMap errorMap = new HashMap();
                         errorMap.put(SOURCEDESTINATIONS, "Source cannot be empty");
                         validationResult.put("errors", errorMap);
                     }
                 }
             });
-        } catch (JSONException e) {
+        } catch (JsonSyntaxException e) {
             HashMap errorMap = new HashMap();
             errorMap.put(SOURCEDESTINATIONS, "Error while parsing configuration");
             validationResult.put("errors", errorMap);

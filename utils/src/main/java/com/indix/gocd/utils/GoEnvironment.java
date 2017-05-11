@@ -9,9 +9,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.indix.gocd.utils.Constants.AWS_USE_IAM_ROLE;
+import static com.indix.gocd.utils.Constants.*;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static com.indix.gocd.utils.Constants.GO_SERVER_DASHBOARD_URL;
 
 /**
  * Wrapper around Go's Environment variables
