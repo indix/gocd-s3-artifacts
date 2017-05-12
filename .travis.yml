@@ -8,7 +8,7 @@ before_deploy:
   - "./deploy.sh"
   - nvm install v7.8.0
   - nvm use v7.8.0
-  - npm install yarn
+  - npm install -g yarn
   - "./docs/deploy.sh"
 deploy:
 - provider: releases
