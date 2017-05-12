@@ -6,6 +6,8 @@ env:
 - BUILD_LABEL=3.0.${TRAVIS_BUILD_NUMBER}
 before_deploy:
   - "./deploy.sh"
+  - nvm use v7.8.0
+  - npm install yarn
   - "./docs/deploy.sh"
 deploy:
 - provider: releases
