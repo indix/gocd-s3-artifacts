@@ -1,5 +1,9 @@
 # GoCD S3 Artifacts
 
+<p align="center">
+<img src="resources/images/banner.png" width="750" height="200"/>
+</p>
+
 This is a collection of necessary GoCD plugins to enable publishing, polling and fetching artifacts from Amazon S3.
 
 We built these at Indix due to our need to share artifacts across many Go servers. (we have a lot of them!)

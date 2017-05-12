@@ -3,6 +3,10 @@ gocd-s3-artifacts
 
 [![Build Status](https://travis-ci.org/indix/gocd-s3-artifacts.svg?branch=master)](https://travis-ci.org/indix/gocd-s3-artifacts)
 
+<p align="center">
+<img src="docs/resources/images/banner.png" width="750" height="200"/>
+</p>
+
 Set of plugins to publish, poll and fetch artifacts from Amazon S3
 
 This repo holds two task plugins and a package poller plugin.
