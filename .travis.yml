@@ -4,9 +4,11 @@ jdk:
 script: "./build.sh"
 env:
 - BUILD_LABEL=3.0.${TRAVIS_BUILD_NUMBER}
-before_deploy: "./deploy.sh"
+before_deploy:
+  - "./deploy.sh"
+  - "./docs/deploy.sh"
 deploy:
-  provider: releases
+- provider: releases
   api_key:
     secure: C+vg/B+z+fqEtWh80ovIRruknQgG1sL/OaM5E4xhy589uGi6MDHrAZS9YuZ5ViQFjfCGGo+XzS8Up86yYPMTr1F+kRTViO/pGZst1yA8xO5o7Ep1Xd+q2mItpAhGMPJU0q41G9gIg0epF0OyIuYeXcAXo5h0LsNBS6PAQQEfpJQ=
   file:
@@ -16,6 +18,16 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
+- provider: pages
+  local_dir: docs/_book
+  skip_cleanup: true
+  target_branch: gh-pages
+  github_token:
+    secure: C+vg/B+z+fqEtWh80ovIRruknQgG1sL/OaM5E4xhy589uGi6MDHrAZS9YuZ5ViQFjfCGGo+XzS8Up86yYPMTr1F+kRTViO/pGZst1yA8xO5o7Ep1Xd+q2mItpAhGMPJU0q41G9gIg0epF0OyIuYeXcAXo5h0LsNBS6PAQQEfpJQ=
+  email: manoj@indix.com
+  name: Manoj
+  on:
+    branch: master
 notifications:
   slack:
     rooms:
