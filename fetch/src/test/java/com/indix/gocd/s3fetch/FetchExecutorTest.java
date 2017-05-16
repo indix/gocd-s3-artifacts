@@ -10,17 +10,13 @@ import com.indix.gocd.utils.TaskExecutionResult;
 import com.indix.gocd.utils.mocks.MockContext;
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Maps;
-import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;

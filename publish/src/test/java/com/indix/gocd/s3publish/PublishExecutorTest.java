@@ -14,13 +14,12 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;

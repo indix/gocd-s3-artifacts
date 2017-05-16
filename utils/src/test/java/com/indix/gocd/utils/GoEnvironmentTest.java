@@ -3,7 +3,6 @@ package com.indix.gocd.utils;
 import static com.indix.gocd.utils.Constants.AWS_USE_IAM_ROLE;
 import static org.hamcrest.CoreMatchers.is;
 
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -80,7 +79,7 @@ public class GoEnvironmentTest {
 
         Boolean result = sut.hasAWSUseIamRole();
 
-        assertThat(result, Matchers.is(Boolean.TRUE));
+        assertThat(result, is(Boolean.TRUE));
     }
 
     @Test
@@ -91,7 +90,7 @@ public class GoEnvironmentTest {
 
         Boolean result = sut.hasAWSUseIamRole();
 
-        assertThat(result, Matchers.is(Boolean.FALSE));
+        assertThat(result, is(Boolean.FALSE));
     }
 
 
