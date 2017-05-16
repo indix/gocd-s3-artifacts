@@ -27,10 +27,10 @@ public class FetchExecutor {
         if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
 
         try {
+            String artifactPathOnS3 = getArtifactsLocationTemplate(config, env);
             final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
             final S3ArtifactStore store = getS3ArtifactStore(env, bucket);
 
-            String artifactPathOnS3 = getArtifactsLocationTemplate(config, env);
             context.printMessage(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
             String destination = String.format("%s/%s", context.getWorkingDir(), config.getDestination());
             setupDestinationDirectory(destination);
@@ -43,8 +43,8 @@ public class FetchExecutor {
         }
     }
 
-    public S3ArtifactStore getS3ArtifactStore(GoEnvironment env, String bucket) {
-        return new S3ArtifactStore(s3Client(env), bucket);
+    protected S3ArtifactStore getS3ArtifactStore(GoEnvironment env, String bucket) {
+        return new S3ArtifactStore(env, bucket);
     }
 
     private void setupDestinationDirectory(String destination) {
@@ -58,18 +58,7 @@ public class FetchExecutor {
         }
     }
 
-    public AmazonS3Client s3Client(GoEnvironment env) {
-        AmazonS3Client client;
-        if (env.hasAWSUseIamRole()) {
-            client = new AmazonS3Client(new InstanceProfileCredentialsProvider());
-        } else {
-            client = new AmazonS3Client(new BasicAWSCredentials(env.get(AWS_ACCESS_KEY_ID), env.get(AWS_SECRET_ACCESS_KEY)));
-        }
-        return client;
-    }
-
-
-    public String getArtifactsLocationTemplate(Config config, GoEnvironment env) {
+    private String getArtifactsLocationTemplate(Config config, GoEnvironment env) {
         String repoName = config.getRepo();
         String packageName = config.getPkg();
         logger.debug(String.format("S3 fetch config uses repoName=%s and packageName=%s", repoName, packageName));

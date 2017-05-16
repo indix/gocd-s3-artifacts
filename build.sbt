@@ -1,15 +1,15 @@
 val ant = "org.apache.ant" % "ant" % "1.9.4"
 val apacheCommons = "org.apache.commons" % "commons-lang3" % "3.1"
 val commonsIo = "commons-io" % "commons-io" % "1.3.2"
-val awsS3 = "com.amazonaws" % "aws-java-sdk-s3" % "1.10.26"
+val awsS3 = "com.amazonaws" % "aws-java-sdk-s3" % "1.11.127"
 val nscalaTime = "com.github.nscala-time" %% "nscala-time" % "2.4.0"
 val gson = "com.google.code.gson" % "gson" % "2.2.3"
 val goPluginLibrary = "cd.go.plugin" % "go-plugin-api" % "15.1.0" % Provided
 
-val junit = "junit" % "junit" % "4.10" % Test
-val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test
 val hamcrest = "org.hamcrest" % "hamcrest-all" % "1.3" % Test
-val mockito = "org.mockito" % "mockito-all" % "1.9.0" % Test
+val junit = "junit" % "junit" % "4.12" % Test
+val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test
+val mockito = "org.mockito" % "mockito-all" % "1.10.19" % Test
 val scalaTest = "org.scalatest" %% "scalatest" % "2.2.0" % Test
 
 val appVersion = sys.env.get("TRAVIS_TAG") orElse sys.env.get("BUILD_LABEL") getOrElse "1.0.0-SNAPSHOT"
@@ -25,7 +25,7 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.10.4",
   unmanagedBase := file(".") / "lib",
   libraryDependencies ++= Seq(
-    apacheCommons, commonsIo, awsS3, goPluginLibrary, mockito
+    apacheCommons, commonsIo, awsS3, goPluginLibrary, gson
   ),
   variables in EditSource += ("version", appVersion),
   targetDirectory in EditSource <<= baseDirectory(_ / "target" / "transformed"),
@@ -40,7 +40,7 @@ lazy val utils = (project in file("utils")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      junit, junitInterface, hamcrest
+      junit, junitInterface, mockito
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
@@ -53,7 +53,7 @@ lazy val publish = (project in file("publish")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      gson, ant, junit, junitInterface, hamcrest
+      ant, junit, junitInterface, mockito
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
@@ -66,7 +66,7 @@ lazy val material = (project in file("material")).
     crossPaths := false,
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
     libraryDependencies ++= Seq(
-      gson, scalaTest
+      scalaTest, mockito
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
@@ -79,7 +79,7 @@ lazy val fetch = (project in file("fetch")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      gson, junit, hamcrest
+      junit, mockito
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )

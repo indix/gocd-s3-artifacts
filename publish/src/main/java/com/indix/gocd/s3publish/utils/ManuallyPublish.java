@@ -1,10 +1,9 @@
 package com.indix.gocd.s3publish.utils;
 
-import com.amazonaws.util.json.JSONArray;
-import com.amazonaws.util.json.JSONException;
-import com.amazonaws.util.json.JSONObject;
+import com.google.gson.Gson;
 import com.indix.gocd.s3publish.Config;
 import com.indix.gocd.s3publish.PublishExecutor;
+import com.indix.gocd.s3publish.SourceDestination;
 import com.indix.gocd.utils.Context;
 import com.indix.gocd.utils.TaskExecutionResult;
 import com.indix.gocd.utils.utils.Lists;
@@ -33,7 +32,7 @@ Run this Task with the following ENV variables
 
  */
 public class ManuallyPublish {
-    public static void main(String[] args) throws JSONException {
+    public static void main(String[] args) {
         if (args.length < 2) {
             String usage = "ManuallyPublish [localFileToUpload] [destinationOnS3]";
             System.out.println(usage);
@@ -56,13 +55,8 @@ public class ManuallyPublish {
         }
     }
 
-    public static String sourceDestinations(List<SourceDestination> sourceDestinations) throws JSONException {
-        JSONObject jsonObject = new JSONObject(sourceDestinations.get(0));
-        System.out.println(jsonObject.toString());
-        JSONArray jsonArray = new JSONArray(sourceDestinations);
-        String s = jsonArray.toString();
-        System.out.println(s);
-        return s;
+    private static String sourceDestinations(List<SourceDestination> sourceDestinations)  {
+        return new Gson().toJson(sourceDestinations);
     }
 
     private static Context getTaskExecutionContext(final File localFileToUpload) {

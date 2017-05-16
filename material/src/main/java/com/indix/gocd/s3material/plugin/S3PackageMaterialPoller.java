@@ -75,7 +75,7 @@ public class S3PackageMaterialPoller implements GoPlugin {
         String s3Bucket = repositoryKeyValuePairs.get(S3_BUCKET);
         S3ArtifactStore artifactStore = s3ArtifactStore(s3Bucket);
         try {
-            RevisionStatus revision = artifactStore.getLatest(s3Client(), artifact(packageKeyValuePairs));
+            RevisionStatus revision = artifactStore.getLatest(artifact(packageKeyValuePairs));
             if(new Revision(revision.revision.getRevision()).compareTo(new Revision(previousRevision)) > 0) {
                 return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE, revision.toMap());
             }
@@ -93,7 +93,7 @@ public class S3PackageMaterialPoller implements GoPlugin {
         String s3Bucket = repositoryKeyValuePairs.get(S3_BUCKET);
         S3ArtifactStore artifactStore = s3ArtifactStore(s3Bucket);
         try {
-            RevisionStatus revision = artifactStore.getLatest(s3Client(), artifact(packageKeyValuePairs));
+            RevisionStatus revision = artifactStore.getLatest(artifact(packageKeyValuePairs));
             return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE, revision.toMap());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -222,17 +222,7 @@ public class S3PackageMaterialPoller implements GoPlugin {
     }
 
     public S3ArtifactStore s3ArtifactStore(String s3Bucket) {
-        return new S3ArtifactStore(s3Client(), s3Bucket);
-    }
-
-    private static AmazonS3Client s3Client() {
-        // The s3 client has a nice way to pick up the creds.
-        // It first checks the env to see if it contains the required key related variables/values
-        // If not, it checks the java system properties to see if it's set there(ideally via -D args)
-        // If not, it falls back to check ~/.aws/credentials file
-        // If not, finally, very insecure way, it tries to fetch from the internal metadata service that each
-        // instance comes with(if its exposed).
-        return new AmazonS3Client();
+        return new S3ArtifactStore(s3Bucket);
     }
 
     private Artifact artifact(Map<String, String> packageConfig) {

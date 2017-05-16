@@ -10,24 +10,19 @@ import com.indix.gocd.utils.TaskExecutionResult;
 import com.indix.gocd.utils.mocks.MockContext;
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Maps;
-import com.thoughtworks.go.plugin.api.response.execution.ExecutionResult;
-import com.thoughtworks.go.plugin.api.task.TaskConfig;
-import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 
 public class FetchExecutorTest {
-    private final String destination = "artifacts";
     private final String bucket = "gocd";
     Maps.MapBuilder<String, String> mockEnvironmentVariables;
     private FetchExecutor fetchExecutor;
@@ -72,6 +67,10 @@ public class FetchExecutorTest {
                 .with(Constants.PACKAGE, Maps.builder().with("value", "TESTPUBLISHS3ARTIFACTS").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
+        AmazonS3Client mockClient = mockClient();
+        S3ArtifactStore store = new S3ArtifactStore(mockClient, bucket);
+        doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
+
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
 
         assertFalse(result.isSuccessful());
@@ -82,8 +81,9 @@ public class FetchExecutorTest {
     public void shouldBeFailureIfUnableToFetchArtifacts() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         AmazonS3Client mockClient = mockClient();
+        S3ArtifactStore store = new S3ArtifactStore(mockClient, bucket);
         doThrow(new AmazonClientException("Exception message")).when(mockClient).listObjects(any(ListObjectsRequest.class));
-        doReturn(mockClient).when(fetchExecutor).s3Client(any(GoEnvironment.class));
+        doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
 
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
 
@@ -95,7 +95,8 @@ public class FetchExecutorTest {
     public void shouldBeSuccessResultOnSuccessfulFetch() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         AmazonS3Client mockClient = mockClient();
-        doReturn(mockClient).when(fetchExecutor).s3Client(any(GoEnvironment.class));
+        S3ArtifactStore store = new S3ArtifactStore(mockClient, bucket);
+        doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
         S3ArtifactStore mockStore = mockStore();
 
         doReturn(mockStore).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), any(String.class));
@@ -116,11 +117,9 @@ public class FetchExecutorTest {
                 .with("GO_PACKAGE_REPO_WITH_DASH_PACKAGE_WITH_DASH_STAGE_NAME", "defaultStage")
                 .with("GO_PACKAGE_REPO_WITH_DASH_PACKAGE_WITH_DASH_JOB_NAME", "defaultJob")
                 .build();
-        AmazonS3Client mockClient = mockClient();
-        doReturn(mockClient).when(fetchExecutor).s3Client(any(GoEnvironment.class));
-        S3ArtifactStore mockStore = mockStore();
+        S3ArtifactStore store = mockStore();
+        doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
 
-        doReturn(mockStore).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), any(String.class));
         config = new Config(Maps.builder()
                 .with(Constants.REPO, Maps.builder().with("value", "repo-with-dash").build())
                 .with(Constants.PACKAGE, Maps.builder().with("value", "package-with-dash").build())
@@ -130,7 +129,7 @@ public class FetchExecutorTest {
 
         assertTrue(result.isSuccessful());
         assertThat(result.message(), is("Fetched all artifacts"));
-        verify(mockStore, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", "here/artifacts");
+        verify(store, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", "here/artifacts");
     }
 
     @Test
@@ -142,11 +141,9 @@ public class FetchExecutorTest {
                 .with("GO_PACKAGE_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_STAGE_NAME", "defaultStage")
                 .with("GO_PACKAGE_REPO_WITH_PERIOD_PACKAGE_WITH_PERIOD_JOB_NAME", "defaultJob")
                 .build();
-        AmazonS3Client mockClient = mockClient();
-        doReturn(mockClient).when(fetchExecutor).s3Client(any(GoEnvironment.class));
-        S3ArtifactStore mockStore = mockStore();
+        S3ArtifactStore store = mockStore();
+        doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
 
-        doReturn(mockStore).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), any(String.class));
         config = new Config(Maps.builder()
                 .with(Constants.REPO, Maps.builder().with("value", "repo-with.period").build())
                 .with(Constants.PACKAGE, Maps.builder().with("value", "package-with.period").build())
@@ -156,7 +153,7 @@ public class FetchExecutorTest {
 
         assertTrue(result.isSuccessful());
         assertThat(result.message(), is("Fetched all artifacts"));
-        verify(mockStore, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", "here/artifacts");
+        verify(store, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", "here/artifacts");
     }
 
     @Test
@@ -168,11 +165,9 @@ public class FetchExecutorTest {
                 .with("GO_PACKAGE_REPO_WITH________________________________PACKAGE_WITH________________________________STAGE_NAME", "defaultStage")
                 .with("GO_PACKAGE_REPO_WITH________________________________PACKAGE_WITH________________________________JOB_NAME", "defaultJob")
                 .build();
-        AmazonS3Client mockClient = mockClient();
-        doReturn(mockClient).when(fetchExecutor).s3Client(any(GoEnvironment.class));
-        S3ArtifactStore mockStore = mockStore();
+        S3ArtifactStore store = mockStore();
+        doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
 
-        doReturn(mockStore).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), any(String.class));
         config = new Config(Maps.builder()
                 .with(Constants.REPO, Maps.builder().with("value", "repo-with`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?").build())
                 .with(Constants.PACKAGE, Maps.builder().with("value", "package-with`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?").build())
@@ -182,7 +177,7 @@ public class FetchExecutorTest {
 
         assertTrue(result.isSuccessful());
         assertThat(result.message(), is("Fetched all artifacts"));
-        verify(mockStore, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", "here/artifacts");
+        verify(store, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", "here/artifacts");
     }
 
     private Context mockContext(final Map<String, String> environmentMap) {
