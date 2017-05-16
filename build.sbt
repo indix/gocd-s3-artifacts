@@ -6,9 +6,9 @@ val nscalaTime = "com.github.nscala-time" %% "nscala-time" % "2.4.0"
 val gson = "com.google.code.gson" % "gson" % "2.2.3"
 val goPluginLibrary = "cd.go.plugin" % "go-plugin-api" % "15.1.0" % Provided
 
+val hamcrest = "org.hamcrest" % "hamcrest-all" % "1.3" % Test
 val junit = "junit" % "junit" % "4.10" % Test
 val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test
-val hamcrest = "org.hamcrest" % "hamcrest-all" % "1.3" % Test
 val mockito = "org.mockito" % "mockito-all" % "1.9.0" % Test
 val scalaTest = "org.scalatest" %% "scalatest" % "2.2.0" % Test
 
@@ -40,7 +40,7 @@ lazy val utils = (project in file("utils")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      junit, junitInterface, hamcrest
+      hamcrest, junit, junitInterface
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
@@ -53,7 +53,7 @@ lazy val publish = (project in file("publish")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      gson, ant, junit, junitInterface, hamcrest
+      gson, ant, hamcrest, junit, junitInterface
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
@@ -79,7 +79,7 @@ lazy val fetch = (project in file("fetch")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      gson, junit, hamcrest
+      gson, hamcrest, junit
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
