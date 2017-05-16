@@ -25,7 +25,7 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.10.4",
   unmanagedBase := file(".") / "lib",
   libraryDependencies ++= Seq(
-    apacheCommons, commonsIo, awsS3, goPluginLibrary, mockito
+    apacheCommons, commonsIo, awsS3, goPluginLibrary, gson
   ),
   variables in EditSource += ("version", appVersion),
   targetDirectory in EditSource <<= baseDirectory(_ / "target" / "transformed"),
@@ -40,7 +40,7 @@ lazy val utils = (project in file("utils")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      junit, junitInterface
+      junit, junitInterface, mockito
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
@@ -53,7 +53,7 @@ lazy val publish = (project in file("publish")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      gson, ant, junit, junitInterface
+      ant, junit, junitInterface, mockito
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
@@ -66,7 +66,7 @@ lazy val material = (project in file("material")).
     crossPaths := false,
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
     libraryDependencies ++= Seq(
-      gson, scalaTest
+      scalaTest, mockito
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
@@ -79,7 +79,7 @@ lazy val fetch = (project in file("fetch")).
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      gson, junit
+      junit, mockito
     ),
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
   )
