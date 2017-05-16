@@ -27,10 +27,10 @@ public class FetchExecutor {
         if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
 
         try {
+            String artifactPathOnS3 = getArtifactsLocationTemplate(config, env);
             final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
             final S3ArtifactStore store = getS3ArtifactStore(env, bucket);
 
-            String artifactPathOnS3 = getArtifactsLocationTemplate(config, env);
             context.printMessage(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
             String destination = String.format("%s/%s", context.getWorkingDir(), config.getDestination());
             setupDestinationDirectory(destination);

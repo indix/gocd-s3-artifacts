@@ -67,6 +67,10 @@ public class FetchExecutorTest {
                 .with(Constants.PACKAGE, Maps.builder().with("value", "TESTPUBLISHS3ARTIFACTS").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
+        AmazonS3Client mockClient = mockClient();
+        S3ArtifactStore store = new S3ArtifactStore(mockClient, bucket);
+        doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
+
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
 
         assertFalse(result.isSuccessful());
