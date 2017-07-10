@@ -34,10 +34,6 @@ public class PublishExecutor {
 
     public TaskExecutionResult execute(Config config, final Context context) {
         final GoEnvironment env = new GoEnvironment(context.getEnvironmentVariables());
-        if (!env.hasAWSUseIamRole()) {
-            if (env.isAbsent(AWS_ACCESS_KEY_ID)) return envNotFound(AWS_ACCESS_KEY_ID);
-            if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) return envNotFound(AWS_SECRET_ACCESS_KEY);
-        }
         if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
         if (env.isAbsent(GO_SERVER_DASHBOARD_URL)) return envNotFound(GO_SERVER_DASHBOARD_URL);
 
@@ -49,24 +45,23 @@ public class PublishExecutor {
 
         try {
             List<SourceDestination> sourceDestinations = config.sourceDestinations();
-            foreach(sourceDestinations, new VoidFunction<SourceDestination>() {
-                @Override
-                public void execute(final SourceDestination input) {
-                    String[] files = parseSourcePath(input.source, context.getWorkingDir());
+            for(SourceDestination input : sourceDestinations) {
+                String[] files = parseSourcePath(input.source, context.getWorkingDir());
+                for (String includedFile : files) {
+                    File localFileToUpload = new File(String.format("%s/%s", context.getWorkingDir(), includedFile));
+                    if (!fileExists(localFileToUpload)) {
+                        throw new RuntimeException(String.format("%s is missing", localFileToUpload.getAbsolutePath()));
+                    }
 
-                    foreach(files, new VoidFunction<String>() {
-                        @Override
-                        public void execute(String includedFile) {
-                            File localFileToUpload = new File(String.format("%s/%s", context.getWorkingDir(), includedFile));
-                            if (!fileExists(localFileToUpload)) {
-                                throw new RuntimeException(String.format("%s is missing", localFileToUpload.getAbsolutePath()));
-                            }
-
-                            pushToS3(context, destinationPrefix, store, localFileToUpload, input.destination);
-                        }
-                    });
+                    pushToS3(context, destinationPrefix, store, localFileToUpload, input.destination);
                 }
-            });
+            }
+
+            if(!hasConfigDestinationPrefix(config)) {
+                setMetadata(env, bucket, destinationPrefix, store);
+            }
+
+            return new TaskExecutionResult(true, "Published all artifacts to S3");
         } catch (JsonSyntaxException e) {
             String message = "Failed while parsing configuration";
             logger.error(message);
@@ -75,14 +70,6 @@ public class PublishExecutor {
             logger.error(e.getMessage(), e);
             return new TaskExecutionResult(false, e.getMessage(), e);
         }
-
-        // A configured destination prefix is used to deploy files rather than publish artifacts
-        // We only want to set metadata when publishing artifacts
-        if(!hasConfigDestinationPrefix(config)) {
-            setMetadata(env, bucket, destinationPrefix, store);
-        }
-
-        return new TaskExecutionResult(true,"Published all artifacts to S3");
     }
 
     protected S3ArtifactStore getS3ArtifactStore(GoEnvironment env, String bucket) {

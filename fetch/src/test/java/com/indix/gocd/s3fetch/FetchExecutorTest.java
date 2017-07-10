@@ -51,15 +51,6 @@ public class FetchExecutorTest {
     }
 
     @Test
-    public void shouldBeFailureIfEnvVarNotFound() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build();
-        TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
-
-        assertFalse(result.isSuccessful());
-        assertThat(result.message(), is("AWS_ACCESS_KEY_ID environment variable not present"));
-    }
-
-    @Test
     public void shouldBeFailureIfFetchConfigNotValid() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         config = new Config(Maps.builder()

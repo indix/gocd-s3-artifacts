@@ -54,48 +54,6 @@ public class PublishExecutorTest {
     }
 
     @Test
-    public void shouldThrowIfAWS_ACCESS_KEY_IDNotPresent() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_ACCESS_KEY_ID, "").build();
-
-        TaskExecutionResult result = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(result.isSuccessful());
-        assertThat(result.message(), is("AWS_ACCESS_KEY_ID environment variable not present"));
-    }
-
-    @Test
-    public void shouldThrowIfAWS_SECRET_ACCESS_KEYNotPresent() {
-        Map<String, String> mockVariables = mockEnvironmentVariables.with(AWS_SECRET_ACCESS_KEY, "").build();
-
-        TaskExecutionResult result = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(result.isSuccessful());
-        assertThat(result.message(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
-    }
-
-    @Test
-    public void shouldNotThrowIfAWSUseIAMRoleIsFalseAndAWS_ACCESS_KEY_IDNotPresent() {
-        Map<String, String> mockVariables = mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE, "False")
-                .with(AWS_ACCESS_KEY_ID, "")
-                .build();
-
-        TaskExecutionResult result = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(result.isSuccessful());
-        assertThat(result.message(), is("AWS_ACCESS_KEY_ID environment variable not present"));
-    }
-
-    @Test
-    public void shouldThrowIfAWSUseIAMRoleIsFalseAndAWS_SECRET_ACCESS_KEYNotPresent() {
-        Map<String, String> mockVariables = mockEnvironmentVariables
-                .with(AWS_USE_IAM_ROLE, "False")
-                .with(AWS_SECRET_ACCESS_KEY, "")
-                .build();
-
-        TaskExecutionResult result = publishExecutor.execute(config, mockContext(mockVariables));
-        assertFalse(result.isSuccessful());
-        assertThat(result.message(), is("AWS_SECRET_ACCESS_KEY environment variable not present"));
-    }
-
-    @Test
     public void shouldThrowIfLocalFileDoesNotExist() {
         doReturn(false).when(publishExecutor).fileExists(any(File.class));
         AmazonS3Client mockClient = mockClient();

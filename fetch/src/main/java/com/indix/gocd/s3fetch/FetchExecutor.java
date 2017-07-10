@@ -20,10 +20,6 @@ public class FetchExecutor {
 
     public TaskExecutionResult execute(Config config, final Context context) {
         final GoEnvironment env = new GoEnvironment(context.getEnvironmentVariables());
-        if (!env.hasAWSUseIamRole()) {
-            if (env.isAbsent(AWS_ACCESS_KEY_ID)) return envNotFound(AWS_ACCESS_KEY_ID);
-            if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) return envNotFound(AWS_SECRET_ACCESS_KEY);
-        }
         if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
 
         try {
