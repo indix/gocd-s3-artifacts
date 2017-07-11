@@ -24,7 +24,6 @@ public class TaskExecutionResult {
         final HashMap result = new HashMap();
         result.put("success", success);
         result.put("message", message);
-        result.put("exception", exception);
         return result;
     }
 

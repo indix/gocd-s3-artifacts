@@ -54,8 +54,7 @@ public class PublishExecutorTest {
     }
 
     @Test
-    public void shouldThrowIfLocalFileDoesNotExist() {
-        doReturn(false).when(publishExecutor).fileExists(any(File.class));
+    public void shouldFailIfNoFilesToUploadBasedOnSource() {
         AmazonS3Client mockClient = mockClient();
 
         Config config = new Config(Maps.builder()
@@ -66,11 +65,11 @@ public class PublishExecutorTest {
         TaskExecutionResult result = executeMockPublish(
                 mockClient,
                 config,
-                new String[]{"README.md"}
+                new String[]{}
         );
 
         assertFalse(result.isSuccessful());
-        assertThat(result.message(), containsString("README.md is missing"));
+        assertThat(result.message(), containsString("Source target/* didn't yield any files to upload"));
     }
 
     @Test
@@ -103,7 +102,7 @@ public class PublishExecutorTest {
 
         TaskExecutionResult result = publishExecutor.execute(config, mockContext(mockVariables));
         assertFalse(result.isSuccessful());
-        assertThat(result.message(), is("GO_ARTIFACTS_S3_BUCKET environment variable not present"));
+        assertThat(result.message(), is("GO_ARTIFACTS_S3_BUCKET environment variable is not set"));
     }
 
     @Test
@@ -122,7 +121,7 @@ public class PublishExecutorTest {
         );
 
         assertTrue(result.isSuccessful());
-        assertThat(result.message(), is("Published all artifacts to S3"));
+        assertThat(result.message(), is("Published all artifacts to S3 successfully"));
     }
 
     @Test
