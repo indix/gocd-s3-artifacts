@@ -12,7 +12,7 @@ val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test
 val mockito = "org.mockito" % "mockito-all" % "1.10.19" % Test
 val scalaTest = "org.scalatest" %% "scalatest" % "2.2.0" % Test
 
-val appVersion = sys.env.get("TRAVIS_TAG") orElse sys.env.get("BUILD_LABEL") getOrElse "1.0.0-SNAPSHOT"
+val appVersion = sys.env.get("TRAVIS_TAG") orElse sys.env.get("BUILD_LABEL") getOrElse s"1.0.0-${System.currentTimeMillis / 1000}-SNAPSHOT"
 
 lazy val root = Project(
   id = "gocd-s3-artifacts",

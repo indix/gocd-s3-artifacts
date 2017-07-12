@@ -1,5 +1,7 @@
 package com.indix.gocd.utils.store;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -202,9 +204,17 @@ public class S3ArtifactStore {
 
     public static AmazonS3 getS3client(GoEnvironment env) {
         AmazonS3ClientBuilder amazonS3ClientBuilder = AmazonS3ClientBuilder.standard();
+
+        if(env.has(AWS_REGION)) {
+            amazonS3ClientBuilder.withRegion(env.get(AWS_REGION));
+        }
         if (env.hasAWSUseIamRole()) {
             amazonS3ClientBuilder.withCredentials(new InstanceProfileCredentialsProvider(false));
+        } else if (env.has(AWS_ACCESS_KEY_ID) && env.has(AWS_SECRET_ACCESS_KEY)) {
+            BasicAWSCredentials basicCreds = new BasicAWSCredentials(env.get(AWS_ACCESS_KEY_ID), env.get(AWS_SECRET_ACCESS_KEY));
+            amazonS3ClientBuilder.withCredentials(new AWSStaticCredentialsProvider(basicCreds));
         }
+
 
         return amazonS3ClientBuilder.build();
     }
