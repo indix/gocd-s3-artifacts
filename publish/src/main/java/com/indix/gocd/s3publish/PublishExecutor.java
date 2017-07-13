@@ -33,10 +33,11 @@ public class PublishExecutor {
     public TaskExecutionResult execute(Config config, final Context context) {
         try {
             final GoEnvironment env = new GoEnvironment(context.getEnvironmentVariables());
-            if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
             if (env.isAbsent(GO_SERVER_DASHBOARD_URL)) return envNotFound(GO_SERVER_DASHBOARD_URL);
 
-            final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
+            String bucket = getBucket(env, config);
+            if(bucket == null) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
+
             final S3ArtifactStore store = getS3ArtifactStore(env, bucket);
             store.setStorageClass(env.getOrElse(AWS_STORAGE_CLASS, STORAGE_CLASS_STANDARD));
 
@@ -67,6 +68,15 @@ public class PublishExecutor {
             logger.error(e.getMessage(), e);
             return new TaskExecutionResult(false, e.getMessage());
         }
+    }
+
+    private String getBucket(GoEnvironment env, Config config) {
+        if(StringUtils.isNotBlank(config.artifactsBucket)) {
+            return config.artifactsBucket;
+        } else if(env.has(GO_ARTIFACTS_S3_BUCKET)) {
+            return env.get(GO_ARTIFACTS_S3_BUCKET);
+        }
+        return null;
     }
 
     protected S3ArtifactStore getS3ArtifactStore(GoEnvironment env, String bucket) {

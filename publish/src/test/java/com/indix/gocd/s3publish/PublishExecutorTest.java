@@ -60,6 +60,7 @@ public class PublishExecutorTest {
         Config config = new Config(Maps.builder()
                 .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
                 .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "").build())
+                .with(Constants.ARTIFACTS_BUCKET, Maps.builder().with("value", "").build())
                 .build());
 
         TaskExecutionResult result = executeMockPublish(
@@ -83,6 +84,7 @@ public class PublishExecutorTest {
         Config config = new Config(Maps.builder()
                 .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
                 .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "").build())
+                .with(Constants.ARTIFACTS_BUCKET, Maps.builder().with("value", "").build())
                 .build());
 
         TaskExecutionResult result = executeMockPublish(
@@ -100,9 +102,36 @@ public class PublishExecutorTest {
     public void shouldThrowIfGO_ARTIFACTS_S3_BUCKETNotPresent() {
         Map<String, String> mockVariables = mockEnvironmentVariables.with(GO_ARTIFACTS_S3_BUCKET, "").build();
 
+        Config config = new Config(Maps.builder()
+                .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
+                .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "").build())
+                .with(Constants.ARTIFACTS_BUCKET, Maps.builder().with("value", "").build())
+                .build());
+
         TaskExecutionResult result = publishExecutor.execute(config, mockContext(mockVariables));
         assertFalse(result.isSuccessful());
         assertThat(result.message(), is("GO_ARTIFACTS_S3_BUCKET environment variable is not set"));
+    }
+
+    @Test
+    public void shouldGetBucketFromConfig() {
+        AmazonS3Client mockClient = mockClient();
+
+        Config config = new Config(Maps.builder()
+                .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
+                .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "").build())
+                .with(Constants.ARTIFACTS_BUCKET, Maps.builder().with("value", testS3Bucket).build())
+                .build());
+
+        TaskExecutionResult result = executeMockPublish(
+                mockClient,
+                config,
+                new String[]{"README.md"},
+                mockEnvironmentVariables.with(GO_ARTIFACTS_S3_BUCKET, "")
+        );
+
+        assertTrue(result.isSuccessful());
+        assertThat(result.message(), is("Published all artifacts to S3 successfully"));
     }
 
     @Test
@@ -112,6 +141,7 @@ public class PublishExecutorTest {
         Config config = new Config(Maps.builder()
                 .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
                 .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "").build())
+                .with(Constants.ARTIFACTS_BUCKET, Maps.builder().with("value", "").build())
                 .build());
 
         TaskExecutionResult result = executeMockPublish(
@@ -131,6 +161,7 @@ public class PublishExecutorTest {
         Config config = new Config(Maps.builder()
                 .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
                 .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "").build())
+                .with(Constants.ARTIFACTS_BUCKET, Maps.builder().with("value", "").build())
                 .build());
 
         TaskExecutionResult result = executeMockPublish(
@@ -173,6 +204,7 @@ public class PublishExecutorTest {
         Config config = new Config(Maps.builder()
                 .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
                 .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "destinationPrefix").build())
+                .with(Constants.ARTIFACTS_BUCKET, Maps.builder().with("value", "").build())
                 .build());
 
         TaskExecutionResult result = executeMockPublish(
@@ -204,6 +236,7 @@ public class PublishExecutorTest {
         Config config = new Config(Maps.builder()
                 .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
                 .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "test/${GO_PIPELINE_COUNTER}/").build())
+                .with(Constants.ARTIFACTS_BUCKET, Maps.builder().with("value", "").build())
                 .build());
 
         TaskExecutionResult result = executeMockPublish(
@@ -235,6 +268,7 @@ public class PublishExecutorTest {
         Config config = new Config(Maps.builder()
                 .with(Constants.SOURCEDESTINATIONS, Maps.builder().with("value", "[{\"source\": \"target/*\", \"destination\": \"\"}]").build())
                 .with(Constants.DESTINATION_PREFIX, Maps.builder().with("value", "/").build())
+                .with(Constants.ARTIFACTS_BUCKET, Maps.builder().with("value", "").build())
                 .build());
 
         TaskExecutionResult result = executeMockPublish(
@@ -258,6 +292,7 @@ public class PublishExecutorTest {
         assertThat(jarPutRequest.getKey(), is("s3publish-0.1.31.jar"));
         assertNull(jarPutRequest.getMetadata());
     }
+
     private TaskExecutionResult executeMockPublish(final AmazonS3Client mockClient, Config config, String[] files) {
         return executeMockPublish(mockClient, config, files, mockEnvironmentVariables);
     }

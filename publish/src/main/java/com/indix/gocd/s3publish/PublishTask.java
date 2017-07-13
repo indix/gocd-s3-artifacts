@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.indix.gocd.utils.Constants.ARTIFACTS_BUCKET;
 import static com.indix.gocd.utils.Constants.DESTINATION_PREFIX;
 import static com.indix.gocd.utils.Constants.SOURCEDESTINATIONS;
 import static com.indix.gocd.utils.utils.Lists.foreach;
@@ -110,6 +111,7 @@ public class PublishTask implements GoPlugin {
 
     private GoPluginApiResponse handleGetConfigRequest() {
         HashMap config = new HashMap();
+
         HashMap sourceDestinations = new HashMap();
         sourceDestinations.put("default-value", "");
         sourceDestinations.put("required", true);
@@ -119,6 +121,11 @@ public class PublishTask implements GoPlugin {
         destinationPrefix.put("default-value", "");
         destinationPrefix.put("required", false);
         config.put(DESTINATION_PREFIX, destinationPrefix);
+
+        HashMap artifactsBucket = new HashMap();
+        artifactsBucket.put("default-value", "");
+        artifactsBucket.put("required", false);
+        config.put(ARTIFACTS_BUCKET, artifactsBucket);
 
         return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE, config);
     }
