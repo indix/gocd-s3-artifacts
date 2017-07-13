@@ -10,6 +10,7 @@ public class Constants {
 
     public static final String SOURCEDESTINATIONS = "sourceDestinations";
     public static final String DESTINATION_PREFIX = "destinationPrefix";
+    public static final String ARTIFACTS_BUCKET = "artifactsBucket";
 
     public static final String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
     public static final String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";

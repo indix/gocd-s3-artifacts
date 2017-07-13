@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.indix.gocd.utils.Constants.ARTIFACTS_BUCKET;
 import static com.indix.gocd.utils.Constants.DESTINATION_PREFIX;
 import static com.indix.gocd.utils.Constants.SOURCEDESTINATIONS;
 
@@ -16,11 +17,12 @@ public class Config {
 
     public String sourceDestinationsJson;
     public String destinationPrefix;
-
+    public String artifactsBucket;
 
     public Config(Map config) {
         sourceDestinationsJson  = getValue(config, SOURCEDESTINATIONS);
         destinationPrefix  = getValue(config, DESTINATION_PREFIX);
+        artifactsBucket  = getValue(config, ARTIFACTS_BUCKET);
     }
 
     public List<SourceDestination> sourceDestinations() throws JsonSyntaxException {

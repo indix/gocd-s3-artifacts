@@ -19,12 +19,11 @@ public class FetchExecutor {
     private static Logger logger = Logger.getLoggerFor(FetchTask.class);
 
     public TaskExecutionResult execute(Config config, final Context context) {
-        final GoEnvironment env = new GoEnvironment(context.getEnvironmentVariables());
-        if (env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) return envNotFound(GO_ARTIFACTS_S3_BUCKET);
 
         try {
+            final GoEnvironment env = new GoEnvironment(context.getEnvironmentVariables());
             String artifactPathOnS3 = getArtifactsLocationTemplate(config, env);
-            final String bucket = env.get(GO_ARTIFACTS_S3_BUCKET);
+            final String bucket = getBucket(config, env);
             final S3ArtifactStore store = getS3ArtifactStore(env, bucket);
 
             context.printMessage(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
@@ -52,6 +51,21 @@ public class FetchExecutor {
         } catch (IOException ioe) {
             logger.error(String.format("Error while setting up destination - %s", ioe.getMessage()), ioe);
         }
+    }
+
+    private String getBucket(Config config, GoEnvironment env) {
+        String repoName = config.getRepo();
+        String packageName = config.getPkg();
+        String bucketFromMaterial = env.get(String.format("GO_REPO_%s_%s_S3_BUCKET", repoName, packageName));
+        if(bucketFromMaterial != null) {
+            return bucketFromMaterial;
+        }
+
+        if(env.isAbsent(GO_ARTIFACTS_S3_BUCKET)) {
+            throw new RuntimeException("S3 bucket to fetch from should be from material plugin or GO_ARTIFACTS_S3_BUCKET env var.");
+        }
+
+        return env.get(GO_ARTIFACTS_S3_BUCKET);
     }
 
     private String getArtifactsLocationTemplate(Config config, GoEnvironment env) {

@@ -36,7 +36,7 @@ public class FetchExecutorTest {
                 .with(GO_ARTIFACTS_S3_BUCKET, bucket)
                 .with(GO_SERVER_DASHBOARD_URL, "http://go.server:8153")
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_LABEL", "20.1")
-                .with("GO_REPO_GOCD_TESTPUBLISHS3ARTIFACTS_S3_BUCKET", bucket)
+
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_PIPELINE_NAME", "TestPublish")
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_STAGE_NAME", "defaultStage")
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_JOB_NAME", "defaultJob");
@@ -85,12 +85,26 @@ public class FetchExecutorTest {
     @Test
     public void shouldBeSuccessResultOnSuccessfulFetch() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
-        AmazonS3Client mockClient = mockClient();
-        S3ArtifactStore store = new S3ArtifactStore(mockClient, bucket);
-        doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
         S3ArtifactStore mockStore = mockStore();
 
         doReturn(mockStore).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), any(String.class));
+        TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
+
+        assertTrue(result.isSuccessful());
+        assertThat(result.message(), is("Fetched all artifacts"));
+        verify(mockStore, times(1)).getPrefix("TestPublish/defaultStage/defaultJob/20.1", "here/artifacts");
+
+    }
+
+    @Test
+    public void shouldGetBucketInfoFromMaterialEnvVars() {
+        Map<String, String> mockVariables = mockEnvironmentVariables
+                .with("GO_REPO_GOCD_TESTPUBLISHS3ARTIFACTS_S3_BUCKET", bucket)
+                .with(GO_ARTIFACTS_S3_BUCKET, "")
+                .build();
+        S3ArtifactStore mockStore = mockStore();
+
+        doReturn(mockStore).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
 
         assertTrue(result.isSuccessful());
