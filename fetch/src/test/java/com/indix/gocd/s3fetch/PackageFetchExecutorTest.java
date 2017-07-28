@@ -22,7 +22,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 
-public class FetchExecutorTest {
+public class PackageFetchExecutorTest {
     private final String bucket = "gocd";
     Maps.MapBuilder<String, String> mockEnvironmentVariables;
     private FetchExecutor fetchExecutor;
@@ -42,12 +42,13 @@ public class FetchExecutorTest {
                 .with("GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_JOB_NAME", "defaultJob");
 
         config = new Config(Maps.builder()
+                .with(Constants.MATERIAL_TYPE, Maps.builder().with("value", "Package").build())
                 .with(Constants.REPO, Maps.builder().with("value", "GOCD").build())
                 .with(Constants.PACKAGE, Maps.builder().with("value", "TESTPUBLISHS3ARTIFACTS").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
 
-        fetchExecutor = spy(new FetchExecutor());
+        fetchExecutor = spy(new PackageFetchExecutor());
     }
 
     @Test

@@ -48,6 +48,10 @@ public class Config {
     }
 
     private String getValue(Map config, String property) {
-        return (String) ((Map) config.get(property)).get("value");
+        Map propertyMap = ((Map) config.get(property));
+        if (propertyMap != null) {
+            return (String) propertyMap.get("value");
+        }
+        return null;
     }
 }

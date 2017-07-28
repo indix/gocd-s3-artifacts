@@ -44,7 +44,7 @@ public class FetchTask implements GoPlugin {
     }
 
     private GoPluginApiResponse handleTaskExecution(GoPluginApiRequest request) {
-        FetchExecutor executor = new FetchExecutor();
+        FetchExecutor executor = new PackageFetchExecutor();
         Map executionRequest = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
         Map config = (Map) executionRequest.get("config");
         Map context = (Map) executionRequest.get("context");
