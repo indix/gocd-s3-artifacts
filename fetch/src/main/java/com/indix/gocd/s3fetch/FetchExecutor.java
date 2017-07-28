@@ -1,8 +1,5 @@
 package com.indix.gocd.s3fetch;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.indix.gocd.utils.Context;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.TaskExecutionResult;
