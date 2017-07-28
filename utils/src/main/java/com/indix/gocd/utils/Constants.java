@@ -24,7 +24,10 @@ public class Constants {
 
     public static final String GO_PIPELINE_LABEL = "GO_PIPELINE_LABEL";
 
+    public static final String MATERIAL_TYPE = "MaterialType";
     public static final String REPO = "Repo";
     public static final String PACKAGE = "Package";
+    public static final String MATERIAL = "Material";
+    public static final String JOB = "Job";
     public static final String DESTINATION = "Destination";
 }

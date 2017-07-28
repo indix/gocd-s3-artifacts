@@ -75,6 +75,12 @@ public class FetchTask implements GoPlugin {
 
     private GoPluginApiResponse handleGetConfigRequest() {
         HashMap config = new HashMap();
+
+        HashMap materialType = new HashMap();
+        materialType.put("default-value", "");
+        materialType.put("required", true);
+        config.put(Constants.MATERIAL_TYPE, materialType);
+
         HashMap repo = new HashMap();
         repo.put("default-value", "");
         repo.put("required", true);
@@ -84,6 +90,16 @@ public class FetchTask implements GoPlugin {
         pkg.put("default-value", "");
         pkg.put("required", true);
         config.put(Constants.PACKAGE, pkg);
+
+        HashMap material = new HashMap();
+        material.put("default-value", "");
+        material.put("required", true);
+        config.put(Constants.MATERIAL, material);
+
+        HashMap job = new HashMap();
+        job.put("default-value", "");
+        job.put("required", true);
+        config.put(Constants.JOB, job);
 
         HashMap destination = new HashMap();
         destination.put("default-value", "");
