@@ -23,7 +23,7 @@ public class Config {
         return escapeEnvironmentVariable(pkg);
     }
 
-    public String getMaterial() { return material; }
+    public String getMaterial() { return escapeEnvironmentVariable(material); }
 
     public String getJob() { return job; }
 

@@ -11,7 +11,8 @@ public class PipelineFetchExecutor extends FetchExecutor {
     @Override
     protected String getArtifactsLocationTemplate(Config config, GoEnvironment env) {
         String materialName = config.getMaterial();
-        String materialLocator = env.get(String.format("GO_DEPENDENCY_LOCATOR_%s", materialName.toUpperCase()));
+        System.out.println(materialName);
+        String materialLocator = env.get(String.format("GO_DEPENDENCY_LOCATOR_%s", materialName));
         if (materialLocator == null) {
             throw new RuntimeException("Please check Material name configuration. Also, ensure that the appropriate S3 material is configured for the pipeline.");
         }
