@@ -65,7 +65,7 @@ public class PipelineFetchExecutorTest {
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
 
         assertFalse(result.isSuccessful());
-        assertThat(result.message(), is("Failure while downloading artifacts - Please check Material name configuration. Also, ensure that the appropriate S3 material is configured for the pipeline."));
+        assertThat(result.message(), is("Failure while downloading artifacts - Please check Material name configuration."));
     }
 
     @Test
