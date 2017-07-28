@@ -87,14 +87,12 @@ public class FetchTask implements GoPlugin {
         FetchExecutor executor = getFetchExecutor(config);
 
         final HashMap validationResult = new HashMap();
-        int responseCode = DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
         Map<String, String> errors = executor.validate(config);
         if (!errors.isEmpty()) {
             validationResult.put("errors", errors);
-            responseCode = DefaultGoPluginApiResponse.VALIDATION_FAILED;
         }
 
-        return createResponse(responseCode, validationResult);
+        return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;, validationResult);
     }
 
     private GoPluginApiResponse handleGetConfigRequest() {
