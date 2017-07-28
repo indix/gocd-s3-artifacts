@@ -12,6 +12,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
 
@@ -63,4 +64,5 @@ public abstract class FetchExecutor {
 
     protected abstract String getArtifactsLocationTemplate(Config config, GoEnvironment env);
 
+    public abstract Map<String,String> validate(Config config);
 }

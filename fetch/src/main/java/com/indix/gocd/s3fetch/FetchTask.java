@@ -34,7 +34,7 @@ public class FetchTask implements GoPlugin {
         if ("configuration".equals(request.requestName())) {
             return handleGetConfigRequest();
         } else if ("validate".equals(request.requestName())) {
-            return handleValidation();
+            return handleValidation(request);
         } else if ("execute".equals(request.requestName())) {
             return handleTaskExecution(request);
         } else if ("view".equals(request.requestName())) {
@@ -49,15 +49,21 @@ public class FetchTask implements GoPlugin {
         Map context = (Map) executionRequest.get("context");
         Config config = new Config(configMap);
 
-        FetchExecutor executor = null;
-        if (config.getMaterialType().equals("Package")) {
-            executor = new PackageFetchExecutor();
-        } else if (config.getMaterialType().equals("Pipeline")) {
-            executor = new PipelineFetchExecutor();
-        }
+        FetchExecutor executor = getFetchExecutor(config);
 
         TaskExecutionResult result = executor.execute(config, new Context(context));
         return createResponse(result.responseCode(), result.toMap());
+    }
+
+    private FetchExecutor getFetchExecutor(Config config) {
+        String materialType = config.getMaterialType();
+        if (materialType.equals("Package")) {
+            return new PackageFetchExecutor();
+        } else if (materialType.equals("Pipeline")) {
+            return new PipelineFetchExecutor();
+        } else {
+            throw new IllegalStateException("No such material type: " + materialType);
+        }
     }
 
     private GoPluginApiResponse handleTaskView() {
@@ -75,9 +81,20 @@ public class FetchTask implements GoPlugin {
         return createResponse(responseCode, view);
     }
 
-    private GoPluginApiResponse handleValidation() {
+    private GoPluginApiResponse handleValidation(GoPluginApiRequest request) {
+        Map configMap = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
+        Config config = new Config(configMap);
+        FetchExecutor executor = getFetchExecutor(config);
+
         final HashMap validationResult = new HashMap();
-        return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE, validationResult);
+        int responseCode = DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
+        Map<String, String> errors = executor.validate(config);
+        if (!errors.isEmpty()) {
+            validationResult.put("errors", errors);
+            responseCode = DefaultGoPluginApiResponse.VALIDATION_FAILED;
+        }
+
+        return createResponse(responseCode, validationResult);
     }
 
     private GoPluginApiResponse handleGetConfigRequest() {

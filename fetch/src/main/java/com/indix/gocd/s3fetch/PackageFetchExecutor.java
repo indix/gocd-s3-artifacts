@@ -1,7 +1,12 @@
 package com.indix.gocd.s3fetch;
 
+import com.indix.gocd.utils.Constants;
 import com.indix.gocd.utils.GoEnvironment;
 import com.thoughtworks.go.plugin.api.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class PackageFetchExecutor extends FetchExecutor {
 
@@ -25,6 +30,18 @@ public class PackageFetchExecutor extends FetchExecutor {
         String stage = env.get(String.format("GO_PACKAGE_%s_%s_STAGE_NAME", repoName, packageName));
         String job = env.get(String.format("GO_PACKAGE_%s_%s_JOB_NAME", repoName, packageName));
         return env.artifactsLocationTemplate(pipeline, stage, job, pipelineCounter, stageCounter);
+    }
+
+    @Override
+    public Map<String, String> validate(Config config) {
+        Map<String, String> errors = new HashMap<>();
+        if (StringUtils.isBlank(config.getRepo())) {
+            errors.put(Constants.REPO, Constants.REQUIRED_FIELD_MESSAGE);
+        }
+        if (StringUtils.isBlank(config.getPkg())) {
+            errors.put(Constants.PACKAGE, Constants.REQUIRED_FIELD_MESSAGE);
+        }
+        return errors;
     }
 
     @Override

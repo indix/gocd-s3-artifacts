@@ -30,4 +30,6 @@ public class Constants {
     public static final String MATERIAL = "Material";
     public static final String JOB = "Job";
     public static final String DESTINATION = "Destination";
+
+    public static final String REQUIRED_FIELD_MESSAGE = "This field is required";
 }
