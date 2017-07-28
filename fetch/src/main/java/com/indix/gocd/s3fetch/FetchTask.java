@@ -92,7 +92,7 @@ public class FetchTask implements GoPlugin {
             validationResult.put("errors", errors);
         }
 
-        return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;, validationResult);
+        return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE, validationResult);
     }
 
     private GoPluginApiResponse handleGetConfigRequest() {
