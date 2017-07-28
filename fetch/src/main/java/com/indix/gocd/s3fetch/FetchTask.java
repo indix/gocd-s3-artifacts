@@ -44,19 +44,26 @@ public class FetchTask implements GoPlugin {
     }
 
     private GoPluginApiResponse handleTaskExecution(GoPluginApiRequest request) {
-        FetchExecutor executor = new PackageFetchExecutor();
         Map executionRequest = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
-        Map config = (Map) executionRequest.get("config");
+        Map configMap = (Map) executionRequest.get("config");
         Map context = (Map) executionRequest.get("context");
+        Config config = new Config(configMap);
 
-        TaskExecutionResult result = executor.execute(new Config(config), new Context(context));
+        FetchExecutor executor = null;
+        if (config.getMaterialType().equals("Package")) {
+            executor = new PackageFetchExecutor();
+        } else if (config.getMaterialType().equals("Pipeline")) {
+            executor = new PipelineFetchExecutor();
+        }
+
+        TaskExecutionResult result = executor.execute(config, new Context(context));
         return createResponse(result.responseCode(), result.toMap());
     }
 
     private GoPluginApiResponse handleTaskView() {
         int responseCode = DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
         Map view = new HashMap();
-        view.put("displayValue", "Fetch S3 package");
+        view.put("displayValue", "Fetch from S3");
         try {
             view.put("template", IOUtils.toString(getClass().getResourceAsStream("/views/task.template.html"), "UTF-8"));
         } catch (Exception e) {
@@ -83,22 +90,22 @@ public class FetchTask implements GoPlugin {
 
         HashMap repo = new HashMap();
         repo.put("default-value", "");
-        repo.put("required", true);
+        repo.put("required", false);
         config.put(Constants.REPO, repo);
 
         HashMap pkg = new HashMap();
         pkg.put("default-value", "");
-        pkg.put("required", true);
+        pkg.put("required", false);
         config.put(Constants.PACKAGE, pkg);
 
         HashMap material = new HashMap();
         material.put("default-value", "");
-        material.put("required", true);
+        material.put("required", false);
         config.put(Constants.MATERIAL, material);
 
         HashMap job = new HashMap();
         job.put("default-value", "");
-        job.put("required", true);
+        job.put("required", false);
         config.put(Constants.JOB, job);
 
         HashMap destination = new HashMap();
