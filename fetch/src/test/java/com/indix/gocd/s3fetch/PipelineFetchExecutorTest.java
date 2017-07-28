@@ -1,5 +1,6 @@
 package com.indix.gocd.s3fetch;
 
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.indix.gocd.utils.Constants;
 import com.indix.gocd.utils.Context;
 import com.indix.gocd.utils.GoEnvironment;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -47,6 +49,24 @@ public class PipelineFetchExecutorTest {
     }
 
     @Test
+    public void shouldBeFailureIfFetchConfigNotValid() {
+        Map<String, String> mockVariables = mockEnvironmentVariables.build();
+        config = new Config(Maps.builder()
+                .with(Constants.MATERIAL, Maps.builder().with("value", "Wrong").build())
+                .with(Constants.JOB, Maps.builder().with("value", "job").build())
+                .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
+                .build());
+        AmazonS3Client mockClient = mockClient();
+        S3ArtifactStore store = new S3ArtifactStore(mockClient, bucket);
+        doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
+
+        TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
+
+        assertFalse(result.isSuccessful());
+        assertThat(result.message(), is("Failure while downloading artifacts - Please check Material name configuration. Also, ensure that the appropriate S3 material is configured for the pipeline."));
+    }
+
+    @Test
     public void shouldBeSuccessResultONSuccessfulFetch() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         S3ArtifactStore mockStore = mockStore();
@@ -68,5 +88,7 @@ public class PipelineFetchExecutorTest {
     }
 
     private S3ArtifactStore mockStore() { return mock(S3ArtifactStore.class); }
+
+    private AmazonS3Client mockClient() { return mock(AmazonS3Client.class); }
 
 }
