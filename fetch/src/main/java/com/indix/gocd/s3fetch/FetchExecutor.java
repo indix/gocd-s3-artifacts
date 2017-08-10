@@ -6,6 +6,7 @@ import com.indix.gocd.utils.TaskExecutionResult;
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.thoughtworks.go.plugin.api.logging.Logger;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,9 +25,11 @@ public abstract class FetchExecutor {
             final String bucket = getBucket(config, env);
             final S3ArtifactStore store = getS3ArtifactStore(env, bucket);
 
-            context.printMessage(String.format("Getting artifacts from %s", store.pathString(artifactPathOnS3)));
             String destination = String.format("%s/%s", context.getWorkingDir(), config.getDestination());
-            setupDestinationDirectory(destination);
+            context.printMessage(String.format("Getting artifacts from %s to %s", store.pathString(artifactPathOnS3), destination));
+            if(StringUtils.isNotBlank(config.getDestination())) {
+                setupDestinationDirectory(destination);
+            }
             store.getPrefix(artifactPathOnS3, destination);
             return new TaskExecutionResult(true, "Fetched all artifacts");
         } catch (Exception e) {
