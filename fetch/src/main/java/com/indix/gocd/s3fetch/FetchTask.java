@@ -34,7 +34,7 @@ public class FetchTask implements GoPlugin {
         if ("configuration".equals(request.requestName())) {
             return handleGetConfigRequest();
         } else if ("validate".equals(request.requestName())) {
-            return handleValidation();
+            return handleValidation(request);
         } else if ("execute".equals(request.requestName())) {
             return handleTaskExecution(request);
         } else if ("view".equals(request.requestName())) {
@@ -44,19 +44,32 @@ public class FetchTask implements GoPlugin {
     }
 
     private GoPluginApiResponse handleTaskExecution(GoPluginApiRequest request) {
-        FetchExecutor executor = new FetchExecutor();
         Map executionRequest = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
-        Map config = (Map) executionRequest.get("config");
+        Map configMap = (Map) executionRequest.get("config");
         Map context = (Map) executionRequest.get("context");
+        Config config = new Config(configMap);
 
-        TaskExecutionResult result = executor.execute(new Config(config), new Context(context));
+        FetchExecutor executor = getFetchExecutor(config);
+
+        TaskExecutionResult result = executor.execute(config, new Context(context));
         return createResponse(result.responseCode(), result.toMap());
+    }
+
+    private FetchExecutor getFetchExecutor(Config config) {
+        String materialType = config.getMaterialType();
+        if (materialType.equals("Package")) {
+            return new PackageFetchExecutor();
+        } else if (materialType.equals("Pipeline")) {
+            return new PipelineFetchExecutor();
+        } else {
+            throw new IllegalStateException("No such material type: " + materialType);
+        }
     }
 
     private GoPluginApiResponse handleTaskView() {
         int responseCode = DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
         Map view = new HashMap();
-        view.put("displayValue", "Fetch S3 package");
+        view.put("displayValue", "Fetch from S3");
         try {
             view.put("template", IOUtils.toString(getClass().getResourceAsStream("/views/task.template.html"), "UTF-8"));
         } catch (Exception e) {
@@ -68,22 +81,47 @@ public class FetchTask implements GoPlugin {
         return createResponse(responseCode, view);
     }
 
-    private GoPluginApiResponse handleValidation() {
+    private GoPluginApiResponse handleValidation(GoPluginApiRequest request) {
+        Map configMap = (Map) new GsonBuilder().create().fromJson(request.requestBody(), Object.class);
+        Config config = new Config(configMap);
+        FetchExecutor executor = getFetchExecutor(config);
+
         final HashMap validationResult = new HashMap();
+        Map<String, String> errors = executor.validate(config);
+        if (!errors.isEmpty()) {
+            validationResult.put("errors", errors);
+        }
+
         return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE, validationResult);
     }
 
     private GoPluginApiResponse handleGetConfigRequest() {
         HashMap config = new HashMap();
+
+        HashMap materialType = new HashMap();
+        materialType.put("default-value", "");
+        materialType.put("required", true);
+        config.put(Constants.MATERIAL_TYPE, materialType);
+
         HashMap repo = new HashMap();
         repo.put("default-value", "");
-        repo.put("required", true);
+        repo.put("required", false);
         config.put(Constants.REPO, repo);
 
         HashMap pkg = new HashMap();
         pkg.put("default-value", "");
-        pkg.put("required", true);
+        pkg.put("required", false);
         config.put(Constants.PACKAGE, pkg);
+
+        HashMap material = new HashMap();
+        material.put("default-value", "");
+        material.put("required", false);
+        config.put(Constants.MATERIAL, material);
+
+        HashMap job = new HashMap();
+        job.put("default-value", "");
+        job.put("required", false);
+        config.put(Constants.JOB, job);
 
         HashMap destination = new HashMap();
         destination.put("default-value", "");

@@ -1,14 +1,36 @@
 <div class="form_item_block">
+  <label>Material Type:<span class="arterisk">*</span></label>
+  <select ng-model="MaterialType">
+    <option value="Package">Package</option>
+    <option value="Pipeline">Pipeline</option>
+  </select>
+</div>
+
+<!-- Package fields -->
+<div class="form_item_block" ng-show="MaterialType == 'Package'">
   <label>Repository name:<span class="asterisk">*</span></label>
   <input type="text" ng-model="Repo" ng-required="true">
   <span class="form_error" ng-show="GOINPUTNAME[Repo].$error.server">{{ GOINPUTNAME[Repo].$error.server }}</span>
 </div>
-<div class="form_item_block">
+<div class="form_item_block" ng-show="MaterialType == 'Package'">
   <label>Package name:<span class="asterisk">*</span></label>
   <input type="text" ng-model="Package" ng-required="true">
   <span class="form_error" ng-show="GOINPUTNAME[Package].$error.server">{{ GOINPUTNAME[Package].$error.server }}</span>
 </div>
-<div class="form_item_block">
+
+<!-- Pipeline fields -->
+<div class="form_item_block" ng-show="MaterialType == 'Pipeline'">
+  <label>Material Name:<span class="asterisk">*</span></label>
+  <input type="text" ng-model="Material" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Material].$error.server">{{ GOINPUTNAME[Material].$error.server }}</span>
+</div>
+<div class="form_item_block" ng-show="MaterialType == 'Pipeline'">
+  <label>Job:<span class="asterisk">*</span></label>
+  <input type="text" ng-model="Job" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Job].$error.server">{{ GOINPUTNAME[Job].$error.server }}</span>
+</div>
+
+<div class="form_item_block" ng-show="MaterialType == 'Package' || MaterialType = 'Pipeline'">
   <label>Destination directory:<span class="asterisk">*</span></label>
   <input type="text" ng-model="Destination" ng-required="true">
   <span class="form_error" ng-show="GOINPUTNAME[Destination].$error.server">{{ GOINPUTNAME[Destination].$error.server }}</span>
