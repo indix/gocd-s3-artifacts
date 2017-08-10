@@ -1,6 +1,6 @@
 <div class="form_item_block">
   <label>Material Type:<span class="arterisk">*</span></label>
-  <select ng-model="MaterialType">
+  <select ng-model="MaterialType" ng-init="MaterialType = MaterialType || 'Package'" ng-change="clearFields()">
     <option value="Package">Package</option>
     <option value="Pipeline">Pipeline</option>
   </select>
@@ -30,8 +30,31 @@
   <span class="form_error" ng-show="GOINPUTNAME[Job].$error.server">{{ GOINPUTNAME[Job].$error.server }}</span>
 </div>
 
-<div class="form_item_block" ng-show="MaterialType == 'Package' || MaterialType = 'Pipeline'">
+<div class="form_item_block">
   <label>Destination directory:<span class="asterisk">*</span></label>
   <input type="text" ng-model="Destination" ng-required="true">
   <span class="form_error" ng-show="GOINPUTNAME[Destination].$error.server">{{ GOINPUTNAME[Destination].$error.server }}</span>
 </div>
+
+<script type="text/javascript">
+    jQuery(document).ready(function() {
+        var interval = setInterval(function(){
+            try {
+                $scope = angular.element(document.getElementById("task_angular_pluggable_task_indix_s3fetch")).scope();
+                $scope.$apply(function() {
+                    $scope.clearFields = function() {
+                        console.log(this);
+                        this.Repo = null;
+                        this.Package = null;
+                        this.Material = null;
+                        this.Job = null;
+                    };
+                });
+
+                clearInterval(interval);
+            }
+            catch(e) {
+            }
+        }, 50);
+    });
+</script>

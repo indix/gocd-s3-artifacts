@@ -99,7 +99,7 @@ public class FetchTask implements GoPlugin {
         HashMap config = new HashMap();
 
         HashMap materialType = new HashMap();
-        materialType.put("default-value", "");
+        materialType.put("default-value", "Package");
         materialType.put("required", true);
         config.put(Constants.MATERIAL_TYPE, materialType);
 
