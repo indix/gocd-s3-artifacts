@@ -27,10 +27,17 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     apacheCommons, commonsIo, awsS3, goPluginLibrary, gson
   ),
-  variables in EditSource += ("version", appVersion),
-  targetDirectory in EditSource <<= baseDirectory(_ / "target" / "transformed"),
-  sources in EditSource <++= baseDirectory.map(d => (d / "template" / "plugin.xml").get),
-  unmanagedResourceDirectories in Compile += { baseDirectory.value / "target" / "transformed" }
+  resourceGenerators in Compile += Def.task {
+    val inputFile = baseDirectory.value / "template" / "plugin.xml"
+    val outputFile = (resourceManaged in Compile).value / "plugin.xml"
+    val contents = IO.read(inputFile)
+    IO.write(outputFile, contents.replaceAll("\\$\\{version\\}", appVersion))
+    Seq(outputFile)
+  }.taskValue,
+  mappings in (Compile, packageBin) += {
+   (resourceManaged in Compile).value / "plugin.xml" -> "plugin.xml"
+  },
+  javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 )
 
 lazy val utils = (project in file("utils")).
@@ -42,7 +49,7 @@ lazy val utils = (project in file("utils")).
     libraryDependencies ++= Seq(
       junit, junitInterface, mockito
     ),
-    javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+    resourceGenerators in Compile := Seq()
   )
 
 lazy val publish = (project in file("publish")).
@@ -54,8 +61,7 @@ lazy val publish = (project in file("publish")).
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
       ant, junit, junitInterface, mockito
-    ),
-    javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+    )
   )
 
 lazy val material = (project in file("material")).
@@ -67,8 +73,7 @@ lazy val material = (project in file("material")).
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
     libraryDependencies ++= Seq(
       scalaTest, mockito
-    ),
-    javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+    )
   )
 
 lazy val fetch = (project in file("fetch")).
@@ -80,6 +85,5 @@ lazy val fetch = (project in file("fetch")).
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
       junit, mockito
-    ),
-    javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+    )
   )
