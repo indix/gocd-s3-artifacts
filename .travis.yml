@@ -5,6 +5,13 @@ before_script:
   - mkdir -p $HOME/.sbt/launchers/1.0.1/
   - curl -L -o $HOME/.sbt/launchers/1.0.1/sbt-launch.jar https://repo1.maven.org/maven2/org/scala-sbt/sbt/1.0.1/sbt-1.0.1.jar
 script: "./build.sh"
+before_cache:
+  - find $HOME/.sbt -name "*.lock" | xargs rm
+  - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt/boot/
 env:
 - BUILD_LABEL=4.0.${TRAVIS_BUILD_NUMBER}
 before_deploy:
