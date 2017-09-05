@@ -3,7 +3,7 @@
     <about>
         <name>Fetch from S3</name>
         <version>${version}</version>
-        <target-go-version>15.1.0</target-go-version>
+        <target-go-version>17.2.0</target-go-version>
         <description>Fetch artifacts from S3</description>
         <vendor>
             <name>Indix</name>
