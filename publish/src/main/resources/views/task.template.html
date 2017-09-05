@@ -54,20 +54,22 @@
     jQuery(document).ready(function() {
         var interval = setInterval(function(){
             try {
-                $scope = angular.element(document.getElementById("task_angular_pluggable_task_indix_s3publish")).scope();
+                var $scope = angular.element(document.getElementById("task_angular_pluggable_task_indix_s3publish")).scope();
                 $scope.$apply(function() {
                     $scope.sources = $scope.sourceDestinations ? JSON.parse($scope.sourceDestinations) : [];
 
                     $scope.addSource = function() {
-                        $scope.sources.push({ source: "", destination: ""});
+                        this.sources.push({ source: "", destination: ""});
                     };
 
                     $scope.removeSource = function(index) {
-                        $scope.sources.splice(index, 1);
+                        this.sources.splice(index, 1);
                     }
 
                 });
+
                 $scope.$watch("sources", function(){
+                    var $scope = angular.element(document.getElementById("task_angular_pluggable_task_indix_s3publish")).scope();
                     $scope.sourceDestinations = angular.copy($scope.sources).toJSON();
                 }, true);
 
