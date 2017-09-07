@@ -14,8 +14,8 @@ public class PackageFetchExecutor extends FetchExecutor {
 
     @Override
     protected String getArtifactsLocationTemplate(Config config, GoEnvironment env) {
-        String repoName = config.getRepo();
-        String packageName = config.getPkg();
+        String repoName = config.getPackageRepo();
+        String packageName = config.getPackageName();
         logger.debug(String.format("S3 fetch config uses repoName=%s and packageName=%s", repoName, packageName));
 
         String materialLabel = env.get(String.format("GO_PACKAGE_%s_%s_LABEL", repoName, packageName));
@@ -35,19 +35,19 @@ public class PackageFetchExecutor extends FetchExecutor {
     @Override
     public Map<String, String> validate(Config config) {
         Map<String, String> errors = new HashMap<>();
-        if (StringUtils.isBlank(config.getRepo())) {
-            errors.put(Constants.REPO, Constants.REQUIRED_FIELD_MESSAGE);
+        if (StringUtils.isBlank(config.getPackageRepo())) {
+            errors.put(Constants.PACKAGE_REPO, Constants.REQUIRED_FIELD_MESSAGE);
         }
-        if (StringUtils.isBlank(config.getPkg())) {
-            errors.put(Constants.PACKAGE, Constants.REQUIRED_FIELD_MESSAGE);
+        if (StringUtils.isBlank(config.getPackageName())) {
+            errors.put(Constants.PACKAGE_NAME, Constants.REQUIRED_FIELD_MESSAGE);
         }
         return errors;
     }
 
     @Override
     protected String getBucket(Config config, GoEnvironment env) {
-        String repoName = config.getRepo();
-        String packageName = config.getPkg();
+        String repoName = config.getPackageRepo();
+        String packageName = config.getPackageName();
         String bucketFromMaterial = env.get(String.format("GO_REPO_%s_%s_S3_BUCKET", repoName, packageName));
         if(bucketFromMaterial != null) {
             return bucketFromMaterial;

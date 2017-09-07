@@ -106,22 +106,22 @@ public class FetchTask implements GoPlugin {
         HashMap repo = new HashMap();
         repo.put("default-value", "");
         repo.put("required", false);
-        config.put(Constants.REPO, repo);
+        config.put(Constants.PACKAGE_REPO, repo);
 
         HashMap pkg = new HashMap();
         pkg.put("default-value", "");
         pkg.put("required", false);
-        config.put(Constants.PACKAGE, pkg);
+        config.put(Constants.PACKAGE_NAME, pkg);
 
         HashMap material = new HashMap();
         material.put("default-value", "");
         material.put("required", false);
-        config.put(Constants.MATERIAL, material);
+        config.put(Constants.PIPELINE_MATERIAL, material);
 
         HashMap job = new HashMap();
         job.put("default-value", "");
         job.put("required", false);
-        config.put(Constants.JOB, job);
+        config.put(Constants.PIPELINE_JOB, job);
 
         HashMap destination = new HashMap();
         destination.put("default-value", "");

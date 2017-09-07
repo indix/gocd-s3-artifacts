@@ -6,26 +6,33 @@ import static com.indix.gocd.utils.Constants.*;
 
 public class Config {
 
-    public String materialType;
-    public String repo;
-    public String pkg;
-    public String material;
-    public String job;
-    public String destination;
+    private final String materialType;
+    private final String packageRepo;
+    private final String packageName;
+    private final String pipelineMaterial;
+    private final String pipelineJob;
+    private final String destination;
 
-    public String getMaterialType() { return materialType; }
-
-    public String getRepo() {
-        return escapeEnvironmentVariable(repo);
+    public String getMaterialType() {
+      return materialType;
     }
 
-    public String getPkg() {
-        return escapeEnvironmentVariable(pkg);
+    public String getPackageRepo() {
+        return escapeEnvironmentVariable(packageRepo);
     }
 
-    public String getMaterial() { return escapeEnvironmentVariable(material); }
+    public String getPackageName() {
+        return escapeEnvironmentVariable(packageName);
+    }
 
-    public String getJob() { return job; }
+    public String getPipelineMaterial() {
+      return escapeEnvironmentVariable(pipelineMaterial);
+    }
+
+    public String getPipelineJob() {
+      return pipelineJob;
+    }
+
 
     public String getDestination() {
         return destination;
@@ -33,10 +40,10 @@ public class Config {
 
     public Config(Map config) {
         materialType = getValue(config, MATERIAL_TYPE);
-        repo = getValue(config, REPO);
-        pkg = getValue(config, PACKAGE);
-        material = getValue(config, MATERIAL);
-        job = getValue(config, JOB);
+        packageRepo = getValue(config, PACKAGE_REPO);
+        packageName = getValue(config, PACKAGE_NAME);
+        pipelineMaterial = getValue(config, PIPELINE_MATERIAL);
+        pipelineJob = getValue(config, PIPELINE_JOB);
         destination = getValue(config, DESTINATION);
     }
 
