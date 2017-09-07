@@ -32,24 +32,24 @@
 </div>
 
 <!-- Stage fields -->
-<div class="form_item_block" ng-show="MaterialType == 'Stage'">
+<div class="form_item_block" ng-show="MaterialType == 'Stage' && !StageSourcePrefix">
   <label>Stage Name:<span class="asterisk">*</span></label>
-  <input type="text" ng-model="StageName" ng-required="true">
+  <input id="StageName" type="text" ng-model="StageName" ng-required="!StageSourcePrefix">
   <span class="form_error" ng-show="GOINPUTNAME[StageName].$error.server">{{ GOINPUTNAME[StageName].$error.server }}</span>
 </div>
-<div class="form_item_block" ng-show="MaterialType == 'Stage'">
+<div class="form_item_block" ng-show="MaterialType == 'Stage' && !StageSourcePrefix">
   <label>Job Name:<span class="asterisk">*</span></label>
-  <input type="text" ng-model="StageJob" ng-required="true">
+  <input id="StageJob" type="text" ng-model="StageJob" ng-required="!StageSourcePrefix">
   <span class="form_error" ng-show="GOINPUTNAME[StageJob].$error.server">{{ GOINPUTNAME[StageJob].$error.server }}</span>
 </div>
 <div class="form_item_block" ng-show="MaterialType == 'Stage'">
   <label>Source:<span class="asterisk">*</span></label>
-  <input type="text" ng-model="StageSource" ng-required="true">
+  <input if="StageSource" type="text" ng-model="StageSource" ng-required="true">
   <span class="form_error" ng-show="GOINPUTNAME[StageSource].$error.server">{{ GOINPUTNAME[StageSource].$error.server }}</span>
 </div>
 <div class="form_item_block" ng-show="MaterialType == 'Stage'">
   <label for="StageSourcePrefix">Source Prefix</label>
-  <input id="StageSourcePrefix" type="text" ng-model="StageSourcePrefix" />
+  <input id="StageSourcePrefix" type="text" ng-model="StageSourcePrefix" ng-change="sourcePrefixChanged()"/>
   <span class="form_error" ng-show="GOINPUTNAME[StageSourcePrefix].$error.server">{{ GOINPUTNAME[StageSourcePrefix].$error.server }}</span>
 </div>
 <div class="form_item_block" ng-show="MaterialType == 'Stage'">
@@ -72,6 +72,12 @@
             try {
                 var $scope = angular.element(document.getElementById("task_angular_pluggable_task_indix_s3fetch")).scope();
                 $scope.$apply(function() {
+
+                    $scope.clearStagePipelineFields = function() {
+                        this.StageName = null;
+                        this.StageJob = null;
+                    }
+
                     $scope.clearFields = function() {
                         this.PackageRepo = null;
                         this.PackageName = null;
@@ -79,12 +85,18 @@
                         this.PipelineMaterial = null;
                         this.PipelineJob = null;
 
-                        this.StagePipeline = null;
-                        this.StageName = null;
-                        this.StageJob = null;
+                        this.clearStagePipelineFields();
                         this.StageSource = null;
                         this.StageSourcePrefix = null;
                     };
+
+                    $scope.sourcePrefixChanged = function() {
+                        if (this.StageSourcePrefix && this.StageSourcePrefix.length > 0) {
+                            this.clearStagePipelineFields();
+                        } else {
+                            this.StageSourcePrefix = null;
+                        }
+                    }
                 });
 
                 clearInterval(interval);
