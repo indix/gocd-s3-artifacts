@@ -11,6 +11,11 @@ public class Config {
     private final String packageName;
     private final String pipelineMaterial;
     private final String pipelineJob;
+    private final String stagePipeline;
+    private final String stageName;
+    private final String stageJob;
+    private final String stageSource;
+    private final String stageSourcePrefix;
     private final String destination;
 
     public String getMaterialType() {
@@ -33,6 +38,25 @@ public class Config {
       return pipelineJob;
     }
 
+    public String getStagePipeline() {
+      return stagePipeline;
+    }
+
+    public String getStageName() {
+      return stageName;
+    }
+
+    public String getStageJob() {
+      return stageJob;
+    }
+
+    public String getStageSource() {
+      return stageSource;
+    }
+
+    public String getStageSourcePrefix() {
+      return stageSourcePrefix;
+    }
 
     public String getDestination() {
         return destination;
@@ -44,6 +68,11 @@ public class Config {
         packageName = getValue(config, PACKAGE_NAME);
         pipelineMaterial = getValue(config, PIPELINE_MATERIAL);
         pipelineJob = getValue(config, PIPELINE_JOB);
+        stagePipeline = getValue(config, STAGE_PIPELINE);
+        stageName = getValue(config, STAGE_NAME);
+        stageJob = getValue(config, STAGE_JOB);
+        stageSource = getValue(config, STAGE_SOURCE);
+        stageSourcePrefix = getValue(config, STAGE_SOURCE_PREFIX);
         destination = getValue(config, DESTINATION);
     }
 

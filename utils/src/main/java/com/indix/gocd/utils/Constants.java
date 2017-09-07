@@ -29,6 +29,11 @@ public class Constants {
     public static final String PACKAGE_NAME = "PackageName";
     public static final String PIPELINE_MATERIAL = "PipelineMaterial";
     public static final String PIPELINE_JOB = "PipelineJob";
+    public static final String STAGE_PIPELINE = "StagePipeline";
+    public static final String STAGE_NAME = "StageName";
+    public static final String STAGE_JOB = "StageJob";
+    public static final String STAGE_SOURCE = "StageSource";
+    public static final String STAGE_SOURCE_PREFIX = "StageSourcePrefix";
     public static final String DESTINATION = "Destination";
 
     public static final String REQUIRED_FIELD_MESSAGE = "This field is required";
