@@ -3,59 +3,66 @@
   <select ng-model="MaterialType" ng-init="MaterialType = MaterialType || 'Package'" ng-change="clearFields()">
     <option value="Package">Package</option>
     <option value="Pipeline">Pipeline</option>
-    <option value="Stage">Stage</option>
+    <option value="Self">Self</option>
   </select>
 </div>
 
 <!-- Package fields -->
 <div class="form_item_block" ng-show="MaterialType == 'Package'">
   <label>Repository name:<span class="asterisk">*</span></label>
-  <input type="text" ng-model="PackageRepo" ng-required="true">
-  <span class="form_error" ng-show="GOINPUTNAME[PackageRepo].$error.server">{{ GOINPUTNAME[PackageRepo].$error.server }}</span>
+  <input type="text" ng-model="Repo" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Repo].$error.server">{{ GOINPUTNAME[Repo].$error.server }}</span>
 </div>
 <div class="form_item_block" ng-show="MaterialType == 'Package'">
   <label>Package name:<span class="asterisk">*</span></label>
-  <input type="text" ng-model="PackageName" ng-required="true">
-  <span class="form_error" ng-show="GOINPUTNAME[PackageName].$error.server">{{ GOINPUTNAME[PackageName].$error.server }}</span>
+  <input type="text" ng-model="Package" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Package].$error.server">{{ GOINPUTNAME[Package].$error.server }}</span>
 </div>
 
 <!-- Pipeline fields -->
 <div class="form_item_block" ng-show="MaterialType == 'Pipeline'">
   <label>Material Name:<span class="asterisk">*</span></label>
-  <input type="text" ng-model="PipelineMaterial" ng-required="true">
-  <span class="form_error" ng-show="GOINPUTNAME[PipelineMaterial].$error.server">{{ GOINPUTNAME[PipelineMaterial].$error.server }}</span>
+  <input type="text" ng-model="Material" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Material].$error.server">{{ GOINPUTNAME[Material].$error.server }}</span>
 </div>
 <div class="form_item_block" ng-show="MaterialType == 'Pipeline'">
   <label>Job:<span class="asterisk">*</span></label>
-  <input type="text" ng-model="PipelineJob" ng-required="true">
-  <span class="form_error" ng-show="GOINPUTNAME[PipelineJob].$error.server">{{ GOINPUTNAME[PipelineJob].$error.server }}</span>
+  <input type="text" ng-model="Job" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Job].$error.server">{{ GOINPUTNAME[Job].$error.server }}</span>
 </div>
 
 <!-- Stage fields -->
-<div class="form_item_block" ng-show="MaterialType == 'Stage' && !StageSourcePrefix">
+<div class="form_item_block"  ng-show="MaterialType == 'Self'">
+  <label>Source Type:<span class="arterisk">*</span></label>
+  <select ng-model="SourceType" ng-init="SourceType = SourceType || 'Default'" ng-change="clearStageFields()">
+    <option value="Default">Default</option>
+    <option value="Custom">Package</option>
+  </select>
+</div>
+<div class="form_item_block" ng-show="MaterialType == 'Self' && SourceType == 'Default'">
   <label>Stage Name:<span class="asterisk">*</span></label>
-  <input id="StageName" type="text" ng-model="StageName" ng-required="!StageSourcePrefix">
-  <span class="form_error" ng-show="GOINPUTNAME[StageName].$error.server">{{ GOINPUTNAME[StageName].$error.server }}</span>
+  <input type="text" ng-model="Stage" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Stage].$error.server">{{ GOINPUTNAME[Stage].$error.server }}</span>
 </div>
-<div class="form_item_block" ng-show="MaterialType == 'Stage' && !StageSourcePrefix">
+<div class="form_item_block" ng-show="MaterialType == 'Self' && SourceType == 'Default'">
   <label>Job Name:<span class="asterisk">*</span></label>
-  <input id="StageJob" type="text" ng-model="StageJob" ng-required="!StageSourcePrefix">
-  <span class="form_error" ng-show="GOINPUTNAME[StageJob].$error.server">{{ GOINPUTNAME[StageJob].$error.server }}</span>
+  <input type="text" ng-model="Job" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Job].$error.server">{{ GOINPUTNAME[Job].$error.server }}</span>
 </div>
-<div class="form_item_block" ng-show="MaterialType == 'Stage'">
+<div class="form_item_block" ng-show="MaterialType == 'Self'">
   <label>Source:<span class="asterisk">*</span></label>
-  <input if="StageSource" type="text" ng-model="StageSource" ng-required="true">
-  <span class="form_error" ng-show="GOINPUTNAME[StageSource].$error.server">{{ GOINPUTNAME[StageSource].$error.server }}</span>
+  <input type="text" ng-model="Source" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Source].$error.server">{{ GOINPUTNAME[Source].$error.server }}</span>
 </div>
-<div class="form_item_block" ng-show="MaterialType == 'Stage'">
-  <label for="StageSourcePrefix">Source Prefix</label>
-  <input id="StageSourcePrefix" type="text" ng-model="StageSourcePrefix" ng-change="sourcePrefixChanged()"/>
-  <span class="form_error" ng-show="GOINPUTNAME[StageSourcePrefix].$error.server">{{ GOINPUTNAME[StageSourcePrefix].$error.server }}</span>
+<div class="form_item_block" ng-show="MaterialType == 'Self' && SourceType == 'Custom'">
+  <label>Source Prefix</label>
+  <input type="text" ng-model="SourcePrefix"/>
+  <span class="form_error" ng-show="GOINPUTNAME[SourcePrefix].$error.server">{{ GOINPUTNAME[SourcePrefix].$error.server }}</span>
 </div>
-<div class="form_item_block" ng-show="MaterialType == 'Stage'">
+<div class="form_item_block" ng-show="MaterialType == 'Self'">
     <p>
-        <span ng-show="StageSourcePrefix">Your artifact sources will be prefixed with {{StageSourcePrefix}}</span>
-        <span ng-show="!StageSourcePrefix">Your artifact sources will be prefixed with {{StagePipeline}}/{{StageName}}/{{StageJob}}/{{StagePipeline}}Counter.{{StageName}}Counter</span>
+        <span ng-show="SourcePrefix">Your artifact sources will be prefixed with {{SourcePrefix}}</span>
+        <span ng-show="!SourcePrefix">Your artifact sources will be prefixed with pipeline/{{Stage}}/{{Job}}/pipelineCounter.{{Stage}}Counter</span>
     </p>
 </div>
 
@@ -73,30 +80,19 @@
                 var $scope = angular.element(document.getElementById("task_angular_pluggable_task_indix_s3fetch")).scope();
                 $scope.$apply(function() {
 
-                    $scope.clearStagePipelineFields = function() {
-                        this.StageName = null;
-                        this.StageJob = null;
+                    $scope.clearStageFields = function() {
+                        this.Job = null;
+                        this.Stage = null;
+                        this.Source = null;
+                        this.SourcePrefix = null;
                     }
 
                     $scope.clearFields = function() {
-                        this.PackageRepo = null;
-                        this.PackageName = null;
-
-                        this.PipelineMaterial = null;
-                        this.PipelineJob = null;
-
-                        this.clearStagePipelineFields();
-                        this.StageSource = null;
-                        this.StageSourcePrefix = null;
+                        this.Repo = null;
+                        this.Package = null;
+                        this.Material = null;
+                        this.clearStageFields();
                     };
-
-                    $scope.sourcePrefixChanged = function() {
-                        if (this.StageSourcePrefix && this.StageSourcePrefix.length > 0) {
-                            this.clearStagePipelineFields();
-                        } else {
-                            this.StageSourcePrefix = null;
-                        }
-                    }
                 });
 
                 clearInterval(interval);

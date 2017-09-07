@@ -24,7 +24,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-public class StageFetchExecutorTest {
+public class SelfFetchExecutorTest {
 
     private final String bucket = "gocd";
     Maps.MapBuilder<String, String> mockEnvironmentVariables;
@@ -42,13 +42,13 @@ public class StageFetchExecutorTest {
                 .with("GO_PIPELINE_COUNTER", "1");
 
         config = new Config(Maps.builder()
-                .with(Constants.STAGE_NAME, Maps.builder().with("value", "stageName").build())
-                .with(Constants.STAGE_JOB, Maps.builder().with("value", "stageJob").build())
-                .with(Constants.STAGE_SOURCE, Maps.builder().with("value", "stageSource").build())
+                .with(Constants.STAGE, Maps.builder().with("value", "stage").build())
+                .with(Constants.JOB, Maps.builder().with("value", "job").build())
+                .with(Constants.SOURCE, Maps.builder().with("value", "source").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
 
-        fetchExecutor = spy(new StageFetchExecutor());
+        fetchExecutor = spy(new SelfFetchExecutor());
     }
 
     @Test
@@ -57,12 +57,12 @@ public class StageFetchExecutorTest {
     }
 
     @Test
-    public void shouldBeAbleToFindStageCounterIfOnlyThanOne() {
+    public void shouldBeAbleToFindStageCounterIfOnlyOneInBucket() {
         assertFalse(true);
     }
 
     @Test
-    public void shouldBeAbleToFindLatestStageCounterIfMoreThanOne() {
+    public void shouldBeAbleToFindLatestStageCounterIfMoreThanOneInBucket() {
         assertFalse(true);
     }
 
@@ -70,8 +70,8 @@ public class StageFetchExecutorTest {
     public void shouldUseCustomPrefixIfProvided() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         config = new Config(Maps.builder()
-                .with(Constants.STAGE_SOURCE, Maps.builder().with("value", "stageSource").build())
-                .with(Constants.STAGE_SOURCE_PREFIX, Maps.builder().with("value", "stageSourcePrefix").build())
+                .with(Constants.SOURCE, Maps.builder().with("value", "source").build())
+                .with(Constants.SOURCE_PREFIX, Maps.builder().with("value", "sourcePrefix").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
         S3ArtifactStore mockStore = mockStore();
@@ -81,7 +81,7 @@ public class StageFetchExecutorTest {
 
         assertTrue(result.isSuccessful());
         assertThat(result.message(), is("Fetched all artifacts"));
-        verify(mockStore, times(1)).getPrefix("stageSourcePrefix/stageSource", "here/artifacts");
+        verify(mockStore, times(1)).getPrefix("sourcePrefix/source", "here/artifacts");
     }
 
     private Context mockContext(final Map<String, String> environmentMap) {

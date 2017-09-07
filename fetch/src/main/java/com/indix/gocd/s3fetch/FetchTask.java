@@ -61,8 +61,8 @@ public class FetchTask implements GoPlugin {
             return new PackageFetchExecutor();
         } else if (materialType.equals("Pipeline")) {
             return new PipelineFetchExecutor();
-        } else if (materialType.equals("Stage")) {
-            return new PipelineFetchExecutor();
+        } else if (materialType.equals("Self")) {
+            return new SelfFetchExecutor();
         } else {
             throw new IllegalStateException("No such material type: " + materialType);
         }
@@ -105,45 +105,40 @@ public class FetchTask implements GoPlugin {
         materialType.put("required", true);
         config.put(Constants.MATERIAL_TYPE, materialType);
 
-        HashMap packageRepo = new HashMap();
-        packageRepo.put("default-value", "");
-        packageRepo.put("required", false);
-        config.put(Constants.PACKAGE_REPO, packageRepo);
+        HashMap repo = new HashMap();
+        repo.put("default-value", "");
+        repo.put("required", false);
+        config.put(Constants.REPO, repo);
 
-        HashMap packageName = new HashMap();
-        packageName.put("default-value", "");
-        packageName.put("required", false);
-        config.put(Constants.PACKAGE_NAME, packageName);
+        HashMap pkg = new HashMap();
+        pkg.put("default-value", "");
+        pkg.put("required", false);
+        config.put(Constants.PACKAGE, pkg);
 
-        HashMap pipelineMaterial = new HashMap();
-        pipelineMaterial.put("default-value", "");
-        pipelineMaterial.put("required", false);
-        config.put(Constants.PIPELINE_MATERIAL, pipelineMaterial);
+        HashMap material = new HashMap();
+        material.put("default-value", "");
+        material.put("required", false);
+        config.put(Constants.MATERIAL, material);
 
-        HashMap pipelineJob = new HashMap();
-        pipelineJob.put("default-value", "");
-        pipelineJob.put("required", false);
-        config.put(Constants.PIPELINE_JOB, pipelineJob);
+        HashMap job = new HashMap();
+        job.put("default-value", "");
+        job.put("required", false);
+        config.put(Constants.JOB, job);
 
-        HashMap stageName = new HashMap();
-        stageName.put("default-value", "");
-        stageName.put("required", false);
-        config.put(Constants.STAGE_NAME, stageName);
+        HashMap stage = new HashMap();
+        stage.put("default-value", "");
+        stage.put("required", false);
+        config.put(Constants.STAGE, stage);
 
-        HashMap stageJob = new HashMap();
-        stageJob.put("default-value", "");
-        stageJob.put("required", false);
-        config.put(Constants.STAGE_JOB, stageJob);
+        HashMap source = new HashMap();
+        source.put("default-value", "");
+        source.put("required", false);
+        config.put(Constants.SOURCE, source);
 
-        HashMap stageSource = new HashMap();
-        stageSource.put("default-value", "");
-        stageSource.put("required", false);
-        config.put(Constants.STAGE_SOURCE, stageSource);
-
-        HashMap stageSourcePrefix = new HashMap();
-        stageSourcePrefix.put("default-value", "");
-        stageSourcePrefix.put("required", false);
-        config.put(Constants.STAGE_SOURCE_PREFIX, stageSourcePrefix);
+        HashMap sourcePrefix = new HashMap();
+        sourcePrefix.put("default-value", "");
+        sourcePrefix.put("required", false);
+        config.put(Constants.SOURCE_PREFIX, sourcePrefix);
 
         HashMap destination = new HashMap();
         destination.put("default-value", "");

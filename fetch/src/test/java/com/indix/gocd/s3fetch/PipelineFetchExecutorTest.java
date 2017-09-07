@@ -42,8 +42,8 @@ public class PipelineFetchExecutorTest {
 
         config = new Config(Maps.builder()
                 .with(Constants.MATERIAL_TYPE, Maps.builder().with("value", "Pipeline").build())
-                .with(Constants.PIPELINE_MATERIAL, Maps.builder().with("value", "mymaterial").build())
-                .with(Constants.PIPELINE_JOB, Maps.builder().with("value", "job").build())
+                .with(Constants.MATERIAL, Maps.builder().with("value", "mymaterial").build())
+                .with(Constants.JOB, Maps.builder().with("value", "job").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
 
@@ -54,8 +54,8 @@ public class PipelineFetchExecutorTest {
     public void shouldBeFailureIfFetchConfigNotValid() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         config = new Config(Maps.builder()
-                .with(Constants.PIPELINE_MATERIAL, Maps.builder().with("value", "Wrong").build())
-                .with(Constants.PIPELINE_JOB, Maps.builder().with("value", "job").build())
+                .with(Constants.MATERIAL, Maps.builder().with("value", "Wrong").build())
+                .with(Constants.JOB, Maps.builder().with("value", "job").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
         AmazonS3Client mockClient = mockClient();
@@ -104,8 +104,8 @@ public class PipelineFetchExecutorTest {
         doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
 
         config = new Config(Maps.builder()
-                .with(Constants.PIPELINE_MATERIAL, Maps.builder().with("value", "my-material").build())
-                .with(Constants.PIPELINE_JOB, Maps.builder().with("value", "job").build())
+                .with(Constants.MATERIAL, Maps.builder().with("value", "my-material").build())
+                .with(Constants.JOB, Maps.builder().with("value", "job").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
@@ -124,8 +124,8 @@ public class PipelineFetchExecutorTest {
         doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
 
         config = new Config(Maps.builder()
-                .with(Constants.PIPELINE_MATERIAL, Maps.builder().with("value", "my.material").build())
-                .with(Constants.PIPELINE_JOB, Maps.builder().with("value", "job").build())
+                .with(Constants.MATERIAL, Maps.builder().with("value", "my.material").build())
+                .with(Constants.JOB, Maps.builder().with("value", "job").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
@@ -144,8 +144,8 @@ public class PipelineFetchExecutorTest {
         doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
 
         config = new Config(Maps.builder()
-                .with(Constants.PIPELINE_MATERIAL, Maps.builder().with("value", "my`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?material").build())
-                .with(Constants.PIPELINE_JOB, Maps.builder().with("value", "job").build())
+                .with(Constants.MATERIAL, Maps.builder().with("value", "my`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?material").build())
+                .with(Constants.JOB, Maps.builder().with("value", "job").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));

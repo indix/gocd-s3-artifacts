@@ -25,14 +25,13 @@ public class Constants {
     public static final String GO_PIPELINE_LABEL = "GO_PIPELINE_LABEL";
 
     public static final String MATERIAL_TYPE = "MaterialType";
-    public static final String PACKAGE_REPO = "PackageRepo";
-    public static final String PACKAGE_NAME = "PackageName";
-    public static final String PIPELINE_MATERIAL = "PipelineMaterial";
-    public static final String PIPELINE_JOB = "PipelineJob";
-    public static final String STAGE_NAME = "StageName";
-    public static final String STAGE_JOB = "StageJob";
-    public static final String STAGE_SOURCE = "StageSource";
-    public static final String STAGE_SOURCE_PREFIX = "StageSourcePrefix";
+    public static final String REPO = "Repo";
+    public static final String PACKAGE = "Package";
+    public static final String MATERIAL = "Material";
+    public static final String JOB = "Job";
+    public static final String STAGE = "Stage";
+    public static final String SOURCE = "Source";
+    public static final String SOURCE_PREFIX = "SourcePrefix";
     public static final String DESTINATION = "Destination";
 
     public static final String REQUIRED_FIELD_MESSAGE = "This field is required";

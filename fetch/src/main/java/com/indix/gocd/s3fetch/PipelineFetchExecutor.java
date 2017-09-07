@@ -11,7 +11,7 @@ public class PipelineFetchExecutor extends FetchExecutor {
   
     @Override
     protected String getArtifactsLocationTemplate(Config config, GoEnvironment env) {
-        String materialLocator = env.get(String.format("GO_DEPENDENCY_LOCATOR_%s", config.getPipelineMaterial()));
+        String materialLocator = env.get(String.format("GO_DEPENDENCY_LOCATOR_%s", config.getMaterial()));
         if (materialLocator == null) {
             throw new RuntimeException("Please check Material name configuration.");
         }
@@ -22,7 +22,7 @@ public class PipelineFetchExecutor extends FetchExecutor {
         String pipelineCounter = locatorParts[1];
         String stage = locatorParts[2];
         String stageCounter = locatorParts[3];
-        String job = config.getPipelineJob();
+        String job = config.getJob();
 
         return env.artifactsLocationTemplate(pipeline, stage, job, pipelineCounter, stageCounter);
     }
@@ -30,11 +30,11 @@ public class PipelineFetchExecutor extends FetchExecutor {
     @Override
     public Map<String, String> validate(Config config) {
         Map<String, String> errors = new HashMap<>();
-        if (StringUtils.isBlank(config.getPipelineMaterial())) {
-            errors.put(Constants.PIPELINE_MATERIAL, Constants.REQUIRED_FIELD_MESSAGE);
+        if (StringUtils.isBlank(config.getMaterial())) {
+            errors.put(Constants.MATERIAL, Constants.REQUIRED_FIELD_MESSAGE);
         }
-        if (StringUtils.isBlank(config.getPipelineJob())) {
-            errors.put(Constants.PIPELINE_JOB, Constants.REQUIRED_FIELD_MESSAGE);
+        if (StringUtils.isBlank(config.getJob())) {
+            errors.put(Constants.JOB, Constants.REQUIRED_FIELD_MESSAGE);
         }
         return errors;
     }

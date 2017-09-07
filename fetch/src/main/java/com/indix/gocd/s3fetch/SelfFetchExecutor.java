@@ -7,20 +7,20 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StageFetchExecutor extends FetchExecutor {
+public class SelfFetchExecutor extends FetchExecutor {
 
     @Override
     protected String getArtifactsLocationTemplate(Config config, GoEnvironment env) {
 
-        String prefix = config.getStageSourcePrefix();
-        String source = config.getStageSource();
+        String prefix = config.getSourcePrefix();
+        String source = config.getSource();
         if (StringUtils.isBlank(prefix)) {
             String pipeline = env.get("GO_PIPELINE_NAME");
             String pipelineCounter = env.get("GO_PIPELINE_COUNTER");
-            String stage = config.getStageName();
+            String stage = config.getStage();
             // TODO : Find out stage latest counter
             String stageCounter = "2";
-            String job = config.getStageJob();
+            String job = config.getJob();
 
             prefix = env.artifactsLocationTemplate(pipeline, stage, job, pipelineCounter, stageCounter);
         }
@@ -32,18 +32,18 @@ public class StageFetchExecutor extends FetchExecutor {
     public Map<String, String> validate(Config config) {
         Map<String, String> errors = new HashMap<>();
 
-        if (StringUtils.isBlank(config.getStageSourcePrefix())) {
+        if (StringUtils.isBlank(config.getSourcePrefix())) {
 
-            if (StringUtils.isBlank(config.getStageName())) {
-                errors.put(Constants.STAGE_NAME, Constants.REQUIRED_FIELD_MESSAGE);
+            if (StringUtils.isBlank(config.getStage())) {
+                errors.put(Constants.STAGE, Constants.REQUIRED_FIELD_MESSAGE);
             }
-            if (StringUtils.isBlank(config.getStageJob())) {
-                errors.put(Constants.STAGE_JOB, Constants.REQUIRED_FIELD_MESSAGE);
+            if (StringUtils.isBlank(config.getJob())) {
+                errors.put(Constants.JOB, Constants.REQUIRED_FIELD_MESSAGE);
             }
         }
 
-        if (StringUtils.isBlank(config.getStageSource())) {
-            errors.put(Constants.STAGE_SOURCE, Constants.REQUIRED_FIELD_MESSAGE);
+        if (StringUtils.isBlank(config.getSource())) {
+            errors.put(Constants.SOURCE, Constants.REQUIRED_FIELD_MESSAGE);
         }
 
         return errors;

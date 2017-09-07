@@ -43,8 +43,8 @@ public class PackageFetchExecutorTest {
 
         config = new Config(Maps.builder()
                 .with(Constants.MATERIAL_TYPE, Maps.builder().with("value", "Package").build())
-                .with(Constants.PACKAGE_REPO, Maps.builder().with("value", "GOCD").build())
-                .with(Constants.PACKAGE_NAME, Maps.builder().with("value", "TESTPUBLISHS3ARTIFACTS").build())
+                .with(Constants.REPO, Maps.builder().with("value", "GOCD").build())
+                .with(Constants.PACKAGE, Maps.builder().with("value", "TESTPUBLISHS3ARTIFACTS").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
 
@@ -55,8 +55,8 @@ public class PackageFetchExecutorTest {
     public void shouldBeFailureIfFetchConfigNotValid() {
         Map<String, String> mockVariables = mockEnvironmentVariables.build();
         config = new Config(Maps.builder()
-                .with(Constants.PACKAGE_REPO, Maps.builder().with("value", "Wrong").build())
-                .with(Constants.PACKAGE_NAME, Maps.builder().with("value", "TESTPUBLISHS3ARTIFACTS").build())
+                .with(Constants.REPO, Maps.builder().with("value", "Wrong").build())
+                .with(Constants.PACKAGE, Maps.builder().with("value", "TESTPUBLISHS3ARTIFACTS").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
         AmazonS3Client mockClient = mockClient();
@@ -127,8 +127,8 @@ public class PackageFetchExecutorTest {
         doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
 
         config = new Config(Maps.builder()
-                .with(Constants.PACKAGE_REPO, Maps.builder().with("value", "repo-with-dash").build())
-                .with(Constants.PACKAGE_NAME, Maps.builder().with("value", "package-with-dash").build())
+                .with(Constants.REPO, Maps.builder().with("value", "repo-with-dash").build())
+                .with(Constants.PACKAGE, Maps.builder().with("value", "package-with-dash").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
@@ -151,8 +151,8 @@ public class PackageFetchExecutorTest {
         doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
 
         config = new Config(Maps.builder()
-                .with(Constants.PACKAGE_REPO, Maps.builder().with("value", "repo-with.period").build())
-                .with(Constants.PACKAGE_NAME, Maps.builder().with("value", "package-with.period").build())
+                .with(Constants.REPO, Maps.builder().with("value", "repo-with.period").build())
+                .with(Constants.PACKAGE, Maps.builder().with("value", "package-with.period").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
@@ -175,8 +175,8 @@ public class PackageFetchExecutorTest {
         doReturn(store).when(fetchExecutor).getS3ArtifactStore(any(GoEnvironment.class), eq(bucket));
 
         config = new Config(Maps.builder()
-                .with(Constants.PACKAGE_REPO, Maps.builder().with("value", "repo-with`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?").build())
-                .with(Constants.PACKAGE_NAME, Maps.builder().with("value", "package-with`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?").build())
+                .with(Constants.REPO, Maps.builder().with("value", "repo-with`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?").build())
+                .with(Constants.PACKAGE, Maps.builder().with("value", "package-with`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
