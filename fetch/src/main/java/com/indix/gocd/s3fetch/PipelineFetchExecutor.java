@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PipelineFetchExecutor extends FetchExecutor {
+  
     @Override
     protected String getArtifactsLocationTemplate(Config config, GoEnvironment env) {
         String materialLocator = env.get(String.format("GO_DEPENDENCY_LOCATOR_%s", config.getPipelineMaterial()));
