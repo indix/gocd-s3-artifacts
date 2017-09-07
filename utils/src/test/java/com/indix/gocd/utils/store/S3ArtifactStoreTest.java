@@ -1,6 +1,8 @@
 package com.indix.gocd.utils.store;
 
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -52,6 +54,20 @@ public class S3ArtifactStoreTest {
         verify(mockClient, times(1)).putObject(putCaptor.capture());
         PutObjectRequest putRequest = putCaptor.getValue();
         assertThat(putRequest.getStorageClass(), is("GLACIER"));
+    }
+
+    @Test
+    public void shouldSuccessfullyCheckIfBucketExists() {
+        doReturn(new ObjectListing()).when(mockClient).listObjects(any(ListObjectsRequest.class));
+        S3ArtifactStore store = new S3ArtifactStore(mockClient, "foo-bar");
+        assertThat(store.bucketExists(), is(true));
+    }
+
+    @Test
+    public void shouldHandleBucketDoesNotExists() {
+        doThrow(new RuntimeException("Bucket does not exist")).when(mockClient).listObjects(any(ListObjectsRequest.class));
+        S3ArtifactStore store = new S3ArtifactStore(mockClient, "foo-bar");
+        assertThat(store.bucketExists(), is(false));
     }
 
 }
