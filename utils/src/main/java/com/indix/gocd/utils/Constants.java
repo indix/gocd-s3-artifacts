@@ -29,6 +29,9 @@ public class Constants {
     public static final String PACKAGE = "Package";
     public static final String MATERIAL = "Material";
     public static final String JOB = "Job";
+    public static final String STAGE = "Stage";
+    public static final String SOURCE = "Source";
+    public static final String SOURCE_PREFIX = "SourcePrefix";
     public static final String DESTINATION = "Destination";
 
     public static final String REQUIRED_FIELD_MESSAGE = "This field is required";

@@ -202,10 +202,40 @@ public class S3ArtifactStore {
         return null;
     }
 
+    public String getLatestPrefix(String pipeline, String stage, String job, String pipelineCounter) {
+        String prefix = String.format("%s/%s/%s/%s.", pipeline, stage, job, pipelineCounter);
+        ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+                .withBucketName(bucket)
+                .withPrefix(prefix)
+                .withDelimiter("/");
+
+        ObjectListing listing = client.listObjects(listObjectsRequest);
+
+        if (listing != null) {
+            List<String> commonPrefixes = listing.getCommonPrefixes();
+            List<String> stageCounters = Lists.map(commonPrefixes,
+                    input ->
+                            input.replaceAll(prefix, "").replaceAll("/", ""));
+            if (stageCounters.size() > 0) {
+                int maxStageCounter = Integer.valueOf(stageCounters.get(0));
+
+                for (int i = 1; i < stageCounters.size(); i++) {
+                    int stageCounter = Integer.valueOf(stageCounters.get(i));
+                    if (stageCounter > maxStageCounter) {
+                        maxStageCounter = stageCounter;
+                    }
+                }
+
+                return prefix + maxStageCounter;
+            }
+        }
+        return null;
+    }
+
     public static AmazonS3 getS3client(GoEnvironment env) {
         AmazonS3ClientBuilder amazonS3ClientBuilder = AmazonS3ClientBuilder.standard();
 
-        if(env.has(AWS_REGION)) {
+        if (env.has(AWS_REGION)) {
             amazonS3ClientBuilder.withRegion(env.get(AWS_REGION));
         }
         if (env.hasAWSUseIamRole()) {

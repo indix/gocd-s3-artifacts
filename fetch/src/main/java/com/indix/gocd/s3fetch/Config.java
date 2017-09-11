@@ -6,14 +6,19 @@ import static com.indix.gocd.utils.Constants.*;
 
 public class Config {
 
-    public String materialType;
-    public String repo;
-    public String pkg;
-    public String material;
-    public String job;
-    public String destination;
+    private final String materialType;
+    private final String repo;
+    private final String pkg;
+    private final String material;
+    private final String job;
+    private final String stage;
+    private final String source;
+    private final String sourcePrefix;
+    private final String destination;
 
-    public String getMaterialType() { return materialType; }
+    public String getMaterialType() {
+      return materialType;
+    }
 
     public String getRepo() {
         return escapeEnvironmentVariable(repo);
@@ -23,9 +28,25 @@ public class Config {
         return escapeEnvironmentVariable(pkg);
     }
 
-    public String getMaterial() { return escapeEnvironmentVariable(material); }
+    public String getMaterial() {
+      return escapeEnvironmentVariable(material);
+    }
 
-    public String getJob() { return job; }
+    public String getJob() {
+      return job;
+    }
+
+    public String getStage() {
+      return stage;
+    }
+
+    public String getSource() {
+      return source;
+    }
+
+    public String getSourcePrefix() {
+      return sourcePrefix;
+    }
 
     public String getDestination() {
         return destination;
@@ -37,6 +58,9 @@ public class Config {
         pkg = getValue(config, PACKAGE);
         material = getValue(config, MATERIAL);
         job = getValue(config, JOB);
+        stage = getValue(config, STAGE);
+        source = getValue(config, SOURCE);
+        sourcePrefix = getValue(config, SOURCE_PREFIX);
         destination = getValue(config, DESTINATION);
     }
 
