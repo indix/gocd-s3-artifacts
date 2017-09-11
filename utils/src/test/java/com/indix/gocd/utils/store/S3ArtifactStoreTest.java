@@ -69,6 +69,20 @@ public class S3ArtifactStoreTest {
     }
 
     @Test
+    public void shouldSuccessfullyCheckIfBucketExists() {
+        doReturn(new ObjectListing()).when(mockClient).listObjects(any(ListObjectsRequest.class));
+        S3ArtifactStore store = new S3ArtifactStore(mockClient, "foo-bar");
+        assertThat(store.bucketExists(), is(true));
+    }
+
+    @Test
+    public void shouldHandleBucketDoesNotExists() {
+        doThrow(new RuntimeException("Bucket does not exist")).when(mockClient).listObjects(any(ListObjectsRequest.class));
+        S3ArtifactStore store = new S3ArtifactStore(mockClient, "foo-bar");
+        assertThat(store.bucketExists(), is(false));
+    }
+
+    @Test
     public void verifyObjectListingRequestIsRight() {
         doReturn(null).when(mockClient).listObjects(any(ListObjectsRequest.class));
         S3ArtifactStore store = new S3ArtifactStore(mockClient, "foo-bar");
@@ -108,7 +122,7 @@ public class S3ArtifactStoreTest {
         commonPrefixes.add("pipeline/stage/job/1.1");
         commonPrefixes.add("pipeline/stage/job/1.7");
         listing.setCommonPrefixes(commonPrefixes);
-        
+
         doReturn(listing).when(mockClient).listObjects(any(ListObjectsRequest.class));
         S3ArtifactStore store = new S3ArtifactStore(mockClient, "foo-bar");
 

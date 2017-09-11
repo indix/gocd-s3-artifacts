@@ -111,13 +111,8 @@ public class S3ArtifactStore {
 
     public boolean bucketExists() {
         try {
-            List<Bucket> buckets = client.listBuckets();
-            return Lists.exists(buckets, new Functions.Predicate<Bucket>() {
-                @Override
-                public Boolean execute(Bucket input) {
-                    return input.getName().equals(bucket);
-                }
-            });
+            client.listObjects(new ListObjectsRequest(bucket, null, null, null, 0));
+            return true;
         } catch (Exception ex) {
             return false;
         }
@@ -244,7 +239,6 @@ public class S3ArtifactStore {
             BasicAWSCredentials basicCreds = new BasicAWSCredentials(env.get(AWS_ACCESS_KEY_ID), env.get(AWS_SECRET_ACCESS_KEY));
             amazonS3ClientBuilder.withCredentials(new AWSStaticCredentialsProvider(basicCreds));
         }
-
 
         return amazonS3ClientBuilder.build();
     }
