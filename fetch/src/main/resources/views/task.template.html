@@ -35,35 +35,29 @@
 <div class="form_item_block"  ng-show="MaterialType == 'Self'">
   <label>Source Type:<span class="arterisk">*</span></label>
   <select ng-model="SourceType" ng-init="SourceType = SourceType || 'Default'" ng-change="clearStageFields()">
-    <option value="Default">Default</option>
-    <option value="Custom">Package</option>
+    <option value="Default">Default prefix</option>
+    <option value="Custom">Custom prefix</option>
   </select>
 </div>
 <div class="form_item_block" ng-show="MaterialType == 'Self' && SourceType == 'Default'">
-  <label>Stage Name:<span class="asterisk">*</span></label>
+  <label>Fetch from stage:<span class="asterisk">*</span></label>
   <input type="text" ng-model="Stage" ng-required="true">
   <span class="form_error" ng-show="GOINPUTNAME[Stage].$error.server">{{ GOINPUTNAME[Stage].$error.server }}</span>
 </div>
 <div class="form_item_block" ng-show="MaterialType == 'Self' && SourceType == 'Default'">
-  <label>Job Name:<span class="asterisk">*</span></label>
+  <label>Fetch from job:<span class="asterisk">*</span></label>
   <input type="text" ng-model="Job" ng-required="true">
   <span class="form_error" ng-show="GOINPUTNAME[Job].$error.server">{{ GOINPUTNAME[Job].$error.server }}</span>
 </div>
-<div class="form_item_block" ng-show="MaterialType == 'Self'">
-  <label>Source:<span class="asterisk">*</span></label>
-  <input type="text" ng-model="Source" ng-required="true">
-  <span class="form_error" ng-show="GOINPUTNAME[Source].$error.server">{{ GOINPUTNAME[Source].$error.server }}</span>
-</div>
 <div class="form_item_block" ng-show="MaterialType == 'Self' && SourceType == 'Custom'">
-  <label>Source Prefix</label>
+  <label>Source Prefix (the same you defined as destination prefix on publish stage)<span class="asterisk">*</span></label>
   <input type="text" ng-model="SourcePrefix"/>
   <span class="form_error" ng-show="GOINPUTNAME[SourcePrefix].$error.server">{{ GOINPUTNAME[SourcePrefix].$error.server }}</span>
 </div>
 <div class="form_item_block" ng-show="MaterialType == 'Self'">
-    <p>
-        <span ng-show="SourcePrefix">Your artifact sources will be prefixed with {{SourcePrefix}}</span>
-        <span ng-show="!SourcePrefix">Your artifact sources will be prefixed with pipeline/{{Stage}}/{{Job}}/pipelineCounter.{{Stage}}Counter</span>
-    </p>
+  <label>Source (the same you defined as destination on publish stage):<span class="asterisk">*</span></label>
+  <input type="text" ng-model="Source" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Source].$error.server">{{ GOINPUTNAME[Source].$error.server }}</span>
 </div>
 
 <!-- Common Fields -->
