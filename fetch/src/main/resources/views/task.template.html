@@ -3,6 +3,7 @@
   <select ng-model="MaterialType" ng-init="MaterialType = MaterialType || 'Package'" ng-change="clearFields()">
     <option value="Package">Package</option>
     <option value="Pipeline">Pipeline</option>
+    <option value="Self">Self</option>
   </select>
 </div>
 
@@ -30,6 +31,36 @@
   <span class="form_error" ng-show="GOINPUTNAME[Job].$error.server">{{ GOINPUTNAME[Job].$error.server }}</span>
 </div>
 
+<!-- Stage fields -->
+<div class="form_item_block"  ng-show="MaterialType == 'Self'">
+  <label>Source Type:<span class="arterisk">*</span></label>
+  <select ng-model="SourceType" ng-init="SourceType = SourceType || 'Default'" ng-change="clearStageFields()">
+    <option value="Default">Default prefix</option>
+    <option value="Custom">Custom prefix</option>
+  </select>
+</div>
+<div class="form_item_block" ng-show="MaterialType == 'Self' && SourceType == 'Default'">
+  <label>Fetch from stage:<span class="asterisk">*</span></label>
+  <input type="text" ng-model="Stage" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Stage].$error.server">{{ GOINPUTNAME[Stage].$error.server }}</span>
+</div>
+<div class="form_item_block" ng-show="MaterialType == 'Self' && SourceType == 'Default'">
+  <label>Fetch from job:<span class="asterisk">*</span></label>
+  <input type="text" ng-model="Job" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Job].$error.server">{{ GOINPUTNAME[Job].$error.server }}</span>
+</div>
+<div class="form_item_block" ng-show="MaterialType == 'Self' && SourceType == 'Custom'">
+  <label>Source Prefix (the same you defined as destination prefix on publish stage)<span class="asterisk">*</span></label>
+  <input type="text" ng-model="SourcePrefix"/>
+  <span class="form_error" ng-show="GOINPUTNAME[SourcePrefix].$error.server">{{ GOINPUTNAME[SourcePrefix].$error.server }}</span>
+</div>
+<div class="form_item_block" ng-show="MaterialType == 'Self'">
+  <label>Source (the same you defined as destination on publish stage):<span class="asterisk">*</span></label>
+  <input type="text" ng-model="Source" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[Source].$error.server">{{ GOINPUTNAME[Source].$error.server }}</span>
+</div>
+
+<!-- Common Fields -->
 <div class="form_item_block">
   <label>Destination directory:</label>
   <input type="text" ng-model="Destination">
@@ -42,11 +73,19 @@
             try {
                 var $scope = angular.element(document.getElementById("task_angular_pluggable_task_indix_s3fetch")).scope();
                 $scope.$apply(function() {
+
+                    $scope.clearStageFields = function() {
+                        this.Job = null;
+                        this.Stage = null;
+                        this.Source = null;
+                        this.SourcePrefix = null;
+                    }
+
                     $scope.clearFields = function() {
                         this.Repo = null;
                         this.Package = null;
                         this.Material = null;
-                        this.Job = null;
+                        this.clearStageFields();
                     };
                 });
 

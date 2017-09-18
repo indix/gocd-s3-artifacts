@@ -61,6 +61,8 @@ public class FetchTask implements GoPlugin {
             return new PackageFetchExecutor();
         } else if (materialType.equals("Pipeline")) {
             return new PipelineFetchExecutor();
+        } else if (materialType.equals("Self")) {
+            return new SelfFetchExecutor();
         } else {
             throw new IllegalStateException("No such material type: " + materialType);
         }
@@ -122,6 +124,21 @@ public class FetchTask implements GoPlugin {
         job.put("default-value", "");
         job.put("required", false);
         config.put(Constants.JOB, job);
+
+        HashMap stage = new HashMap();
+        stage.put("default-value", "");
+        stage.put("required", false);
+        config.put(Constants.STAGE, stage);
+
+        HashMap source = new HashMap();
+        source.put("default-value", "");
+        source.put("required", false);
+        config.put(Constants.SOURCE, source);
+
+        HashMap sourcePrefix = new HashMap();
+        sourcePrefix.put("default-value", "");
+        sourcePrefix.put("required", false);
+        config.put(Constants.SOURCE_PREFIX, sourcePrefix);
 
         HashMap destination = new HashMap();
         destination.put("default-value", "");
