@@ -1,0 +1,26 @@
+{
+  "name": "gocd-s3-artifacts",
+  "version": "1.0.0",
+  "description": "gocd-s3-artifacts documentation",
+  "scripts": {
+    "docs:prepare": "gitbook install",
+    "docs:watch": "yarn run docs:prepare && gitbook serve",
+    "docs:build": "yarn run docs:prepare && rm -rf _books && gitbook build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/indix/gocd-s3-artifacts.git"
+  },
+  "keywords": [
+    "gocd"
+  ],
+  "author": "Indix",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/indix/gocd-s3-artifacts/issues"
+  },
+  "homepage": "http://oss.indix.com/gocd-s3-artifacts",
+  "devDependencies": {
+    "gitbook-cli": "^2.3.0"
+  }
+}

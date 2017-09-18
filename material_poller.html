@@ -1,0 +1,327 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>Material Poller · GoCD S3 Artifacts</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-anchors/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="fetch.html" />
+    
+    
+    <link rel="prev" href="publish.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+    
+        
+        <li>
+            <a href="http://oss.indix.com/gocd-s3-artifacts" target="_blank" class="custom-link">Home</a>
+        </li>
+    
+        
+        <li>
+            <a href="https://github.com/indix/gocd-s3-artifacts" target="_blank" class="custom-link">Contribute</a>
+        </li>
+    
+    
+
+    
+    <li class="divider"></li>
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="installation.html">
+            
+                <a href="installation.html">
+            
+                    
+                    Installation
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="publish.html">
+            
+                <a href="publish.html">
+            
+                    
+                    Publish
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.4" data-path="material_poller.html">
+            
+                <a href="material_poller.html">
+            
+                    
+                    Material Poller
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" data-path="fetch.html">
+            
+                <a href="fetch.html">
+            
+                    
+                    Fetch
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="." >Material Poller</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="material-poller"><a name="material-poller" class="plugin-anchor" href="#material-poller"><i class="fa fa-link" aria-hidden="true"></i></a>Material Poller</h1>
+<p>This is a package repository plugin that polls S3 for artifacts and triggers the pipeline as appropriate.</p>
+<p>Note: This works with the artifacts published by the Publish plugin. It does not work with artifacts pushed to S3 via other means.</p>
+<h2 id="adding-the-package-repository"><a name="adding-the-package-repository" class="plugin-anchor" href="#adding-the-package-repository"><i class="fa fa-link" aria-hidden="true"></i></a>Adding the package repository</h2>
+<p>The package repository can be configured by heading to <code>Admin -&gt; Package Repositories</code></p>
+<p>In the <code>Add Package Repository</code> form, provide a name for the S3 package repository. This is a unique name to identify the S3 package repository.</p>
+<p>Next, choose <code>s3material</code> as the <code>Type</code> of the package repository. This should bring up a text box to enter the S3 bucket name. Enter the name of the bucket where you want to store the artifacts in this field.</p>
+<p>Use the <code>Check Connection</code> button to verify that the credentials are fine and the provided bucket exists. This state is shown in the following screenshot:</p>
+<p><img src="resources/images/material_configuration.png" alt=""></p>
+<p>Click on <code>Save</code> to add the S3 package repository.</p>
+<h2 id="configuring-as-material"><a name="configuring-as-material" class="plugin-anchor" href="#configuring-as-material"><i class="fa fa-link" aria-hidden="true"></i></a>Configuring as material</h2>
+<p>Once the package has been created, we can add a Package material to any pipeline. The steps for adding the package material to an existing pipeline or to a new one are the same.</p>
+<p>In the <code>Materials</code> tab of a pipeline, choose <code>Add Material</code> and select <code>Package</code>. The <code>Add Material - Package</code> dialog comes up. Here, choose the Repository name (<code>gocd</code> in the example) and choose to define a new package. On doing this, the <code>New Package</code> form comes up.</p>
+<p>Provide an identifiable name for the <code>Package Name</code>. Also configure the <code>Pipeline Name</code>, <code>Stage Name</code> and <code>Job Name</code> based on where we want to get the artifacts from.</p>
+<p>Click on <code>Check Package</code> to ensure that we have entered the right pipeline, stage and job details, and that the artifacts exist on S3.</p>
+<p>This state is shown in the following screenshot:</p>
+<p><img src="resources/images/material_package_configuration.png" alt=""></p>
+<p>Click on <code>Save Package And Material</code> button to save the new package and material.</p>
+<p>Note that the saved package can be reused in other jobs/pipelines.</p>
+<h2 id="trackback-and-artifact-information"><a name="trackback-and-artifact-information" class="plugin-anchor" href="#trackback-and-artifact-information"><i class="fa fa-link" aria-hidden="true"></i></a>Trackback and artifact information</h2>
+<p>Once the material is added, it will poll for new artifacts on S3. If found, a new run of the pipeline will be triggered. The Trackback URL will point to the source pipeline (which may be a different GoCD server) of the artifacts. The trackback URL is set by the publish plugin while pushing the artifacts. </p>
+<p>The material plugin will also set environment variables that identify the source label, S3 bucket, pipeline name, stage name and job name, as shown form the job log output below:</p>
+<pre><code>[go] setting environment variable &apos;GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_LABEL&apos; to value &apos;11.1&apos;
+[go] setting environment variable &apos;GO_REPO_GOCD_TESTPUBLISHS3ARTIFACTS_S3_BUCKET&apos; to value &apos;gocd&apos;
+[go] setting environment variable &apos;GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_PIPELINE_NAME&apos; to value &apos;TestPublish&apos;
+[go] setting environment variable &apos;GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_STAGE_NAME&apos; to value &apos;defaultStage&apos;
+[go] setting environment variable &apos;GO_PACKAGE_GOCD_TESTPUBLISHS3ARTIFACTS_JOB_NAME&apos; to value &apos;defaultJob&apos;
+</code></pre><p>The Fetch plugin, will make use of this information to get the artifacts. This information can also be used to get artifacts from S3 using a custom script if necessary.</p>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="publish.html" class="navigation navigation-prev " aria-label="Previous page: Publish">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="fetch.html" class="navigation navigation-next " aria-label="Next page: Fetch">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"Material Poller","level":"1.4","depth":1,"next":{"title":"Fetch","level":"1.5","depth":1,"path":"fetch.md","ref":"fetch.md","articles":[]},"previous":{"title":"Publish","level":"1.3","depth":1,"path":"publish.md","ref":"publish.md","articles":[]},"dir":"ltr"},"config":{"plugins":["-highlight","anchors","ga"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"ga":{"configuration":"auto","token":"UA-59836563-1"},"anchors":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"GoCD S3 Artifacts","links":{"sidebar":{"Home":"http://oss.indix.com/gocd-s3-artifacts","Contribute":"https://github.com/indix/gocd-s3-artifacts"},"sharing":{"google":"http://oss.indix.com/gocd-s3-artifacts","facebook":"http://oss.indix.com/gocd-s3-artifacts","twitter":"http://oss.indix.com/gocd-s3-artifacts","all":"http://oss.indix.com/gocd-s3-artifacts"}},"gitbook":"*","description":"Documentation for the GoCD S3 artifacts plugins"},"file":{"path":"material_poller.md","mtime":"2017-09-18T09:41:04.013Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2017-09-18T09:43:55.158Z"},"basePath":".","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="gitbook/gitbook.js"></script>
+    <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/gitbook-plugin-ga/plugin.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
