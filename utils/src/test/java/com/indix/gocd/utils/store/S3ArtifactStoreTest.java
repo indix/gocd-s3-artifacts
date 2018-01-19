@@ -4,6 +4,9 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.indix.gocd.models.Artifact;
+import com.indix.gocd.models.BadRevisionStatus;
+import com.indix.gocd.models.RevisionStatus;
 import com.indix.gocd.utils.GoEnvironment;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -20,6 +23,7 @@ import static com.indix.gocd.utils.Constants.AWS_SECRET_ACCESS_KEY;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -113,6 +117,18 @@ public class S3ArtifactStoreTest {
         String prefix = store.getLatestPrefix("pipeline", "stage", "job", "1");
         assertNull(prefix);
     }
+
+    @Test
+    public void shouldReturnBadRevisionStatusOnGetLatest() {
+        ObjectListing listing = new ObjectListing();
+        doReturn(listing).when(mockClient).listObjects(any(ListObjectsRequest.class));
+        S3ArtifactStore store = new S3ArtifactStore(mockClient, "foo-bar");
+
+        RevisionStatus status = store.getLatest(new Artifact("pipeline", "stage", "job"));
+        assertNotNull(status);
+        assertEquals(status instanceof BadRevisionStatus, true);
+    }
+
 
     @Test
     public void shouldReturnTheLatestStageCounter() {
