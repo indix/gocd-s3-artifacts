@@ -13,6 +13,7 @@ cache:
 env:
 - BUILD_LABEL=4.0.${TRAVIS_BUILD_NUMBER}
 before_deploy:
+  - "./publish.sh"
   - "./deploy.sh"
   - nvm install v7.8.0
   - nvm use v7.8.0
