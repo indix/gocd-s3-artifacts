@@ -2,18 +2,29 @@ language: scala
 sudo: false
 jdk:
 - oraclejdk8
-script: "./build.sh"
-before_cache:
-  - find $HOME/.sbt -name "*.lock" | xargs rm
-  - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+# List of environment variables are
+# - SONATYPE_USERNAME
+# - SONATYPE_PASSWORD
+env:
+  global:
+  - secure: AQIag9V6RYSAGyjDp1T9q9mQkuJlVMDBeGa5ihuwJiGlyeYQ9KfcQ9ocJ805NpsANjwjgvisZn4u1y2l9PMQUG614tjFU5+7Vp2wrS6l9f3L7iz+l0cVdn7CAM8MPcb59QTMr90r/uofzOhQZco3SPLz9nHYfIPmPbc+/rTwk7NcXTMJwZBoRqc7BgXG/oJsJPFx3sZPFe4WmtMcJY4Ou4oRXZOvKCp7CCIATdlZg/Jy7v/m4VzJQRmtNa6OE2HZlzk6F3L+4SiTjKzAFF+Rnlxd6RImSHBGeHeOE8ACoRJIl8p3pfKlOW6ta6+9qNrT8ES/6iw6dsfCCKow8RRVktEILP2o2RCcP1omh10B7tPARWZSXDY/tL3pClV74z9w/n6I9jIhDsUxuccvm5m4N984PEg1/do8HZUe7cU+rn9j+koh/cmjDwhaQp6UAYD87lkskvkp2mMsVLsDDmHUqIMicjXJdTpxd302uXYNbfPEJ0A3eqZIHfUBnQkDG2QnJ6k0PzbMFj+gBnAfnaCUlQA4Quq5urrJetTMNMVr7EGFkn9BpMiBrod0CELJy8IiG4NSlS3EqGJBQUAnXJm8pBVpavs0SO/KfQ9T2oVATCj4+1coqsKVrHE2mC6uqSlZLQDAESIlVAtDfJz4ut69GvPFxbwHVUAqmxMsfZTgBoA=
+  - secure: O/tQu0Cop/4wnEoINbsEomAu6bSn1vSFT1dsl0L6ZqkkWn+YstRKdO8MoNOAixu3FvKEGnWZ4hlZy96JiVbui5VS05WOBPSQ0riERsZru64+4hj6QfkgsEAA80C5bUNnbwfubDrkw1uP3X06Hyxv/WAIHk/l1yxQ8x9yhQxMFHmtepOf+dOjfXn/DapeVFVY/MRFl3bbCFIddRMtGuls0/s04JecCbGSlQ6uBVLPE1boDyTmVNhYul34gpV/mkWuR4hxPve4CIKHHo1Twnl+ljz3/11oQzRfLLOqHZ/MC9c7x/93qFw/nMCxN7AY5sSZJHDAg1WIKp6QQiuX2KtLiibvPLn2oiwv+3bpZulBBJZs/L0rQSnvCz8biXBgFc/fK8gzPwesCD2Kg3IDtnySfKW39jD6FQLquS9dfEJQPCuaOggCkcCoeAL+624g9JomEdJyPA/s28NScHSeIuitnFz3QnDv+GAoVgmEpZmVMs1oyFBnSVxfw4srwu3A/y7RIZfVhq6nvCpIusp22g50yBRkJJqUxf2q0cf/8zmLsqYVgR18xtoXzzHqMcH6L3SBsrvy2QWULv1MdKqs4UrRnGy2pNfioU9jvizrHmO9GFXIPt5IfaY5OvDI/ap4YTZu2mf0EwV5CWspiv/gAIiZgWP+01P63RWBSzRPvcc6ksA=
 cache:
   directories:
     - $HOME/.ivy2/cache
     - $HOME/.sbt/boot/
+script: "./build.sh"
+before_cache:
+  - find $HOME/.sbt -name "*.lock" | xargs rm
+  - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+before_install:
+  - openssl aes-256-cbc -pass pass:$SONATYPE_PASSWORD -in .travis/secring.gpg.enc -out local.secring.gpg -d
+  - openssl aes-256-cbc -pass pass:$SONATYPE_PASSWORD -in .travis/pubring.gpg.enc -out local.pubring.gpg -d
+
 env:
 - BUILD_LABEL=4.0.${TRAVIS_BUILD_NUMBER}
 before_deploy:
-  - "./publish.sh"
+  - ".travis/publish.sh"
   - "./deploy.sh"
   - nvm install v7.8.0
   - nvm use v7.8.0

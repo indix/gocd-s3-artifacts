@@ -92,13 +92,16 @@ lazy val fetch = (project in file("fetch")).
 
 lazy val publishSettings = Seq(
   publishMavenStyle := true,
-  pgpSecretRing := file(sys.env.getOrElse("HOME", "~") + "/.gnupg/secring.gpg"),
-  pgpPublicRing := file(sys.env.getOrElse("HOME", "~") + "/.gnupg/pubring.gpg"),
+
+  pgpSecretRing := file("local.secring.gpg"),
+  pgpPublicRing := file("local.pubring.gpg"),
   pgpPassphrase := Some(sys.env.getOrElse("GPG_PASSPHRASE", "").toCharArray),
+
   credentials += Credentials("Sonatype Nexus Repository Manager",
     "oss.sonatype.org",
     System.getenv("SONATYPE_USERNAME"),
     System.getenv("SONATYPE_PASSWORD")),
+
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
     if (isSnapshot.value)
@@ -106,7 +109,9 @@ lazy val publishSettings = Seq(
     else
       Some("releases" at nexus + "service/local/staging/deploy/maven2")
   },
+
   publishArtifact in Test := false,
+  publishArtifact in(Compile, packageSrc) := true,
   pomIncludeRepository := { _ => false },
   pomExtra :=
     <url>https://github.com/indix/utils</url>
