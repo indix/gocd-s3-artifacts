@@ -35,13 +35,14 @@ lazy val commonSettings = Seq(
     Seq(outputFile)
   }.taskValue,
   mappings in (Compile, packageBin) += {
-   (resourceManaged in Compile).value / "plugin.xml" -> "plugin.xml"
+    (resourceManaged in Compile).value / "plugin.xml" -> "plugin.xml"
   },
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 )
 
 lazy val utils = (project in file("utils")).
   settings(commonSettings: _*).
+  settings(publishSettings: _*).
   settings(
     name := "utils",
     crossPaths := false,
@@ -87,3 +88,49 @@ lazy val fetch = (project in file("fetch")).
       junit, mockito
     )
   )
+
+
+lazy val publishSettings = Seq(
+  publishMavenStyle := true,
+
+  pgpSecretRing := file("local.secring.gpg"),
+  pgpPublicRing := file("local.pubring.gpg"),
+  pgpPassphrase := Some(sys.env.getOrElse("GPG_PASSPHRASE", "").toCharArray),
+
+  credentials += Credentials("Sonatype Nexus Repository Manager",
+    "oss.sonatype.org",
+    System.getenv("SONATYPE_USERNAME"),
+    System.getenv("SONATYPE_PASSWORD")),
+
+  publishTo := {
+    val nexus = "https://oss.sonatype.org/"
+    if (isSnapshot.value)
+      Some("snapshots" at nexus + "content/repositories/snapshots")
+    else
+      Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  },
+
+  publishArtifact in Test := false,
+  publishArtifact in(Compile, packageSrc) := true,
+  pomIncludeRepository := { _ => false },
+  pomExtra :=
+    <url>https://github.com/indix/utils</url>
+      <licenses>
+        <license>
+          <name>Apache License</name>
+          <url>https://raw.githubusercontent.com/indix/gocd-s3-artifacts/master/LICENSE</url>
+          <distribution>repo</distribution>
+        </license>
+      </licenses>
+      <scm>
+        <url>git@github.com:indix/gocd-s3-artifacts.git</url>
+        <connection>scm:git:git@github.com:indix/gocd-s3-artifacts.git</connection>
+      </scm>
+      <developers>
+        <developer>
+          <id>indix</id>
+          <name>Indix</name>
+          <url>http://www.indix.com</url>
+        </developer>
+      </developers>
+)
