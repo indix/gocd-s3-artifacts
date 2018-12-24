@@ -6,28 +6,29 @@ jdk:
 # - SONATYPE_USERNAME
 # - SONATYPE_PASSWORD
 env:
-- BUILD_LABEL=4.0.${TRAVIS_BUILD_NUMBER}
+  matrix:
+  - BUILD_LABEL=4.0.${TRAVIS_BUILD_NUMBER}
   global:
-    - secure: kpjH7aTsEKFRw9rcQs7svGeeScUyo084hl+ugyUcgM73r6TMHgr3Y7UwHSGKKpa1JtTkpfUiJZclGbKdoX5NHN8rGMOTuJtcyl9Nwo9aYpIMf0/rFNBlmH/J3PZqWx0cx+1ajggmruOfez5AN9exHcdKV1xVEKvd5PxKaJki5QikdN+pMeXTnUKp4yWV5UlEvbV50+iG0SUdeuKPpTZnM1zqhR2J/1IErXXVoTDmc01AxroHBIpFO7BOpqgui1ID5JjfJtBSdlU4aU31p70keyalsO+yy/BBt7Vwz3T5sCBKWUjA0FJBY6GSV8STEwnT1I7i6McXTJ2Rxe5GNz9PsDQ+KmEwofzFokocq5V3BXqSWhHhLAELpo6YTDoE0eqhaodEIrOc+4AU1ZFTTaARFyqonOjdIqXSZGyRP9JeFo18ZBinZPRpkjtUoiXoQsagS2vwc//+Z4MaIm8MLEYbfZ6SOhSJZpIOtJNj+us4iUJ05nLt0epzMQh2Ih4Qy55leylLz3HMAEMXwGwiBsAYg98t1WPM0TFJ4KCTpM8fkk+EIUW1zmf/GbLQuSw0xbOtbjE+dfTsds7nDUN30jaXoRw1M2KfcRIiPxSDn4YxbxJXVyVrKXoec4Nary3F25cvGYPM3TZOTxmE7SMZAUGF0Geumttbo7Tq2qPWymrV/i4=
-    - secure: CXWDMYkzT4xIjjhP6Y5NchZivTTZLCaJi1B3yKfDRt+ylo+n/zUQH8AYr2W4ZPRpGVDjq+DU6h4FS3U1lc+ggG+5r5mRdbKHjul1bX00TRQxDJmu4+dgkL8id+dazrHYpX33wIyFVQR8wCVhmBec8dfBdfxnNPzkyOM3vdpXBJ9IssgMuILXYfPc828NDR5mdUmtdVw1ycNZMJ0arFbwAXypOTLRuUFA612vRTFRovw+TtoGjBZ0EjG6irko+DrwOOU13afjTlFRyCmGnD1tYPUb/lOQ6N1rP0Elc9dY9weW9SfMsnNDt74XoQaXKrXEx61NTAKfb248ipRGf8Iqmmw79i3ZRQdFoNWPq16vg2BzKaky8cpsaCFD6Q+iHK76pdBSbXgeTz1HVJe9HALT/TCWgIO4PwxqM0yniqGNGreoH+F3IDRApUQZPLKJYu18955BGVArFUSQArLd8gkIsgrfKQm4QAC5H/fQugkS82Lh9hO0Y3t926RKHJU65jCmJMica3kwTQk1l/udjQKAtTRkkJlKsjhkf4XKbm568VwDhW4XxkAedlQhHMeed8o107hFbaGT/zxLpvrpv+RjFTG8eUqswDF9Tp+izmyBvwiQmYFZVJSrmUtyy61rKxhu6bo7VZ2qLogPGz90vgPAli8h4bMmNv3PBz+dblD+Zj4=
+  - secure: WNb8qjMw+svqsW51cZcxvYy3Z8fqJrB3a0x+KjR064qv8Y6xIc+Y/LDG78WHSG6NQemW8RiEVv85ip3VzbXUOq8h4PUlRe/prBSPVcC5ano12NK5E1hUlx7njrGpEtgMYQuh87ByEDcn1UPuKE72RMwELDGmI8FWEV6vaQpCnAtKYcR476g7Nlh2yFSBs+++2mEdRkY9ADLjOv67wLtbpS6KUlevu5V1z73njPqJ2vOkFzO5U1AK9UMUPHnsXqECm/wzPOqQvBp+2JwSBhvHbcK2duJ8DXj3eH0vx9YdCv1FyOGZBLdTRQhBjPOdsicbKir5BDN13l+DdYb0hgLORXLf/QonO+iO+5z5HpkXKsecKcXdE2CqHyOYXkNzhbaNMy6dHVlCdgvRW3lsglo8mL27aNlgcPOhLCV+Linte5QMpPzoUEQaykPTqBnQSVdn9th2SxMxY7mSamCFX8JlOE82hqTF0074GexqLHtLLQmbJKpDsqCddSsCcJ37pjqg/u5XuMPOcLtCgJt2m6dyKC9tEPIfgUO+tRxDaNYjv67XXRHk3yR/h2RqnApgn2QriX93hNUjiADLxx4fxAfNsTQHATYivjD7SH33ryyrR8agNTv3CAvAQH20/NtSXJKtt7k+sr2WcdAZSx8Y7g/sDar5X8wakZwtm/1oOBGgwcg=
+  - secure: PcraIZXoMP9ru/m5k/ztEOTPA+qxkZbQLMxEmdAizVDvnvfVQVxAneCtbjOzb7u773YRpV1qSY2e81uOCzH4cSqp5672e5dHHEyN5LuJLH0DbpbbgVOdKRa9cYLq5pavNeEBZTFrmXGdXLV2U9YdrG0PtSyzSLsCEVEUMhs4f6Y6y2dWJ9SKo0eWlclwYNO2wNoimf6f/ekA43DUDYs6kBlKseZUXNShSkTp2utVq0YnxgfmVffEhdsUGIdKd27aEImZBIGbLrGWqUdhP4vFpF7O+ZvixalmhGpq/4SB9UmbEX9BROvj84brHf3fH3g4W4Ka8UqHK8JQ3JHePx+Y34YXhv/im7aip3yn9U9WLnCOAa7LQt1CHm31mXWmKuAt4G6Qc4J8ch8aqBU9tl4wcp6SNGHYrv7eiq09OKoyYpVe5ZPVHh+PjkHXmznT4ywHCGa68kHYgIL3jO4gYSDxzgYudgOlwC5vU5ipdE/yP460ya28m2PKAnWM+TSbUdSkuZcVcWNgTCUr7KBw4eK3qK/XOqxG7DXsbzZE2I76HozrygubfMpSJc339Q/EsXI67ersjz1aPgXlq/ikppahRufikgu30p8S9TcHd4C7P0ui9HcqWdCRz3mt7GBySfosIN90HdySo+lCrTDG84tm70Hrj9g0K6bJKBTnmYH0pGc=
 cache:
   directories:
-    - $HOME/.ivy2/cache
-    - $HOME/.sbt/boot/
+  - "$HOME/.ivy2/cache"
+  - "$HOME/.sbt/boot/"
 script: "./build.sh"
 before_cache:
-  - find $HOME/.sbt -name "*.lock" | xargs rm
-  - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+- find $HOME/.sbt -name "*.lock" | xargs rm
+- find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
 before_install:
   - openssl aes-256-cbc -pass pass:$SONATYPE_PASSWORD -in .travis/secring.gpg.enc -out local.secring.gpg -d
   - openssl aes-256-cbc -pass pass:$SONATYPE_PASSWORD -in .travis/pubring.gpg.enc -out local.pubring.gpg -d
 before_deploy:
-  - ".travis/publish.sh"
-  - "./deploy.sh"
-  - nvm install v7.8.0
-  - nvm use v7.8.0
-  - npm install -g yarn
-  - "./docs/deploy.sh"
+- ".travis/publish.sh"
+- "./deploy.sh"
+- nvm install v7.8.0
+- nvm use v7.8.0
+- npm install -g yarn
+- "./docs/deploy.sh"
 deploy:
 - provider: releases
   api_key:
