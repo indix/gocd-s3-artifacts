@@ -34,4 +34,14 @@ public class Artifact {
         else
             return prefix();
     }
+
+    @Override
+    public String toString() {
+        return "Artifact{" +
+                "pipelineName='" + pipelineName + '\'' +
+                ", stageName='" + stageName + '\'' +
+                ", jobName='" + jobName + '\'' +
+                ", revision=" + revision.getRevision() +
+                '}';
+    }
 }

@@ -121,4 +121,17 @@ public class GoEnvironment {
                 "Unexpected value in %s environment variable; was %s, but expected one of the following %s",
                 environmentVariable, value, expected);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+        for(String key : environment.keySet()) {
+            buffer.append(key+":"+environment.get(key));
+            buffer.append(";");
+        }
+
+        return "GoEnvironment{" +
+                "environment=" + buffer.toString() +
+                '}';
+    }
 }
