@@ -43,7 +43,7 @@ public class PipelineFetchExecutorTest {
         config = new Config(Maps.builder()
                 .with(Constants.MATERIAL_TYPE, Maps.builder().with("value", "Pipeline").build())
                 .with(Constants.MATERIAL, Maps.builder().with("value", "mymaterial").build())
-                .with(Constants.JOB, Maps.builder().with("value", "job").build())
+                .with(Constants.JOB_NAME, Maps.builder().with("value", "job").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
 
@@ -105,7 +105,7 @@ public class PipelineFetchExecutorTest {
 
         config = new Config(Maps.builder()
                 .with(Constants.MATERIAL, Maps.builder().with("value", "my-material").build())
-                .with(Constants.JOB, Maps.builder().with("value", "job").build())
+                .with(Constants.JOB_NAME, Maps.builder().with("value", "job").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
@@ -125,7 +125,7 @@ public class PipelineFetchExecutorTest {
 
         config = new Config(Maps.builder()
                 .with(Constants.MATERIAL, Maps.builder().with("value", "my.material").build())
-                .with(Constants.JOB, Maps.builder().with("value", "job").build())
+                .with(Constants.JOB_NAME, Maps.builder().with("value", "job").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
@@ -145,7 +145,7 @@ public class PipelineFetchExecutorTest {
 
         config = new Config(Maps.builder()
                 .with(Constants.MATERIAL, Maps.builder().with("value", "my`~!@#$%^&*()-+=[{]}\\|;:'\",<.>/?material").build())
-                .with(Constants.JOB, Maps.builder().with("value", "job").build())
+                .with(Constants.JOB_NAME, Maps.builder().with("value", "job").build())
                 .with(Constants.DESTINATION, Maps.builder().with("value", "artifacts").build())
                 .build());
         TaskExecutionResult result = fetchExecutor.execute(config, mockContext(mockVariables));
