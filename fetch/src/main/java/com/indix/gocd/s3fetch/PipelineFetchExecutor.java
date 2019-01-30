@@ -22,7 +22,7 @@ public class PipelineFetchExecutor extends FetchExecutor {
         String pipelineCounter = locatorParts[1];
         String stage = locatorParts[2];
         String stageCounter = locatorParts[3];
-        String job = config.getJob();
+        String job = config.getJobName();
 
         return env.artifactsLocationTemplate(pipeline, stage, job, pipelineCounter, stageCounter);
     }
@@ -33,8 +33,8 @@ public class PipelineFetchExecutor extends FetchExecutor {
         if (StringUtils.isBlank(config.getMaterial())) {
             errors.put(Constants.MATERIAL, Constants.REQUIRED_FIELD_MESSAGE);
         }
-        if (StringUtils.isBlank(config.getJob())) {
-            errors.put(Constants.JOB, Constants.REQUIRED_FIELD_MESSAGE);
+        if (StringUtils.isBlank(config.getJobName())) {
+            errors.put(Constants.JOB_NAME, Constants.REQUIRED_FIELD_MESSAGE);
         }
         return errors;
     }

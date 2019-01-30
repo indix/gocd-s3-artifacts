@@ -145,6 +145,11 @@ public class FetchTask implements GoPlugin {
         destination.put("required", false);
         config.put(Constants.DESTINATION, destination);
 
+        HashMap jobName = new HashMap();
+        jobName.put("default-value", "");
+        jobName.put("required", false);
+        config.put(Constants.JOB_NAME, jobName);
+
         return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE, config);
     }
 

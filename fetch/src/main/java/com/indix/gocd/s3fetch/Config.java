@@ -15,6 +15,7 @@ public class Config {
     private final String source;
     private final String sourcePrefix;
     private final String destination;
+    private final String jobName;
 
     public String getMaterialType() {
       return materialType;
@@ -52,6 +53,8 @@ public class Config {
         return destination;
     }
 
+    public String getJobName() { return jobName; }
+
     public Config(Map config) {
         materialType = getValue(config, MATERIAL_TYPE);
         repo = getValue(config, REPO);
@@ -62,6 +65,7 @@ public class Config {
         source = getValue(config, SOURCE);
         sourcePrefix = getValue(config, SOURCE_PREFIX);
         destination = getValue(config, DESTINATION);
+        jobName = getValue(config, JOB_NAME);
     }
 
     private String escapeEnvironmentVariable(String value) {

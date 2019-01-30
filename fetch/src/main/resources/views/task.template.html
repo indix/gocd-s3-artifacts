@@ -27,8 +27,8 @@
 </div>
 <div class="form_item_block" ng-show="MaterialType == 'Pipeline'">
   <label>Job:<span class="asterisk">*</span></label>
-  <input type="text" ng-model="Job" ng-required="true">
-  <span class="form_error" ng-show="GOINPUTNAME[Job].$error.server">{{ GOINPUTNAME[Job].$error.server }}</span>
+  <input type="text" ng-model="JobName" ng-required="true">
+  <span class="form_error" ng-show="GOINPUTNAME[JobName].$error.server">{{ GOINPUTNAME[JobName].$error.server }}</span>
 </div>
 
 <!-- Stage fields -->
@@ -85,6 +85,7 @@
                         this.Repo = null;
                         this.Package = null;
                         this.Material = null;
+                        this.JobName = null;
                         this.clearStageFields();
                     };
                 });
