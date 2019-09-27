@@ -1,7 +1,7 @@
 language: scala
 sudo: false
 jdk:
-- oraclejdk8
+- oraclejdk9
 script: "./build.sh"
 before_cache:
   - find $HOME/.sbt -name "*.lock" | xargs rm
