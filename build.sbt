@@ -23,7 +23,7 @@ lazy val root = Project(
 lazy val commonSettings = Seq(
   organization := "com.indix",
   version := appVersion,
-  scalaVersion := "2.10.4",
+  scalaVersion := "2.11.12",
   unmanagedBase := file(".") / "lib",
   libraryDependencies ++= Seq(
     apacheCommons, commonsIo, awsS3, goPluginLibrary, gson, jaxbApi
