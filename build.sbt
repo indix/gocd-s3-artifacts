@@ -38,7 +38,13 @@ lazy val commonSettings = Seq(
   mappings in (Compile, packageBin) += {
    (resourceManaged in Compile).value / "plugin.xml" -> "plugin.xml"
   },
-  javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
+  javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
+  assemblyMergeStrategy in assembly := {
+    case "module-info.class" => MergeStrategy.discard
+    case x =>
+      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      oldStrategy(x)
+  }
 )
 
 lazy val utils = (project in file("utils")).
