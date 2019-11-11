@@ -5,6 +5,7 @@ val awsS3 = "com.amazonaws" % "aws-java-sdk-s3" % "1.11.127"
 val nscalaTime = "com.github.nscala-time" %% "nscala-time" % "2.4.0"
 val gson = "com.google.code.gson" % "gson" % "2.2.3"
 val goPluginLibrary = "cd.go.plugin" % "go-plugin-api" % "17.2.0" % Provided
+val jaxbApi = "javax.xml.bind" % "jaxb-api" % "2.3.0"
 
 val hamcrest = "org.hamcrest" % "hamcrest-all" % "1.3" % Test
 val junit = "junit" % "junit" % "4.12" % Test
@@ -22,10 +23,10 @@ lazy val root = Project(
 lazy val commonSettings = Seq(
   organization := "com.indix",
   version := appVersion,
-  scalaVersion := "2.10.4",
+  scalaVersion := "2.11.12",
   unmanagedBase := file(".") / "lib",
   libraryDependencies ++= Seq(
-    apacheCommons, commonsIo, awsS3, goPluginLibrary, gson
+    apacheCommons, commonsIo, awsS3, goPluginLibrary, gson, jaxbApi
   ),
   resourceGenerators in Compile += Def.task {
     val inputFile = baseDirectory.value / "template" / "plugin.xml"
@@ -37,7 +38,13 @@ lazy val commonSettings = Seq(
   mappings in (Compile, packageBin) += {
    (resourceManaged in Compile).value / "plugin.xml" -> "plugin.xml"
   },
-  javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
+  javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
+  assemblyMergeStrategy in assembly := {
+    case "module-info.class" => MergeStrategy.discard
+    case x =>
+      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      oldStrategy(x)
+  }
 )
 
 lazy val utils = (project in file("utils")).
