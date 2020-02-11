@@ -55,6 +55,8 @@ public class PublishExecutor {
                 }
             }
 
+            // A configured destination prefix is used to deploy files rather than publish artifacts
+            // We want to set metadata only when publishing artifacts
             if(!hasConfigDestinationPrefix(config)) {
                 setMetadata(env, bucket, destinationPrefix, store);
             }

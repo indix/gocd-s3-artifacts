@@ -76,6 +76,11 @@ public class S3PackageMaterialPoller implements GoPlugin {
         S3ArtifactStore artifactStore = s3ArtifactStore(s3Bucket);
         try {
             RevisionStatus revision = artifactStore.getLatest(artifact(packageKeyValuePairs));
+            if (!revision.isValid) {
+                logger.warn("Received invalid revision from artifact store with this message: "+revision.toString());
+                return createResponse(DefaultGoPluginApiResponse.INTERNAL_ERROR, revision.toMap());
+            }
+
             if(new Revision(revision.revision.getRevision()).compareTo(new Revision(previousRevision)) > 0) {
                 return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE, revision.toMap());
             }

@@ -13,6 +13,7 @@ public class RevisionStatus {
     public String tracebackUrl;
     public String user;
     public String revisionLabel;
+    public Boolean isValid = true;
     private static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     public RevisionStatus(Revision revision, Date lastModified, String tracebackUrl, String user) {

@@ -6,7 +6,7 @@ import java.util.Date
 
 import com.amazonaws.services.s3.AmazonS3Client
 import com.google.gson.GsonBuilder
-import com.indix.gocd.models.{Artifact, Revision, RevisionStatus}
+import com.indix.gocd.models.{Artifact, BadRevisionStatus, Revision, RevisionStatus}
 import com.indix.gocd.utils.store.S3ArtifactStore
 import com.thoughtworks.go.plugin.api.request.GoPluginApiRequest
 import org.mockito.Matchers
@@ -66,6 +66,38 @@ class S3PackageMaterialPollerSpec extends FlatSpec with MockitoSugar with org.sc
                   |    }
                   |}
                 """.stripMargin))
+    val resultMap = new GsonBuilder().create.fromJson[AnyRef](result.responseBody(), classOf[Any])
+    assert(result.responseCode() == 200)
+    assert(resultMap == null)
+  }
+
+  it should "handle BadRevisionStatus response from artifact store appropriately" in {
+    val status = new BadRevisionStatus(new Artifact("Pipeline", "Stage", "Job", new Revision("1.1")), "No valid revision found for this artifact")
+    doReturn(status).when(mockS3ArtifactStore).getLatest(Matchers.any[Artifact])
+    val result = sut.handle(getRequest(S3PackageMaterialPoller.REQUEST_LATEST_REVISION_SINCE, """
+                                                                                                |{
+                                                                                                |    "repository-configuration": {
+                                                                                                |        "S3_BUCKET": {
+                                                                                                |            "value": "S3 Bucket"
+                                                                                                |        }
+                                                                                                |    },
+                                                                                                |    "package-configuration": {
+                                                                                                |        "PIPELINE_NAME": {
+                                                                                                |            "value": "Pipeline"
+                                                                                                |        },
+                                                                                                |        "STAGE_NAME": {
+                                                                                                |            "value": "Stage"
+                                                                                                |        },
+                                                                                                |        "JOB_NAME": {
+                                                                                                |            "value": "Job"
+                                                                                                |        }
+                                                                                                |    },
+                                                                                                |    "previous-revision": {
+                                                                                                |        "revision": "1.1",
+                                                                                                |        "timestamp": ""
+                                                                                                |    }
+                                                                                                |}
+                                                                                              """.stripMargin))
     val resultMap = new GsonBuilder().create.fromJson[AnyRef](result.responseBody(), classOf[Any])
     assert(result.responseCode() == 200)
     assert(resultMap == null)

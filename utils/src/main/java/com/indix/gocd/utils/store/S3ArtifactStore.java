@@ -7,10 +7,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
-import com.indix.gocd.models.Artifact;
-import com.indix.gocd.models.ResponseMetadataConstants;
-import com.indix.gocd.models.Revision;
-import com.indix.gocd.models.RevisionStatus;
+import com.indix.gocd.models.*;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.utils.Function;
 import com.indix.gocd.utils.utils.Functions;
@@ -183,6 +180,9 @@ public class S3ArtifactStore {
         ObjectListing listing = client.listObjects(listObjectsRequest);
         if (listing != null) {
             Revision recent = latestOf(listing);
+            if (recent.compareTo(Revision.base()) == 0) {
+                return new BadRevisionStatus(artifact, "No artifacts found which are later than this");
+            }
             Artifact artifactWithRevision = artifact.withRevision(recent);
             GetObjectMetadataRequest objectMetadataRequest = new GetObjectMetadataRequest(bucket, artifactWithRevision.prefixWithRevision());
             ObjectMetadata metadata = client.getObjectMetadata(objectMetadataRequest);

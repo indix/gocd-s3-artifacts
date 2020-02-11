@@ -1,5 +1,7 @@
 package com.indix.gocd.models;
 
+import java.util.Arrays;
+
 public class Revision implements Comparable {
     private String revision;
     private String[] parts;
