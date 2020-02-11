@@ -17,6 +17,7 @@ import com.indix.gocd.utils.utils.Functions;
 import com.indix.gocd.utils.utils.Lists;
 import com.indix.gocd.utils.utils.Maps;
 import org.apache.commons.lang3.StringUtils;
+import com.thoughtworks.go.plugin.api.logging.Logger;
 
 import java.io.File;
 import java.util.Collections;
@@ -26,7 +27,7 @@ import java.util.Map;
 import static com.indix.gocd.utils.Constants.*;
 
 public class S3ArtifactStore {
-
+    private static Logger logger = Logger.getLoggerFor(S3ArtifactStore.class);
     private static Map<String, StorageClass> STORAGE_CLASSES = Maps.<String, StorageClass>builder()
             .with(STORAGE_CLASS_STANDARD, StorageClass.Standard)
             .with(STORAGE_CLASS_STANDARD_IA, StorageClass.StandardInfrequentAccess)
@@ -229,15 +230,20 @@ public class S3ArtifactStore {
 
     public static AmazonS3 getS3client(GoEnvironment env) {
         AmazonS3ClientBuilder amazonS3ClientBuilder = AmazonS3ClientBuilder.standard();
-
+        logger.debug("Instantiating S3 client with following env variables: ");
+        logger.debug(env.toString());
         if (env.has(AWS_REGION)) {
             amazonS3ClientBuilder.withRegion(env.get(AWS_REGION));
         }
         if (env.hasAWSUseIamRole()) {
+            logger.info("S3Artifact's getS3client uses AWS IAM Role");
             amazonS3ClientBuilder.withCredentials(new InstanceProfileCredentialsProvider(false));
         } else if (env.has(AWS_ACCESS_KEY_ID) && env.has(AWS_SECRET_ACCESS_KEY)) {
+            logger.info("S3Artifact's getS3client uses AWS credentials from ENV");
             BasicAWSCredentials basicCreds = new BasicAWSCredentials(env.get(AWS_ACCESS_KEY_ID), env.get(AWS_SECRET_ACCESS_KEY));
             amazonS3ClientBuilder.withCredentials(new AWSStaticCredentialsProvider(basicCreds));
+        } else {
+            logger.warn("S3Artifact's getS3client fallback to default credentials chain");
         }
 
         return amazonS3ClientBuilder.build();

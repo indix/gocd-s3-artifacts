@@ -74,15 +74,16 @@ public class S3PackageMaterialPoller implements GoPlugin {
 
         String s3Bucket = repositoryKeyValuePairs.get(S3_BUCKET);
         S3ArtifactStore artifactStore = s3ArtifactStore(s3Bucket);
+        Artifact artifact = artifact(packageKeyValuePairs);
         try {
-            RevisionStatus revision = artifactStore.getLatest(artifact(packageKeyValuePairs));
+            RevisionStatus revision = artifactStore.getLatest(artifact);
             if(new Revision(revision.revision.getRevision()).compareTo(new Revision(previousRevision)) > 0) {
                 return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE, revision.toMap());
             }
 
             return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE, null);
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            logger.error("Error during handleLatestRevisionSince for "+artifact.toString()+", with msg: "+e.getMessage(), e);
             return createResponse(DefaultGoPluginApiResponse.INTERNAL_ERROR, null);
         }
     }
@@ -92,11 +93,13 @@ public class S3PackageMaterialPoller implements GoPlugin {
         final Map<String, String> packageKeyValuePairs = keyValuePairs(goPluginApiRequest, REQUEST_PACKAGE_CONFIGURATION);
         String s3Bucket = repositoryKeyValuePairs.get(S3_BUCKET);
         S3ArtifactStore artifactStore = s3ArtifactStore(s3Bucket);
+        Artifact artifact = artifact(packageKeyValuePairs);
         try {
-            RevisionStatus revision = artifactStore.getLatest(artifact(packageKeyValuePairs));
+            RevisionStatus revision = artifactStore.getLatest(artifact);
             return createResponse(DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE, revision.toMap());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+            logger.error("Error during getLatestRevision for "+artifact.toString()+", with msg: "+e.getMessage(), e);
             return createResponse(DefaultGoPluginApiResponse.INTERNAL_ERROR, null);
         }
     }
