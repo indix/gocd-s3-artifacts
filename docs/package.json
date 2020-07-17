@@ -22,7 +22,7 @@
   "homepage": "http://oss.indix.com/gocd-s3-artifacts",
   "devDependencies": {
     "gitbook-cli": "^2.3.0",
-    "lodash": "^4.17.13"
+    "lodash": "^4.17.19"
   },
   "dependencies": {
     "npm": "^6.13.4"
